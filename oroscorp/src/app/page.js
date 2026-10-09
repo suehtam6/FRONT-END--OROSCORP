@@ -24,6 +24,7 @@ export default function Home() {
 
   const entrar = (e) => {
     e.preventDefault();
+    router.push("/home");
   };
 
   return (
@@ -65,7 +66,7 @@ export default function Home() {
               </a>
             </div>
 
-            <button type="submit" className={styles.submitButton}>
+            <button onClick={entrar} type="submit" className={styles.submitButton}>
               ENTRAR
             </button>
 
