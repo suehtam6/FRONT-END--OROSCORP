@@ -77,11 +77,11 @@ export default function Home() {
             ♟　EPI
           </a>
 
-          <a href="/gestor" onClick={() => setMenuAberto(false)}>
+          <a href="/cadastrarGestor" onClick={() => setMenuAberto(false)}>
             ♙　GESTOR
           </a>
 
-          <a href="/funcionarios" onClick={() => setMenuAberto(false)}>
+          <a href="/cadastrarFuncionario" onClick={() => setMenuAberto(false)}>
             ♟　FUNCIONÁRIOS
           </a>
         </nav>
@@ -100,7 +100,7 @@ export default function Home() {
         />
       )}
 
-      {/* Dashboard permanece visível */}
+      {}
       <section className={styles.conteudo}>
         <h1>Dashboard</h1>
 

@@ -19,7 +19,7 @@ export default function Home() {
 
   const cadastrar = (e) => {
     e.preventDefault();
-    router.push("/cadastrar");
+    router.push("/cadastrarAdm");
   };
 
   const entrar = (e) => {

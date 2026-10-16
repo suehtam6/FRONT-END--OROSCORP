@@ -1,13 +1,13 @@
 "use client";
 
 /*
-Data : 7 de Outubro de 2026
+Data : 16 de Outubro de 2026
 Objetivo : Tela de cadastro
 Autor : João Pedro e Kaique Carvalho
 */
 
 import { useRouter } from "next/navigation";
-import styles from "../style/cadastrar.module.css";
+import styles from "../style/cadastrarFuncionario.module.css";
 
 export default function Home() {
 
@@ -37,8 +37,8 @@ export default function Home() {
       <section className={styles.cadastroBox}>
 
         <div className={styles.titulo}>
-          <h1>Cadastro do ADM</h1>
-          <p>Preencha os dados para cadastrar um novo gestor no sistema.</p>
+          <h1>Cadastro do Funcionário</h1>
+          <p>Preencha os dados para cadastrar um novo funcionario no sistema.</p>
         </div>
 
         <div className={styles.formulario}>
@@ -83,7 +83,7 @@ export default function Home() {
 
             <div className={styles.campo}>
               <label>
-                CNPJ <span>*</span>
+                CPF <span>*</span>
               </label>
 
               <input
@@ -112,36 +112,6 @@ export default function Home() {
                 type="text"
                 placeholder="Ex: 16/05/2005"
               />
-            </div>
-
-            <div className={styles.campo}>
-              <label>
-                Senha <span>*</span>
-              </label>
-
-              <div className={styles.inputSenha}>
-                <input
-                  type="password"
-                  placeholder="Digite a senha"
-                />
-
-                <span>◉</span>
-              </div>
-            </div>
-
-            <div className={styles.campo}>
-              <label>
-                Confirmar senha <span>*</span>
-              </label>
-
-              <div className={styles.inputSenha}>
-                <input
-                  type="password"
-                  placeholder="Digite a senha novamente"
-                />
-
-                <span>◉</span>
-              </div>
             </div>
 
           </div>
