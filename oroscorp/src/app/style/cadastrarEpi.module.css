@@ -1,0 +1,659 @@
+
+/*
+Data: 20 de Outubro de 2026
+Objetivo: Estilização da tela de cadastro de EPIs
+Autor: João Pedro e Kaique Carvalho
+*/
+
+.pagina {
+  min-height: 100vh;
+  background: #343434;
+  color: #f5f5f5;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* CABEÇALHO */
+
+.cabecalho {
+  width: 100%;
+  height: 103px;
+  padding: 0 8px 0 34px;
+  background: #000;
+  border: 1px solid #292929;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.botaoCircular {
+  width: 60px;
+  height: 60px;
+  border: 3px solid #ff9500;
+  border-radius: 20px;
+  background: transparent;
+  color: #ff9500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.botaoCircular:hover {
+  background: #21180e;
+}
+
+.botaoCircular svg {
+  width: 31px;
+  height: 31px;
+}
+
+.botaoMenu {
+  border-radius: 50%;
+}
+
+.logo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.logoSimbolo {
+  display: block;
+  width: 70px;
+  height: 70px;
+  border: 7px solid #f5f5f5;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.logoTexto {
+  font-size: 34px;
+  font-weight: 400;
+  letter-spacing: -1.5px;
+}
+
+/* CONTEÚDO */
+
+.conteudo {
+  width: 100%;
+  margin: 0 auto;
+  padding: 27px 47px 50px;
+}
+
+.tituloPagina {
+  margin-bottom: 80px;
+}
+
+.tituloPagina h1 {
+  margin: 0 0 9px;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.tituloPagina p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* PAINEL DO FORMULÁRIO */
+
+.formularioPrincipal {
+  width: 100%;
+  min-height: 657px;
+  padding: 40px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  column-gap: 48px;
+  align-items: start;
+
+  background: #111416;
+  border: 1px solid #252c35;
+  border-radius: 16px;
+  box-shadow: 0 12px 35px rgb(0 0 0 / 12%);
+}
+
+.colunaCampos {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.campo {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.campo > label,
+.rotuloImagem {
+  color: #d0d5de;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.obrigatorio {
+  color: #ff4d55;
+  font-weight: 700;
+}
+
+/* CAMPOS COM ÍCONES */
+
+.campoComIcone {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.iconeRedondo {
+  width: 49px;
+  height: 49px;
+  border: 1px solid #303b4c;
+  border-radius: 50%;
+  background: #202a3a;
+  color: #c6d0df;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.iconeRedondo svg {
+  width: 23px;
+  height: 23px;
+}
+
+.campoComIcone input,
+.seletorCor select {
+  width: 100%;
+  min-width: 0;
+  height: 51px;
+  padding: 0 16px;
+  background: #202637;
+  border: 1px solid #303b50;
+  border-radius: 13px;
+  outline: none;
+  color: #f0f2f6;
+  font-family: inherit;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.campoComIcone input::placeholder {
+  color: #8a94a5;
+}
+
+.campoComIcone input:focus,
+.seletorCor select:focus {
+  border-color: #ff9500;
+}
+
+.seletorCor {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.seletorCor select {
+  appearance: none;
+  padding-right: 75px;
+  cursor: pointer;
+}
+
+.seletorCor select option {
+  background: #202637;
+  color: #f0f2f6;
+}
+
+.amostraCor {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 45px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.amostraCor::after {
+  content: "";
+  position: absolute;
+  right: 13px;
+  top: 21px;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid #9ba6b7;
+  border-bottom: 1.5px solid #9ba6b7;
+  transform: rotate(45deg);
+}
+
+.bolinhaCor {
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+}
+
+.corAmarelo {
+  background: #ffbd00;
+}
+
+.corAzul {
+  background: #3584ff;
+}
+
+.corBranco {
+  background: #fff;
+}
+
+.corLaranja {
+  background: #ff7900;
+}
+
+.corPreto {
+  background: #111;
+}
+
+.corVerde {
+  background: #16bd7e;
+}
+
+.corVermelho {
+  background: #ef4444;
+}
+
+/* ÁREA DA FOTO */
+
+.colunaImagem {
+  min-width: 0;
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.caixaImagem {
+  min-width: 0;
+  padding: 20px;
+  border: 1px dashed #303b50;
+  border-radius: 18px;
+  background: #171c26;
+}
+
+.preview {
+  width: 100%;
+  height: 226px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #071014;
+  border: 1px solid #202a36;
+  border-radius: 13px;
+}
+
+.preview > img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ilustracaoCapacete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.ilustracaoCapacete span {
+  font-size: 104px;
+  line-height: 1;
+  filter: drop-shadow(0 10px 5px rgb(0 0 0 / 55%));
+}
+
+.removerImagem {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #aab4c2;
+  color: #1c2532;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.removerImagem svg {
+  width: 18px;
+  height: 18px;
+}
+
+.botaoImagem {
+  width: 100%;
+  height: 43px;
+  margin-top: 16px;
+  border: 1px solid #303b50;
+  border-radius: 12px;
+  background: #202a3a;
+  color: #d0d7e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.botaoImagem svg {
+  width: 17px;
+  height: 17px;
+}
+
+.botaoImagem:hover {
+  background: #29364a;
+  border-color: #ff9500;
+}
+
+/* MENSAGEM */
+
+.mensagem {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  align-self: end;
+  margin: 20px 0;
+  padding: 12px 14px;
+  border: 1px solid #574024;
+  border-radius: 9px;
+  background: #211b14;
+  color: #ffc078;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* BOTÕES */
+
+.acoes {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  align-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 85px;
+}
+
+.botaoCancelar,
+.botaoCadastrar {
+  min-width: 110px;
+  height: 42px;
+  padding: 0 25px;
+  border-radius: 13px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.botaoCancelar {
+  color: #d4dae5;
+  background: #202a3a;
+  border: 1px solid #303b50;
+}
+
+.botaoCancelar:hover {
+  background: #2c374a;
+}
+
+.botaoCadastrar {
+  color: #fff;
+  background: #ff6b0b;
+  border: 1px solid #ff6b0b;
+  box-shadow: 0 5px 15px rgb(255 107 11 / 12%);
+}
+
+.botaoCadastrar:hover {
+  background: #e85c00;
+  border-color: #e85c00;
+}
+
+/* TABLETS */
+
+@media (max-width: 900px) {
+  .cabecalho {
+    height: 78px;
+    padding: 0 18px;
+  }
+
+  .botaoCircular {
+    width: 46px;
+    height: 46px;
+  }
+
+  .logoSimbolo {
+    width: 49px;
+    height: 49px;
+    border-width: 5px;
+  }
+
+  .logoTexto {
+    font-size: 24px;
+  }
+
+  .conteudo {
+    padding: 28px 24px 40px;
+  }
+
+  .tituloPagina {
+    margin-bottom: 38px;
+  }
+
+  .formularioPrincipal {
+    min-height: auto;
+    padding: 25px;
+    column-gap: 24px;
+  }
+
+  .colunaCampos {
+    gap: 22px;
+  }
+
+  .iconeRedondo {
+    width: 42px;
+    height: 42px;
+  }
+
+  .campoComIcone input,
+  .seletorCor select {
+    height: 45px;
+    font-size: 12px;
+  }
+
+  .preview {
+    height: 180px;
+  }
+
+  .caixaImagem {
+    padding: 13px;
+  }
+
+  .acoes {
+    margin-top: 45px;
+  }
+}
+
+/* CELULARES */
+
+@media (max-width: 600px) {
+  .cabecalho {
+    height: 62px;
+    padding: 0 12px;
+  }
+
+  .botaoCircular {
+    width: 37px;
+    height: 37px;
+    border-width: 2px;
+    border-radius: 12px;
+  }
+
+  .botaoMenu {
+    border-radius: 50%;
+  }
+
+  .botaoCircular svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .logo {
+    gap: 6px;
+  }
+
+  .logoSimbolo {
+    width: 35px;
+    height: 35px;
+    border-width: 4px;
+  }
+
+  .logoTexto {
+    font-size: 17px;
+    letter-spacing: -0.8px;
+  }
+
+  .conteudo {
+    padding: 24px 14px 35px;
+  }
+
+  .tituloPagina {
+    margin-bottom: 25px;
+  }
+
+  .tituloPagina h1 {
+    font-size: 23px;
+  }
+
+  .tituloPagina p {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .formularioPrincipal {
+    min-height: auto;
+    padding: 18px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .colunaCampos {
+    width: 100%;
+    gap: 22px;
+  }
+
+  .campo {
+    gap: 9px;
+  }
+
+  .campo > label,
+  .rotuloImagem {
+    font-size: 13px;
+  }
+
+  .campoComIcone {
+    gap: 9px;
+  }
+
+  .iconeRedondo {
+    width: 41px;
+    height: 41px;
+  }
+
+  .iconeRedondo svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .campoComIcone input,
+  .seletorCor select {
+    height: 43px;
+    padding-left: 10px;
+    font-size: 12px;
+    border-radius: 10px;
+  }
+
+  .colunaImagem {
+    width: 100%;
+  }
+
+  .caixaImagem {
+    padding: 12px;
+    border-radius: 13px;
+  }
+
+  .preview {
+    height: 210px;
+  }
+
+  .ilustracaoCapacete span {
+    font-size: 90px;
+  }
+
+  .botaoImagem {
+    height: 42px;
+    font-size: 13px;
+  }
+
+  .acoes {
+    width: 100%;
+    margin-top: 5px;
+    gap: 10px;
+  }
+
+  .botaoCancelar,
+  .botaoCadastrar {
+    flex: 1;
+    min-width: 0;
+    height: 42px;
+    padding: 0 10px;
+    font-size: 12px;
+    border-radius: 10px;
+  }
+
+  .mensagem {
+    margin: 0;
+    font-size: 12px;
+  }
+}
