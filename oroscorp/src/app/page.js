@@ -58,7 +58,7 @@ export default function Home() {
                 className={styles.input}
                 required
               />
-            </div>
+            </div>›
 
             <div className={styles.forgotWrapper}>
               <a onClick={trocarSenha} className={styles.forgot}>

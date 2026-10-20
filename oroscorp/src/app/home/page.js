@@ -73,7 +73,7 @@ export default function Home() {
 
           <p>CADASTROS</p>
 
-          <a href="/epi" onClick={() => setMenuAberto(false)}>
+          <a href="/cadastroEPI" onClick={() => setMenuAberto(false)}>
             ♟　EPI
           </a>
 
