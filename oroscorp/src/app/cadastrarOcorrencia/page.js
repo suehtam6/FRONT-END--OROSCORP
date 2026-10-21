@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -7,168 +8,160 @@ import styles from "../style/cadastrarOcorrencia.module.css";
 export default function CadastrarOcorrencia() {
   const router = useRouter();
   const [menuAberto, setMenuAberto] = useState(false);
-  const [imagem, setImagem] = useState(null);
   const [prioridade, setPrioridade] = useState("Média");
-  const [enviando, setEnviando] = useState(false);
-
+  const [imagem, setImagem] = useState(null);
   const [dados, setDados] = useState({
-    funcionario: "",
-    setor: "",
-    camera: "",
-    tipo: "",
-    data: "",
-    hora: "",
-    status: "Aberta",
-    descricao: "",
+    funcionario: "", setor: "", camera: "", tipo: "",
+    data: "", hora: "", status: "Aberta", descricao: ""
   });
 
   function atualizar(e) {
     setDados({ ...dados, [e.target.name]: e.target.value });
   }
 
-  async function registrar(e) {
+  function registrar(e) {
     e.preventDefault();
-    setEnviando(true);
-
-    try {
-      const formulario = new FormData();
-      Object.entries({ ...dados, prioridade }).forEach(([chave, valor]) =>
-        formulario.append(chave, valor)
-      );
-
-      if (imagem) formulario.append("imagem", imagem);
-
-      console.log("Dados para a API:", Object.fromEntries(formulario));
-      alert("Formulário preenchido! Conecte a API para salvar a ocorrência.");
-    } catch (erro) {
-      console.error("Erro ao registrar:", erro);
-      alert("Não foi possível registrar a ocorrência.");
-    } finally {
-      setEnviando(false);
-    }
+    const formulario = new FormData();
+    Object.entries({ ...dados, prioridade }).forEach(([k, v]) => formulario.append(k, v));
+    if (imagem) formulario.append("imagem", imagem);
+    console.log(Object.fromEntries(formulario));
+    alert("Conecte a API para salvar a ocorrência.");
   }
 
   return (
     <main className={styles.pagina}>
       <header className={styles.header}>
-        <button className={styles.botaoMenu} onClick={() => setMenuAberto(!menuAberto)}>
-          {menuAberto ? "✕" : "☰"}
-        </button>
-        <div className={styles.logo}>
-          <span className={styles.logoIcone} /> OROSCORP
-        </div>
-        <button className={styles.botaoVoltar} onClick={() => router.back()}>←</button>
+        <button onClick={() => setMenuAberto(!menuAberto)}>☰</button>
+        <div className={styles.logo}>◯ OROSCORP</div>
+        <button onClick={() => router.back()}>←</button>
       </header>
 
       {menuAberto && (
-        <>
-          <button className={styles.fundoMenu} onClick={() => setMenuAberto(false)} />
-          <aside className={`${styles.sidebar} ${styles.sidebarAberta}`}>
-            <h3>🟠 CENTRAL</h3>
-            <nav>
-              <a href="/home">▦ DASHBOARD</a>
-              <a href="/setores">▦ SETORES</a>
-              <a href="/cameras">▱ CÂMERAS</a>
-              <a href="/ocorrencias" className={styles.linkSelecionado}>△ OCORRÊNCIAS</a>
-              <a href="/funcionarios">♙ FUNCIONÁRIOS</a>
-              <p>CADASTROS</p>
-              <a href="/cadastrarSetor">♟ SETOR</a>
-              <a href="/cadastrarGestor">♙ GESTOR</a>
-              <a href="/cadastrarFuncionario">♟ FUNCIONÁRIOS</a>
-            </nav>
-            <div className={styles.usuario}>
-              <strong>Administrador</strong>
-              <small>Conta administrativa</small>
-            </div>
-          </aside>
-        </>
+        <aside className={styles.sidebar}>
+          <button onClick={() => setMenuAberto(false)}>✕</button>
+          <h3>🟠 CENTRAL</h3>
+          <a href="/home">Dashboard</a>
+          <a href="/setores">Setores</a>
+          <a href="/cameras">Câmeras</a>
+          <a href="/ocorrencias">Ocorrências</a>
+          <a href="/funcionarios">Funcionários</a>
+          <p>CADASTROS</p>
+          <a href="/cadastrarSetor">Setor</a>
+          <a href="/cadastrarGestor">Gestor</a>
+          <a href="/cadastrarFuncionario">Funcionário</a>
+        </aside>
       )}
 
-      <section className={form.conteudo}>
-        <div className={form.cabecalhoPagina}>
-          <h1>Registrar ocorrência</h1>
-          <p>Registre uma não conformidade com EPIs.</p>
-        </div>
+      <section className={styles.conteudo}>
+        <h1>Registrar ocorrência</h1>
+        <p>Registre manualmente uma não conformidade com EPIs identificada no chão de fábrica.</p>
 
-        <form className={form.painel} onSubmit={registrar}>
-          <div className={form.campos}>
-            {[
-              ["funcionario", "Funcionário", "text"],
-              ["setor", "Setor", "text"],
-              ["camera", "Câmera", "text"],
-              ["tipo", "Tipo de ocorrência", "text"],
-              ["data", "Data", "date"],
-              ["hora", "Hora", "time"],
-            ].map(([nome, rotulo, tipo]) => (
-              <div className={form.campo} key={nome}>
-                <label htmlFor={nome}>{rotulo}{nome !== "camera" && " *"}</label>
-                <input
-                  id={nome}
-                  name={nome}
-                  type={tipo}
-                  value={dados[nome]}
-                  onChange={atualizar}
-                  required={nome !== "camera"}
-                />
+        <form className={styles.painel} onSubmit={registrar}>
+          <div className={styles.layout}>
+            <div className={styles.campos}>
+              <div className={styles.campo}>
+                <label>Funcionário <span>*</span></label>
+                <select name="funcionario" value={dados.funcionario} onChange={atualizar} required>
+                  <option value="">Selecione o funcionário</option>
+                  <option value="1">Funcionário 1</option>
+                  <option value="2">Funcionário 2</option>
+                </select>
               </div>
-            ))}
 
-            <div className={form.campo}>
-              <label>Prioridade</label>
-              <div className={form.prioridades}>
-                {["Baixa", "Média", "Alta", "Crítica"].map((p) => (
-                  <button
-                    type="button"
-                    key={p}
-                    className={`${form.botaoPrioridade} ${prioridade === p ? form.prioridadeAtiva : ""}`}
-                    onClick={() => setPrioridade(p)}
-                  >
-                    {p}
-                  </button>
+              <div className={styles.linha}>
+                <div className={styles.campo}>
+                  <label>Setor <span>*</span></label>
+                  <select name="setor" value={dados.setor} onChange={atualizar} required>
+                    <option value="">Selecione o setor</option>
+                    <option>Produção</option>
+                    <option>Montagem</option>
+                    <option>Manutenção</option>
+                  </select>
+                </div>
+                <div className={styles.campo}>
+                  <label>Câmera</label>
+                  <select name="camera" value={dados.camera} onChange={atualizar}>
+                    <option value="">Sem câmera associada</option>
+                    <option>Câmera 01</option>
+                    <option>Câmera 02</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className={styles.campo}>
+                <label>Tipo de ocorrência <span>*</span></label>
+                <select name="tipo" value={dados.tipo} onChange={atualizar} required>
+                  <option value="">Selecione o tipo</option>
+                  <option>Sem capacete</option>
+                  <option>Sem luvas</option>
+                  <option>Sem óculos</option>
+                  <option>Outros</option>
+                </select>
+              </div>
+
+              <div className={styles.linha}>
+                {["data", "hora"].map((nome) => (
+                  <div className={styles.campo} key={nome}>
+                    <label>{nome === "data" ? "Data" : "Hora"} <span>*</span></label>
+                    <input type={nome === "data" ? "date" : "time"} name={nome}
+                      value={dados[nome]} onChange={atualizar} required />
+                  </div>
                 ))}
               </div>
+
+              <div className={styles.linha}>
+                <div className={styles.campo}>
+                  <label>Prioridade</label>
+                  <div className={styles.prioridades}>
+                    {["Baixa", "Média", "Alta", "Crítica"].map((p) => (
+                      <button type="button" key={p}
+                        className={prioridade === p ? styles.ativo : ""}
+                        onClick={() => setPrioridade(p)}>{p}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className={styles.campo}>
+                  <label>Status inicial</label>
+                  <select name="status" value={dados.status} onChange={atualizar}>
+                    <option>Aberta</option>
+                    <option>Em análise</option>
+                    <option>Resolvida</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
-            <div className={form.campo}>
-              <label htmlFor="status">Status</label>
-              <select id="status" name="status" value={dados.status} onChange={atualizar}>
-                <option value="Aberta">Aberta</option>
-                <option value="Em análise">Em análise</option>
-                <option value="Resolvida">Resolvida</option>
-                <option value="Aguardando identificação">Aguardando identificação</option>
-              </select>
-            </div>
-
-            <div className={`${form.campo} ${form.larguraTotal}`}>
-              <label htmlFor="descricao">Descrição</label>
-              <textarea
-                id="descricao"
-                name="descricao"
-                rows={4}
-                placeholder="Descreva o que aconteceu..."
-                value={dados.descricao}
-                onChange={atualizar}
-              />
-            </div>
-
-            <div className={`${form.campo} ${form.larguraTotal}`}>
-              <label htmlFor="imagem">Imagem da ocorrência</label>
-              <input
-                id="imagem"
-                type="file"
-                accept="image/*"
-                onChange={(e) => setImagem(e.target.files[0])}
-              />
+            <div className={styles.imagemArea}>
+              <label className={styles.upload}>
+                {imagem ? (
+                  <img src={URL.createObjectURL(imagem)} alt="Ocorrência" />
+                ) : (
+                  <div>
+                    <div className={styles.iconeUpload}>♧</div>
+                    <strong>Adicionar print</strong>
+                    <p>Clique para enviar uma imagem<br />ou arraste o arquivo aqui.</p>
+                  </div>
+                )}
+                <input type="file" accept="image/*"
+                  onChange={(e) => setImagem(e.target.files[0] || null)} hidden />
+              </label>
+              <label className={styles.alterar} htmlFor="arquivoExtra">
+                ↥ Alterar imagem
+              </label>
+              <input id="arquivoExtra" type="file" accept="image/*" hidden
+                onChange={(e) => setImagem(e.target.files[0] || null)} />
             </div>
           </div>
 
-          <div className={form.acoes}>
-            <button type="button" className={form.botaoCancelar} onClick={() => router.push("/ocorrencias")}>
-              Cancelar
-            </button>
-            <button type="submit" className={form.botaoRegistrar} disabled={enviando}>
-              {enviando ? "Enviando..." : "Registrar ocorrência"}
-            </button>
+          <div className={styles.descricao}>
+            <label>Descrição</label>
+            <textarea name="descricao" value={dados.descricao} onChange={atualizar}
+              placeholder="Descreva o que foi observado, as circunstâncias e as ações tomadas..." />
+          </div>
+
+          <div className={styles.acoes}>
+            <button type="button" onClick={() => router.push("/ocorrencias")}>Cancelar</button>
+            <button type="submit">♧ Registrar ocorrência</button>
           </div>
         </form>
       </section>

@@ -7,138 +7,142 @@ import styles from "../style/ocorrencias.module.css";
 
 export default function Ocorrencias() {
   const router = useRouter();
-  const [menu, setMenu] = useState(false);
+  const [menuAberto, setMenuAberto] = useState(false);
+  const [ocorrencias, setOcorrencias] = useState([]);
   const [busca, setBusca] = useState("");
   const [filtros, setFiltros] = useState({
-    status: "", origem: "", setor: "", prioridade: "", tipo: "",
+    status: "", origem: "", setor: "", prioridade: "", tipo: ""
   });
 
-  // Substitua pelo retorno da API futuramente
-  const ocorrencias = [];
+  function alterarFiltro(e) {
+    setFiltros({ ...filtros, [e.target.name]: e.target.value });
+  }
 
-  const atualizar = (campo, valor) =>
-    setFiltros({ ...filtros, [campo]: valor });
-
-  const dados = ocorrencias.filter((o) =>
-    [o.id, o.funcionario, o.tipo].some((v) =>
-      String(v ?? "").toLowerCase().includes(busca.toLowerCase())
-    ) && Object.entries(filtros).every(([chave, valor]) =>
-      !valor || o[chave] === valor
-    )
-  );
-
-  const opcoes = {
-    status: ["Aberta", "Em análise", "Resolvida", "Aguardando identificação"],
-    origem: ["IA", "Manual"],
-    setor: ["Soldagem", "Manutenção", "Maquinário", "Almoxarifado"],
-    prioridade: ["Crítica", "Alta", "Média", "Baixa"],
-    tipo: [...new Set(ocorrencias.map((o) => o.tipo).filter(Boolean))],
-  };
-
-  const classe = (valor) =>
-    styles[valor?.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .replace(/\s+/g, "").toLowerCase()] || "";
+  const listaFiltrada = ocorrencias.filter((item) => {
+    const texto = `${item.id} ${item.funcionario} ${item.tipo}`.toLowerCase();
+    const correspondeBusca = texto.includes(busca.toLowerCase());
+    const correspondeFiltros = Object.entries(filtros).every(
+      ([campo, valor]) => !valor || item[campo] === valor
+    );
+    return correspondeBusca && correspondeFiltros;
+  });
 
   return (
     <main className={styles.pagina}>
       <header className={styles.header}>
-        <button onClick={() => setMenu(!menu)}>{menu ? "✕" : "☰"}</button>
-        <strong><span>●</span> OROSCORP</strong>
+        <button onClick={() => setMenuAberto(!menuAberto)}>☰</button>
+        <div className={styles.logo}>◯ OROSCORP</div>
         <button onClick={() => router.back()}>←</button>
       </header>
 
-      {menu && <button className={styles.fundo} onClick={() => setMenu(false)} />}
-
-      <aside className={`${styles.menu} ${menu ? styles.aberto : ""}`}>
-        <h3>● CENTRAL</h3>
-        {[
-          ["DASHBOARD", "/home"],
-          ["SETORES", "/setores"],
-          ["CÂMERAS", "/cameras"],
-          ["OCORRÊNCIAS", "/ocorrencias"],
-          ["FUNCIONÁRIOS", "/funcionarios"],
-          ["CADASTRAR SETOR", "/cadastrarSetor"],
-          ["CADASTRAR GESTOR", "/cadastrarGestor"],
-          ["CADASTRAR FUNCIONÁRIO", "/cadastrarFuncionario"],
-        ].map(([nome, link]) => (
-          <a key={link} href={link}
-            className={nome === "OCORRÊNCIAS" ? styles.selecionado : ""}>
-            {nome}
-          </a>
-        ))}
-        <div className={styles.usuario}>
-          <strong>Administrador</strong>
-          <small>Conta administrativa</small>
-        </div>
-      </aside>
+      {menuAberto && (
+        <aside className={styles.sidebar}>
+          <button onClick={() => setMenuAberto(false)}>✕</button>
+          <h3>🟠 CENTRAL</h3>
+          <a href="/home">Dashboard</a>
+          <a href="/setores">Setores</a>
+          <a href="/cameras">Câmeras</a>
+          <a href="/ocorrencias">Ocorrências</a>
+          <a href="/funcionarios">Funcionários</a>
+          <p>CADASTROS</p>
+          <a href="/cadastrarSetor">Setor</a>
+          <a href="/cadastrarGestor">Gestor</a>
+          <a href="/cadastrarFuncionario">Funcionário</a>
+        </aside>
+      )}
 
       <section className={styles.conteudo}>
-        <div className={styles.titulo}>
+        <div className={styles.tituloPagina}>
           <div>
             <h1>Ocorrências</h1>
-            <p>Todas as detecções de IA e registros manuais de não conformidade com EPIs.</p>
+            <p>Todas as detecções de EPI e registros manuais de não conformidade com EPIs.</p>
           </div>
-          <button className={styles.registrar}
-            onClick={() => router.push("/cadastrarOcorrencia")}>
+          <button
+            className={styles.registrar}
+            onClick={() => router.push("/cadastrarOcorrencia")}
+          >
             + Registrar ocorrência
           </button>
         </div>
 
-        <section className={styles.painel}>
-          <h2>☰ Filtros</h2>
-          <div className={styles.filtros}>
-            <input placeholder="⌕ Buscar..." value={busca}
-              onChange={(e) => setBusca(e.target.value)} />
+        <div className={styles.painelFiltros}>
+          <h3>⚑ Filtros</h3>
 
-            {Object.entries(opcoes).map(([campo, valores]) => (
-              <select key={campo} value={filtros[campo]}
-                onChange={(e) => atualizar(campo, e.target.value)}>
-                <option value="">{{
-                  status: "Todos os status",
-                  origem: "Todas as origens",
-                  setor: "Todos os setores",
-                  prioridade: "Todas as prioridades",
-                  tipo: "Todos os tipos",
-                }[campo]}</option>
-                {valores.map((v) => <option key={v}>{v}</option>)}
+          <div className={styles.filtros}>
+            <input
+              type="search"
+              placeholder="⌕ Buscar..."
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
+
+            {[
+              ["status", "Todos os status", ["Aberta", "Em análise", "Resolvida", "Aguardando identificação"]],
+              ["origem", "Todas as origens", ["IA", "Manual"]],
+              ["setor", "Todos os setores", ["Produção", "Montagem", "Manutenção", "Soldagem"]],
+              ["prioridade", "Todas as prioridades", ["Baixa", "Média", "Alta", "Crítica"]],
+              ["tipo", "Todos os tipos", ["Ausência de capacete", "Ausência de luvas", "Ausência de colete"]]
+            ].map(([nome, titulo, opcoes]) => (
+              <select
+                key={nome}
+                name={nome}
+                value={filtros[nome]}
+                onChange={alterarFiltro}
+              >
+                <option value="">{titulo}</option>
+                {opcoes.map((opcao) => (
+                  <option key={opcao} value={opcao}>{opcao}</option>
+                ))}
               </select>
             ))}
           </div>
-        </section>
+        </div>
 
-        <section className={styles.painel}>
-          <p className={styles.contagem}>{dados.length} ocorrências</p>
-          <div className={styles.tabela}>
+        <div className={styles.painelTabela}>
+          <p className={styles.quantidade}>
+            {listaFiltrada.length} ocorrências
+          </p>
+
+          <div className={styles.tabelaScroll}>
             <table>
               <thead>
                 <tr>
-                  {["ID", "FUNCIONÁRIO", "TIPO", "SETOR", "ORIGEM",
-                    "PRIORIDADE", "STATUS", "DATA / HORA"].map((t) =>
-                    <th key={t}>{t}</th>
-                  )}
+                  <th>ID</th>
+                  <th>FUNCIONÁRIO</th>
+                  <th>TIPO</th>
+                  <th>SETOR</th>
+                  <th>ORIGEM</th>
+                  <th>PRIORIDADE</th>
+                  <th>STATUS</th>
+                  <th>DATA / HORA</th>
                 </tr>
               </thead>
+
               <tbody>
-                {dados.length ? dados.map((o, i) => (
-                  <tr key={o.id ?? i}>
-                    <td>#{o.id}</td>
-                    <td>{o.funcionario || "Não identificado"}</td>
-                    <td>{o.tipo || "—"}</td>
-                    <td>{o.setor || "—"}</td>
-                    <td><span className={`${styles.etiqueta} ${classe(o.origem)}`}>{o.origem || "—"}</span></td>
-                    <td><span className={`${styles.etiqueta} ${classe(o.prioridade)}`}>{o.prioridade || "—"}</span></td>
-                    <td><span className={`${styles.etiqueta} ${classe(o.status)}`}>{o.status || "—"}</span></td>
-                    <td>{o.data || "—"}</td>
+                {listaFiltrada.length > 0 ? (
+                  listaFiltrada.map((item) => (
+                    <tr key={item.id}>
+                      <td className={styles.id}>#{item.id}</td>
+                      <td>{item.funcionario}</td>
+                      <td>{item.tipo}</td>
+                      <td>{item.setor}</td>
+                      <td><span className={styles.etiqueta}>{item.origem}</span></td>
+                      <td><span className={styles.etiqueta}>{item.prioridade}</span></td>
+                      <td><span className={styles.etiqueta}>{item.status}</span></td>
+                      <td>{item.data} {item.hora}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="8" className={styles.vazio}>
+                      Nenhuma ocorrência encontrada.
+                    </td>
                   </tr>
-                )) : (
-                  <tr><td colSpan={8} className={styles.vazio}>
-                    Nenhuma ocorrência encontrada.
-                  </td></tr>
                 )}
               </tbody>
             </table>
           </div>
-        </section>
+        </div>
       </section>
     </main>
   );
