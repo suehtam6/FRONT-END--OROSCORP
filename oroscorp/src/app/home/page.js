@@ -5,11 +5,16 @@
 Data: 9 de Outubro de 2026
 Objetivo: Página Home
 Autor: João Pedro e Kaique Carvalho
+
+Autor JS: Matheus Lucas
+Data: 27 de Outubro de 2026
+Objetivo: Transformar a tela em dinamica
 */
 
 import { useState } from "react";
-import Shell from "../components/Shell";
 import styles from "../style/home.module.css";
+import Menu from "@/app/components/menu.js";
+
 
 export default function Home() {
   const [menuAberto, setMenuAberto] = useState(false);
@@ -26,7 +31,27 @@ export default function Home() {
   const ocorrencias = [];
 
   return (
-    <Shell><section className={styles.conteudo}>
+    <main className={styles.pagina}>
+      <header className={styles.topo}>
+        <button
+          className={styles.menu}
+          aria-label="Abrir ou fechar menu"
+          aria-expanded={menuAberto}
+          onClick={() => setMenuAberto(!menuAberto)}
+        >
+          ☰
+        </button>
+
+        <div className={styles.logo}>
+          <span />
+          OROSCORP
+        </div>
+      </header>
+
+      <Menu aberto={menuAberto} aoFechar={() => setMenuAberto(false)} />
+
+
+      <section className={styles.conteudo}>
         <h1>Dashboard</h1>
 
         <p className={styles.subtitulo}>
@@ -171,6 +196,6 @@ export default function Home() {
           </article>
         </section>
       </section>
-    </Shell>
+    </main>
   );
 }
