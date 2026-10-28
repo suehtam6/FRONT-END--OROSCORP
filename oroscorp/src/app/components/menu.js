@@ -28,7 +28,13 @@ const CADASTROS = [
 
 export default function Menu({ aberto = false, aoFechar }) {
   const pathname = usePathname();
-
+  const router = useRouter();
+  
+  const handleVoltar = (e) => {
+    e.preventDefault();
+    router.push("/");
+  };
+    
   const fechar = () => aoFechar?.();
 
   // Marca com aria-current a página em que a pessoa está (dá para estilizar no CSS).
@@ -63,7 +69,7 @@ export default function Menu({ aberto = false, aoFechar }) {
 
         <PerfilUsuario />
 
-        <button onClick={() => router.push("/")}>
+        <button className={styles.btnSair} onClick={handleVoltar}>
             Sair da conta
           </button>
       </aside>

@@ -9,7 +9,11 @@ import Menu from "./menu";
 // se elas já estiverem sendo renderizadas por dentro do componente "./menu"
 
 export default function Shell({ children, voltar = true }) {
+  const [aberto, setAberto] = useState(false);
   const router = useRouter();
+    
+
+
   const path = usePathname();
   
   // Usaremos apenas este estado para controlar o Menu

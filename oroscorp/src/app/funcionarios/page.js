@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Shell from "../components/Shell";
 import s from "../style/novas.module.css";
-import Menu from "../components/menu";
+
 
 export default function Funcionarios() {
   const router = useRouter();
