@@ -8,6 +8,7 @@ Autor: João Pedro e Kaique Carvalho
 */
 
 import { useState } from "react";
+import Shell from "../components/Shell";
 import styles from "../style/home.module.css";
 
 export default function Home() {
@@ -25,83 +26,7 @@ export default function Home() {
   const ocorrencias = [];
 
   return (
-    <main className={styles.pagina}>
-      <header className={styles.topo}>
-        <button
-          className={styles.menu}
-          aria-label="Abrir ou fechar menu"
-          aria-expanded={menuAberto}
-          onClick={() => setMenuAberto(!menuAberto)}
-        >
-          ☰
-        </button>
-
-        <div className={styles.logo}>
-          <span />
-          OROSCORP
-        </div>
-      </header>
-
-      {/* Menu lateral: aparece somente quando o hambúrguer é clicado */}
-      <aside
-        className={`${styles.sidebar} ${
-          menuAberto ? styles.sidebarAberta : ""
-        }`}
-      >
-        <h3>🟠 CENTRAL</h3>
-
-        <nav>
-          <a href="/home" onClick={() => setMenuAberto(false)}>
-            ▦　DASHBOARD
-          </a>
-
-          <a href="/setores" onClick={() => setMenuAberto(false)}>
-            ▦　SETORES
-          </a>
-
-          <a href="/cameras" onClick={() => setMenuAberto(false)}>
-            ▱　CÂMERAS
-          </a>
-
-          <a href="/ocorrencias" onClick={() => setMenuAberto(false)}>
-            △　OCORRÊNCIAS
-          </a>
-
-          <a href="/funcionarios" onClick={() => setMenuAberto(false)}>
-            ♙　FUNCIONÁRIOS
-          </a>
-
-          <p>CADASTROS</p>
-
-          <a href="/cadastroEPI" onClick={() => setMenuAberto(false)}>
-            ♟　EPI
-          </a>
-
-          <a href="/cadastrarGestor" onClick={() => setMenuAberto(false)}>
-            ♙　GESTOR
-          </a>
-
-          <a href="/cadastrarFuncionario" onClick={() => setMenuAberto(false)}>
-            ♟　FUNCIONÁRIOS
-          </a>
-        </nav>
-
-        <div className={styles.usuario}>
-          <strong>Administrador</strong>
-          <small>Conta administrativa</small>
-        </div>
-      </aside>
-
-      {/* Fundo escuro ao abrir o menu */}
-      {menuAberto && (
-        <div
-          className={styles.fundoMenu}
-          onClick={() => setMenuAberto(false)}
-        />
-      )}
-
-      {}
-      <section className={styles.conteudo}>
+    <Shell><section className={styles.conteudo}>
         <h1>Dashboard</h1>
 
         <p className={styles.subtitulo}>
@@ -246,6 +171,6 @@ export default function Home() {
           </article>
         </section>
       </section>
-    </main>
+    </Shell>
   );
 }

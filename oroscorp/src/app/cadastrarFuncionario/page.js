@@ -1,145 +1,200 @@
+
 "use client";
 
-/*
-Data : 16 de Outubro de 2026
-Objetivo : Tela de cadastro
-Autor : João Pedro e Kaique Carvalho
-*/
-
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Shell from "../components/Shell";
 import styles from "../style/cadastrarFuncionario.module.css";
 
-export default function Home() {
-
+export default function CadastrarFuncionario() {
   const router = useRouter();
 
-  const cancelarCadastro = (e) => {
-    e.preventDefault();
-    router.back();
-  };
+  const [foto, setFoto] = useState(null);
+  const [preview, setPreview] = useState("");
+  const [mensagem, setMensagem] = useState("");
 
-  const finalizarCadastro = (e) => {
-    e.preventDefault();
-    router.back();
-  };
+  const [dados, setDados] = useState({
+    nome: "",
+    email: "",
+    confirmarEmail: "",
+    cpf: "",
+    nascimento: ""
+  });
+
+  useEffect(() => {
+    if (!foto) {
+      setPreview("");
+      return;
+    }
+
+    const url = URL.createObjectURL(foto);
+    setPreview(url);
+
+    return () => URL.revokeObjectURL(url);
+  }, [foto]);
+
+  function atualizar(evento) {
+    setDados({
+      ...dados,
+      [evento.target.name]: evento.target.value
+    });
+    setMensagem("");
+  }
+
+  function cadastrar(evento) {
+    evento.preventDefault();
+
+    if (dados.email !== dados.confirmarEmail) {
+      setMensagem("Os e-mails não são iguais.");
+      return;
+    }
+
+    // O envio para a API será implementado aqui.
+    setMensagem("Dados validados. Cadastro aguardando integração com a API.");
+  }
 
   return (
-    <main className={styles.container}>
-
-      <header className={styles.header}>
-        <img
-          src="/logo-oroscorp.png"
-          alt="Oroscorp"
-          className={styles.logo}
-        />
-      </header>
-
-      <section className={styles.cadastroBox}>
-
-        <div className={styles.titulo}>
-          <h1>Cadastro do Funcionário</h1>
-          <p>Preencha os dados para cadastrar um novo funcionario no sistema.</p>
-        </div>
-
-        <div className={styles.formulario}>
-
-          <div className={styles.fotoArea}>
-            <div className={styles.fotoIcone}>
-              <span>👤</span>
+    <Shell voltar={false}>
+      <main className={styles.container}>
+        <section className={styles.cadastroBox}>
+          <div className={styles.titulo}>
+            <div>
+              <h1>Cadastro do Funcionário</h1>
+              <p>Preencha os dados para cadastrar um novo funcionário no sistema.</p>
             </div>
 
-            <strong>Adicionar foto</strong>
-
-            <p>
-              Clique para enviar uma imagem
-              <br />
-              ou arraste o arquivo aqui.
-            </p>
+            <button
+              type="button"
+              className={styles.sair}
+              onClick={() => router.push("/home")}
+            >
+              SAIR
+            </button>
           </div>
 
-          <div className={styles.campos}>
+          <form onSubmit={cadastrar}>
+            <div className={styles.formulario}>
+              <div className={styles.fotoColuna}>
+                <label className={styles.fotoArea}>
+                  {preview ? (
+                    <img
+                      src={preview}
+                      alt="Foto do funcionário"
+                      className={styles.previewImagem}
+                    />
+                  ) : (
+                    <div className={styles.fotoTexto}>
+                      <strong>Adicionar foto</strong>
+                      <p>Clique para selecionar uma imagem</p>
+                    </div>
+                  )}
 
-            <div className={styles.campo}>
-              <label>
-                Nome completo <span>*</span>
-              </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={(e) =>
+                      setFoto(e.target.files?.[0] || null)
+                    }
+                  />
+                </label>
 
-              <input
-                type="text"
-                placeholder="Digite o nome completo"
-              />
+                {foto && (
+                  <button
+                    type="button"
+                    className={styles.removerFoto}
+                    onClick={() => setFoto(null)}
+                  >
+                    Remover foto
+                  </button>
+                )}
+              </div>
+
+              <div className={styles.campos}>
+                <div className={styles.campo}>
+                  <label htmlFor="nome">Nome completo <span>*</span></label>
+                  <input
+                    id="nome"
+                    name="nome"
+                    value={dados.nome}
+                    onChange={atualizar}
+                    placeholder="Digite o nome completo"
+                    required
+                  />
+                </div>
+
+                <div className={styles.campo}>
+                  <label htmlFor="email">E-mail <span>*</span></label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={dados.email}
+                    onChange={atualizar}
+                    placeholder="exemplo@dominio.com"
+                    required
+                  />
+                </div>
+
+                <div className={styles.campo}>
+                  <label htmlFor="cpf">CPF <span>*</span></label>
+                  <input
+                    id="cpf"
+                    name="cpf"
+                    value={dados.cpf}
+                    onChange={atualizar}
+                    placeholder="000.000.000-00"
+                    required
+                  />
+                </div>
+
+                <div className={styles.campo}>
+                  <label htmlFor="confirmarEmail">Confirmar e-mail <span>*</span></label>
+                  <input
+                    id="confirmarEmail"
+                    name="confirmarEmail"
+                    type="email"
+                    value={dados.confirmarEmail}
+                    onChange={atualizar}
+                    placeholder="Digite o e-mail novamente"
+                    required
+                  />
+                </div>
+
+                <div className={styles.campo}>
+                  <label htmlFor="nascimento">Data de nascimento <span>*</span></label>
+                  <input
+                    id="nascimento"
+                    name="nascimento"
+                    type="date"
+                    value={dados.nascimento}
+                    onChange={atualizar}
+                    required
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className={styles.campo}>
-              <label>
-                E-mail <span>*</span>
-              </label>
+            {mensagem && (
+              <p className={styles.mensagem} role="status">{mensagem}</p>
+            )}
 
-              <input
-                type="email"
-                placeholder="exemplo@dominio.com"
-              />
+            <div className={styles.botoes}>
+              <button
+                type="button"
+                className={styles.cancelar}
+                onClick={() => router.push("/home")}
+              >
+                CANCELAR
+              </button>
+
+              <button type="submit" className={styles.cadastrar}>
+                CADASTRAR FUNCIONÁRIO
+              </button>
             </div>
-
-            <div className={styles.campo}>
-              <label>
-                CPF <span>*</span>
-              </label>
-
-              <input
-                type="text"
-                placeholder="00.000.000/000-00"
-              />
-            </div>
-
-            <div className={styles.campo}>
-              <label>
-                Confirmar e-mail <span>*</span>
-              </label>
-
-              <input
-                type="email"
-                placeholder="Digite o e-mail novamente"
-              />
-            </div>
-
-            <div className={styles.campo}>
-              <label>
-                Data de nascimento <span>*</span>
-              </label>
-
-              <input
-                type="text"
-                placeholder="Ex: 16/05/2005"
-              />
-            </div>
-
-          </div>
-
-        </div>
-
-        <div className={styles.botoes}>
-
-          <button
-            type="button"
-            className={styles.cancelar}
-            onClick={cancelarCadastro}
-          >
-            CANCELAR
-          </button>
-
-          <button
-            type="button"
-            className={styles.cadastrar}
-            onClick={finalizarCadastro}
-          >
-            CADASTRAR
-          </button>
-
-        </div>
-
-      </section>
-
-    </main>
+          </form>
+        </section>
+      </main>
+    </Shell>
   );
 }

@@ -1,336 +1,236 @@
 
 "use client";
 
-/*
-Data: 20 de Outubro de 2026
-Objetivo: Página de cadastro de câmeras
-Autor: João Pedro e Kaique Carvalho
-*/
-
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Shell from "../components/Shell";
 import styles from "../style/cadastrarCamera.module.css";
 
-function Icone({ tipo }) {
-  const props = {
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.8,
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
-    "aria-hidden": true,
-  };
+export default function CadastrarCamera() {
+  const router = useRouter();
 
-  switch (tipo) {
-    case "menu":
-      return (
-        <svg {...props}>
-          <path d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      );
+  const [imagem, setImagem] = useState(null);
+  const [dados, setDados] = useState({
+    nome: "",
+    endereco: "",
+    setor: "",
+    localizacao: "",
+    descricao: "",
+    status: "Online"
+  });
 
-    case "voltar":
-      return (
-        <svg {...props}>
-          <path
-            d="M10 5 3 12l7 7v-4h11V9H10V5Z"
-            fill="currentColor"
-          />
-        </svg>
-      );
+  // Os setores serão carregados pela API
+  const setores = [];
 
-    case "camera":
-      return (
-        <svg {...props}>
-          <rect x="3" y="6" width="13" height="12" rx="2" />
-          <path d="m16 10 5-3v10l-5-3" />
-        </svg>
-      );
-
-    case "descricao":
-      return (
-        <svg {...props}>
-          <path d="M6 3h9l5 5v13H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
-          <path d="M14 3v6h6M8 13h7M8 17h5" />
-        </svg>
-      );
-
-    case "ip":
-      return (
-        <svg {...props}>
-          <circle cx="18" cy="5" r="3" />
-          <circle cx="6" cy="12" r="3" />
-          <circle cx="18" cy="19" r="3" />
-          <path d="m8.7 10.5 6.6-4M8.7 13.5l6.6 4" />
-        </svg>
-      );
-
-    case "setor":
-      return (
-        <svg {...props}>
-          <rect x="5" y="3" width="14" height="18" rx="1" />
-          <path d="M9 7h2m2 0h2M9 11h2m2 0h2M9 15h2m2 0h2M10 21v-3h4v3" />
-        </svg>
-      );
-
-    case "video":
-      return (
-        <svg {...props}>
-          <rect
-            x="3"
-            y="6"
-            width="13"
-            height="12"
-            rx="2"
-            fill="currentColor"
-          />
-          <path
-            d="m16 10 5-3v10l-5-3Z"
-            fill="currentColor"
-          />
-        </svg>
-      );
-
-    default:
-      return null;
-  }
-}
-
-function Campo({ tipo, titulo, children, obrigatorio = false }) {
-  return (
-    <div className={styles.campo}>
-      <span className={styles.iconeCampo}>
-        <Icone tipo={tipo} />
-      </span>
-
-      <div className={styles.conteudoCampo}>
-        <label>
-          {titulo}
-          {obrigatorio && (
-            <span className={styles.obrigatorio}> *</span>
-          )}
-        </label>
-
-        {children}
-      </div>
-    </div>
-  );
-}
-
-export default function CadastroCamera() {
-  const [nome, setNome] = useState("Câmera 01");
-  const [descricao, setDescricao] = useState(
-    "Entrada do almoxarifado"
-  );
-  const [endereco, setEndereco] = useState(
-    "rtsp://192.168.1.101/stream"
-  );
-  const [setor, setSetor] = useState("Almoxarifado");
-  const [status, setStatus] = useState("ativa");
-  const [mensagem, setMensagem] = useState("");
-
-  function cancelar() {
-    setNome("");
-    setDescricao("");
-    setEndereco("");
-    setSetor("");
-    setStatus("ativa");
-    setMensagem("");
+  function atualizar(e) {
+    setDados({
+      ...dados,
+      [e.target.name]: e.target.value
+    });
   }
 
-  function cadastrar(event) {
-    event.preventDefault();
+  function registrar(e) {
+    e.preventDefault();
 
-    setMensagem(
-      `Câmera "${nome}" preenchida com sucesso! A integração com a API ainda não foi implementada.`
-    );
+    const formulario = new FormData();
+
+    Object.entries(dados).forEach(([chave, valor]) => {
+      formulario.append(chave, valor);
+    });
+
+    if (imagem) {
+      formulario.append("imagem", imagem);
+    }
+
+    console.log("Dados da câmera:", Object.fromEntries(formulario));
+    alert("Formulário pronto! Conecte a API para salvar a câmera.");
   }
 
   return (
-    <main className={styles.pagina}>
-      <header className={styles.cabecalho}>
-        <button
-          type="button"
-          className={`${styles.botaoCircular} ${styles.botaoMenu}`}
-          aria-label="Abrir menu"
-        >
-          <Icone tipo="menu" />
-        </button>
-
-        <a href="/" className={styles.logo} aria-label="OrosCorp">
-          <span className={styles.logoSimbolo} />
-          <span className={styles.logoTexto}>OROSCORP</span>
-        </a>
-
-        <button
-          type="button"
-          className={styles.botaoCircular}
-          aria-label="Voltar"
-          onClick={() => window.history.back()}
-        >
-          <Icone tipo="voltar" />
-        </button>
-      </header>
-
-      <section className={styles.conteudo}>
-        <div className={styles.tituloPagina}>
-          <h1>Cadastro de Câmeras</h1>
+    <Shell>
+      <main className={styles.pagina}>
+        <div className={styles.titulo}>
+          <h1>Cadastrar Câmera</h1>
           <p>
-            Cadastre e configure as câmeras de monitoramento da empresa.
+            Preencha as informações para cadastrar
+            uma nova câmera de monitoramento.
           </p>
         </div>
 
-        <form className={styles.formulario} onSubmit={cadastrar}>
-          <div className={styles.colunaCampos}>
-            <Campo
-              tipo="camera"
-              titulo="Nome da câmera"
-              obrigatorio
-            >
-              <input
-                type="text"
-                placeholder="Digite o nome da câmera"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                required
-              />
-            </Campo>
+        <form className={styles.painel} onSubmit={registrar}>
+          <div className={styles.layout}>
 
-            <Campo tipo="descricao" titulo="Descrição">
-              <input
-                type="text"
-                placeholder="Descreva a localização da câmera"
-                value={descricao}
-                onChange={(e) => setDescricao(e.target.value)}
-              />
-            </Campo>
+            {/* CAMPOS DO FORMULÁRIO */}
+            <div className={styles.campos}>
+              <h2>Informações da câmera</h2>
 
-            <Campo tipo="ip" titulo="Endereço / IP" obrigatorio>
-              <input
-                type="text"
-                placeholder="rtsp://192.168.1.101/stream"
-                value={endereco}
-                onChange={(e) => setEndereco(e.target.value)}
-                required
-              />
-            </Campo>
+              <div className={styles.campo}>
+                <label>Nome da câmera <span>*</span></label>
+                <input
+                  type="text"
+                  name="nome"
+                  placeholder="Ex: Câmera 01"
+                  value={dados.nome}
+                  onChange={atualizar}
+                  required
+                />
+              </div>
 
-            <Campo tipo="setor" titulo="Setor" obrigatorio>
-              <div className={styles.seletor}>
+              <div className={styles.campo}>
+                <label>Endereço IP <span>*</span></label>
+                <input
+                  type="text"
+                  name="endereco"
+                  placeholder="Ex: 192.168.0.10"
+                  value={dados.endereco}
+                  onChange={atualizar}
+                  required
+                />
+              </div>
+
+              <div className={styles.campo}>
+                <label>Setor <span>*</span></label>
                 <select
-                  value={setor}
-                  onChange={(e) => setSetor(e.target.value)}
+                  name="setor"
+                  value={dados.setor}
+                  onChange={atualizar}
                   required
                 >
-                  <option value="">Selecione um setor</option>
-                  <option value="Almoxarifado">Almoxarifado</option>
-                  <option value="Soldagem">Soldagem</option>
-                  <option value="Maquinário">Maquinário</option>
-                  <option value="Manutenção">Manutenção</option>
-                  <option value="Expedição">Expedição</option>
-                  <option value="Químicos">Químicos</option>
+                  <option value="">Selecione o setor</option>
+                  {setores.map((setor) => (
+                    <option key={setor.id} value={setor.id}>
+                      {setor.nome}
+                    </option>
+                  ))}
                 </select>
               </div>
-            </Campo>
 
-            <fieldset className={styles.caixaStatus}>
-              <legend>
-                <Icone tipo="video" />
-                <span>Status</span>
-              </legend>
-
-              <label className={styles.opcaoStatus}>
+              <div className={styles.campo}>
+                <label>Localização</label>
                 <input
-                  type="radio"
-                  name="status"
-                  value="ativa"
-                  checked={status === "ativa"}
-                  onChange={(e) => setStatus(e.target.value)}
+                  type="text"
+                  name="localizacao"
+                  placeholder="Ex: Entrada principal, Galpão A"
+                  value={dados.localizacao}
+                  onChange={atualizar}
                 />
-                <span className={styles.radioVisual} />
-                Ativa
-              </label>
-
-              <label className={styles.opcaoStatus}>
-                <input
-                  type="radio"
-                  name="status"
-                  value="inativa"
-                  checked={status === "inativa"}
-                  onChange={(e) => setStatus(e.target.value)}
-                />
-                <span className={styles.radioVisual} />
-                Inativa
-              </label>
-            </fieldset>
-          </div>
-
-          <div className={styles.colunaPreview}>
-            <div className={styles.previewCamera}>
-              <div className={styles.iconeVideo}>
-                <Icone tipo="video" />
               </div>
 
-              <div className={styles.cenario}>
-                <div className={styles.teto} />
-
-                <div
-                  className={`${styles.prateleira} ${styles.prateleiraUm}`}
+              <div className={styles.campo}>
+                <label>Descrição</label>
+                <textarea
+                  name="descricao"
+                  placeholder="Descreva a localização e a finalidade da câmera..."
+                  value={dados.descricao}
+                  onChange={atualizar}
+                  rows={4}
                 />
+              </div>
 
-                <div
-                  className={`${styles.prateleira} ${styles.prateleiraDois}`}
-                />
-
-                <div
-                  className={`${styles.coluna} ${styles.colunaUm}`}
-                />
-
-                <div
-                  className={`${styles.coluna} ${styles.colunaDois}`}
-                />
-
-                <div
-                  className={`${styles.coluna} ${styles.colunaTres}`}
-                />
-
-                <div className={styles.chao} />
-
-                <div className={styles.empilhadeira}>
-                  <span />
+              <div className={styles.campo}>
+                <label>Status inicial</label>
+                <div className={styles.status}>
+                  {["Online", "Offline"].map((opcao) => (
+                    <button
+                      type="button"
+                      key={opcao}
+                      className={
+                        dados.status === opcao
+                          ? styles.statusAtivo
+                          : ""
+                      }
+                      onClick={() =>
+                        setDados({ ...dados, status: opcao })
+                      }
+                    >
+                      ● {opcao}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
 
-            <p className={styles.legendaPreview}>
-              Pré-visualização da câmera
-            </p>
+            {/* FOTO DO EQUIPAMENTO */}
+            <div className={styles.imagemArea}>
+              <h2>Imagem da câmera</h2>
+
+              <label className={styles.uploadImagem}>
+                {imagem ? (
+                  <img
+                    src={URL.createObjectURL(imagem)}
+                    alt="Foto do equipamento"
+                    className={styles.fotoCamera}
+                  />
+                ) : (
+                  <div className={styles.conteudoUpload}>
+                    <span className={styles.iconeUpload}>📷</span>
+                    <strong>Adicionar imagem da câmera</strong>
+                    <p>
+                      Clique para selecionar uma foto
+                      <br />
+                      do equipamento utilizado.
+                    </p>
+                    <small>PNG, JPG ou JPEG</small>
+                  </div>
+                )}
+
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg"
+                  hidden
+                  onChange={(e) =>
+                    setImagem(e.target.files?.[0] || null)
+                  }
+                />
+              </label>
+
+              <p className={styles.legenda}>
+                Fotografia da câmera instalada no setor.
+              </p>
+
+              {imagem && (
+                <button
+                  type="button"
+                  className={styles.removerImagem}
+                  onClick={() => setImagem(null)}
+                >
+                  Remover imagem
+                </button>
+              )}
+
+              <div className={styles.informacoes}>
+                <h3>Informações</h3>
+                <p>
+                  A imagem será utilizada para identificar
+                  o equipamento cadastrado.
+                </p>
+                <p>
+                  O monitoramento em tempo real será
+                  configurado separadamente.
+                </p>
+              </div>
+            </div>
           </div>
 
-          {mensagem && (
-            <p className={styles.mensagem} role="status">
-              {mensagem}
-            </p>
-          )}
-
+          {/* BOTÕES */}
           <div className={styles.acoes}>
             <button
               type="button"
-              className={styles.botaoCancelar}
-              onClick={cancelar}
+              className={styles.cancelar}
+              onClick={() => router.push("/cameras")}
             >
-              Cancelar
+              CANCELAR
             </button>
 
             <button
               type="submit"
-              className={styles.botaoCadastrar}
+              className={styles.cadastrar}
             >
-              Cadastrar
+              CADASTRAR CÂMERA
             </button>
           </div>
         </form>
-      </section>
-    </main>
+      </main>
+    </Shell>
   );
 }

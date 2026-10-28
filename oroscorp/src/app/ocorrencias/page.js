@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Shell from "../components/Shell";
 import styles from "../style/ocorrencias.module.css";
 
 export default function Ocorrencias() {
@@ -28,30 +29,7 @@ export default function Ocorrencias() {
   });
 
   return (
-    <main className={styles.pagina}>
-      <header className={styles.header}>
-        <button onClick={() => setMenuAberto(!menuAberto)}>☰</button>
-        <div className={styles.logo}>◯ OROSCORP</div>
-        <button onClick={() => router.back()}>←</button>
-      </header>
-
-      {menuAberto && (
-        <aside className={styles.sidebar}>
-          <button onClick={() => setMenuAberto(false)}>✕</button>
-          <h3>🟠 CENTRAL</h3>
-          <a href="/home">Dashboard</a>
-          <a href="/setores">Setores</a>
-          <a href="/cameras">Câmeras</a>
-          <a href="/ocorrencias">Ocorrências</a>
-          <a href="/funcionarios">Funcionários</a>
-          <p>CADASTROS</p>
-          <a href="/cadastrarSetor">Setor</a>
-          <a href="/cadastrarGestor">Gestor</a>
-          <a href="/cadastrarFuncionario">Funcionário</a>
-        </aside>
-      )}
-
-      <section className={styles.conteudo}>
+    <Shell><section className={styles.conteudo}>
         <div className={styles.tituloPagina}>
           <div>
             <h1>Ocorrências</h1>
@@ -144,6 +122,6 @@ export default function Ocorrencias() {
           </div>
         </div>
       </section>
-    </main>
+    </Shell>
   );
 }

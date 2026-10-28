@@ -1,374 +1,308 @@
-/********************************************************
-* Data: 16 de Outubro de 2026
-* Objetivo: Tela de Cadastro de Gestor
-* Autor: João Pedro e Kaique Carvalho
-********************************************************/
+
+/* CADASTRO DE GESTOR */
 
 .container {
-    min-height: 100vh;
-    width: 100%;
-  
-    background-color: #333;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-  
-    position: relative;
-  
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  
-    box-sizing: border-box;
-  }
-  
-  
-  /*HEADER*/
-  
-  .header {
-    width: 100%;
-    height: 87px;
-  
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  
-    background-color: #000;
-  
-    position: absolute;
-    top: 0;
-    left: 0;
-  
-    z-index: 10;
-  }
-  
-  .logo {
-    width: 190px;
-    height: auto;
-  }
-  
-  
-  /*CAIXA DE CADASTRO*/
-  
-  .cadastroBox {
-    width: calc(100% - 88px);
-    max-width: 893px;
-  
-    min-height: 340px;
-  
-    margin-top: 87px;
-    padding: 22px;
-  
-    box-sizing: border-box;
-  
-    background-color: rgba(14, 18, 23, 0.94);
-  
-    border: 1px solid #252c35;
-    border-radius: 8px;
-  
-    color: white;
-  }
-  
-  
-  /*TÍTULO*/
-  
-  .titulo {
-    margin-bottom: 50px;
-  }
-  
-  .titulo h1 {
-    margin: 0 0 5px 0;
-  
-    color: #f5f5f5;
-  
-    font-size: 16px;
-    font-weight: 700;
-  }
-  
-  .titulo p {
-    margin: 0;
-  
-    color: #798493;
-  
-    font-size: 10px;
-    font-weight: 400;
-  }
-  
-  
-  /*FORMULÁRIO*/
-  
+  min-height: calc(100vh - 70px);
+  width: 100%;
+  padding: 30px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  background: #343434;
+  color: #fff;
+  font-family: Arial, sans-serif;
+}
+
+/* PAINEL */
+
+.cadastroBox {
+  width: 100%;
+  max-width: 1050px;
+  padding: 30px;
+  background: #0e1217;
+  border: 1px solid #252c35;
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+
+/* TÍTULO */
+
+.titulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.titulo h1 {
+  margin: 0 0 8px;
+  font-size: 23px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.titulo p {
+  margin: 0;
+  color: #929ba8;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* BOTÃO SAIR */
+
+.sair {
+  padding: 10px 22px;
+  background: transparent;
+  border: 1px solid #ff7900;
+  border-radius: 7px;
+  color: #ff7900;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.sair:hover {
+  background: #ff7900;
+  color: #fff;
+}
+
+/* ORGANIZAÇÃO DO FORMULÁRIO */
+
+.formulario {
+  display: flex;
+  align-items: flex-start;
+  gap: 30px;
+}
+
+/* FOTO DO GESTOR */
+
+.fotoColuna {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fotoArea {
+  width: 100%;
+  height: 260px;
+  background: #151a1f;
+  border: 2px dashed #343b44;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.fotoArea:hover {
+  border-color: #ff7900;
+}
+
+.fotoTexto {
+  padding: 15px;
+}
+
+.fotoTexto strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+.fotoTexto p {
+  color: #929ba8;
+  font-size: 11px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.previewImagem {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.removerFoto {
+  padding: 10px;
+  background: #2d1919;
+  border: 1px solid #743636;
+  border-radius: 7px;
+  color: #ff7777;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.removerFoto:hover {
+  background: #402020;
+}
+
+/* CAMPOS */
+
+.campos {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.campo label {
+  color: #c2cad4;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.campo label span {
+  color: #ff7900;
+}
+
+.campo input:not([type="checkbox"]) {
+  width: 100%;
+  height: 43px;
+  padding: 0 12px;
+  background: #151a1f;
+  border: 1px solid #303842;
+  border-radius: 7px;
+  box-sizing: border-box;
+  color: #fff;
+  font-size: 12px;
+  outline: none;
+}
+
+.campo input::placeholder {
+  color: #798493;
+}
+
+.campo input:focus {
+  border-color: #ff7900;
+}
+
+.campo input[type="date"] {
+  color-scheme: dark;
+}
+
+/* MOSTRAR SENHA */
+
+.mostrarSenha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #aaa;
+}
+
+.mostrarSenha input {
+  accent-color: #ff7900;
+  cursor: pointer;
+}
+
+/* MENSAGEM */
+
+.mensagem {
+  margin-top: 20px;
+  color: #ffad70;
+  font-size: 12px;
+}
+
+/* BOTÕES */
+
+.botoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #292e34;
+}
+
+.botoes button {
+  padding: 12px 22px;
+  border: none;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.cancelar {
+  background: #1a2026;
+  color: #ddd;
+}
+
+.cancelar:hover {
+  background: #29313b;
+}
+
+.cadastrar {
+  background: #ff7900;
+  color: #fff;
+}
+
+.cadastrar:hover {
+  background: #ff951f;
+}
+
+/* RESPONSIVIDADE */
+
+@media (max-width: 800px) {
   .formulario {
-    display: flex;
-    gap: 22px;
+    flex-direction: column;
   }
-  
-  
-  /*ÁREA DA FOTO*/
-  
+
+  .fotoColuna {
+    width: 100%;
+  }
+
   .fotoArea {
-    width: 268px;
-    height: 239px;
-  
-    flex-shrink: 0;
-  
-    border: 1px solid #28313b;
-    border-radius: 7px;
-  
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  
-    box-sizing: border-box;
-  
-    cursor: pointer;
+    height: 220px;
   }
-  
-  .fotoIcone {
-    width: 116px;
-    height: 116px;
-  
-    border: 1px solid #ff7200;
-    border-radius: 50%;
-  
-    background-color: #20262d;
-  
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  
-    margin-bottom: 8px;
-  }
-  
-  .fotoIcone span {
-    font-size: 36px;
-    filter: grayscale(1);
-    opacity: 0.8;
-  }
-  
-  .uploadIcone {
-    color: #aeb9c7;
-  
-    font-size: 20px;
-  
-    line-height: 1;
-  
-    margin-bottom: 5px;
-  }
-  
-  .fotoArea strong {
-    color: #f0f0f0;
-  
-    font-size: 10px;
-    font-weight: 700;
-  }
-  
-  .fotoArea p {
-    margin: 7px 0 0;
-  
-    color: #6f7c8c;
-  
-    text-align: center;
-  
-    font-size: 9px;
-    line-height: 14px;
-  }
-  
-  
-  /*CAMPOS*/
-  
+
   .campos {
-    flex: 1;
-  
-    display: grid;
-  
-    grid-template-columns: 1fr 1fr;
-  
-    column-gap: 17px;
-    row-gap: 14px;
-  }
-  
-  .campo {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .campo label {
-    margin-bottom: 5px;
-  
-    color: #b7bec8;
-  
-    font-size: 9px;
-    font-weight: 500;
-  }
-  
-  .campo label span {
-    color: #ff7200;
-  }
-  
-  .campo input {
-    width: 100%;
-    height: 29px;
-  
-    padding: 0 10px;
-  
-    box-sizing: border-box;
-  
-    border: 1px solid #d7d9dc;
-    border-radius: 3px;
-  
-    background-color: #f7f7f8;
-  
-    color: #444;
-  
-    font-size: 9px;
-  
-    outline: none;
-  }
-  
-  .campo input::placeholder {
-    color: #7c8591;
-  }
-  
-  .campo input:focus {
-    border-color: #ff7200;
-  }
-  
-  
-  /*SENHA*/
-  
-  .inputSenha {
-    position: relative;
-  
     width: 100%;
   }
-  
-  .inputSenha input {
-    padding-right: 30px;
+}
+
+@media (max-width: 550px) {
+  .container {
+    padding: 20px 12px;
   }
-  
-  .inputSenha span {
-    position: absolute;
-  
-    right: 9px;
-    top: 50%;
-  
-    transform: translateY(-50%);
-  
-    color: #8994a3;
-  
-    font-size: 9px;
-  
-    cursor: pointer;
+
+  .cadastroBox {
+    padding: 18px;
   }
-  
-  
-  /*BOTÕES*/
-  
-  .botoes {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-  
-    gap: 9px;
-  
-    margin-top: 18px;
+
+  .titulo {
+    flex-wrap: wrap;
   }
-  
+
+  .titulo h1 {
+    font-size: 20px;
+  }
+
+  .campos {
+    grid-template-columns: 1fr;
+  }
+
   .botoes button {
-    height: 26px;
-  
-    padding: 0 17px;
-  
-    border: none;
-    border-radius: 4px;
-  
-    font-size: 8px;
-    font-weight: 700;
-  
-    cursor: pointer;
-  
-    transition: 0.2s;
+    flex: 1;
+    padding: 12px 8px;
   }
-  
-  
-  /* CANCELAR */
-  
-  .cancelar {
-    background-color: #1c232c;
-  
-    color: #c8ced6;
-  }
-  
-  .cancelar:hover {
-    background-color: #252d37;
-  }
-  
-  
-  /* CADASTRAR */
-  
-  .cadastrar {
-    background-color: #ff7200;
-  
-    color: white;
-  
-    box-shadow: 0 2px 6px rgba(255, 114, 0, 0.25);
-  }
-  
-  .cadastrar:hover {
-    background-color: #ff8120;
-  }
-  
-  
-  /* =====================================================
-     RESPONSIVIDADE
-  ===================================================== */
-  
-  @media (max-width: 800px) {
-  
-    .cadastroBox {
-      width: calc(100% - 30px);
-  
-      margin-top: 110px;
-  
-      padding: 20px;
-    }
-  
-    .formulario {
-      flex-direction: column;
-    }
-  
-    .fotoArea {
-      width: 100%;
-      height: 180px;
-    }
-  
-    .campos {
-      grid-template-columns: 1fr;
-    }
-  
-    .botoes {
-      margin-top: 20px;
-    }
-  }
-  
-  
-  @media (max-width: 500px) {
-  
-    .header {
-      height: 75px;
-    }
-  
-    .logo {
-      width: 160px;
-    }
-  
-    .cadastroBox {
-      margin-top: 90px;
-    }
-  
-    .titulo {
-      margin-bottom: 25px;
-    }
-  }
+}

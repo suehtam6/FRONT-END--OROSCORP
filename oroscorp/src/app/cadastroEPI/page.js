@@ -1,312 +1,171 @@
 
 "use client";
 
-/*
-Data: 20 de Outubro de 2026
-Objetivo: Página de cadastro de EPIs
-Autor: João Pedro e Kaique Carvalho
-*/
-
-import { useRef, useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Shell from "../components/Shell";
 import styles from "../style/cadastrarEpi.module.css";
 
-function Icone({ tipo, className = "" }) {
-  const props = {
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.8,
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
-    className,
-    "aria-hidden": true,
-  };
-
-  switch (tipo) {
-    case "menu":
-      return (
-        <svg {...props}>
-          <path d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      );
-
-    case "voltar":
-      return (
-        <svg {...props}>
-          <path d="M10 5 3 12l7 7v-4h11V9H10V5Z" fill="currentColor" />
-        </svg>
-      );
-
-    case "capacete":
-      return (
-        <svg {...props}>
-          <path d="M3 15a9 9 0 0 1 18 0v2H3v-2Z" />
-          <path d="M12 6v9M5 12h14M2 19h20" />
-        </svg>
-      );
-
-    case "descricao":
-      return (
-        <svg {...props}>
-          <path d="M6 3h9l5 5v13H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
-          <path d="M14 3v6h6M8 13h7M8 17h5" />
-        </svg>
-      );
-
-    case "cor":
-      return (
-        <svg {...props}>
-          <path d="M12 3a9 9 0 1 0 0 18h2a2 2 0 0 0 0-4h-1a1.5 1.5 0 0 1 0-3h2a5 5 0 0 0 5-5c0-3.3-3.6-6-8-6Z" />
-          <circle cx="7.5" cy="10" r="1" fill="currentColor" />
-          <circle cx="11" cy="6.5" r="1" fill="currentColor" />
-          <circle cx="16" cy="8" r="1" fill="currentColor" />
-        </svg>
-      );
-
-    case "upload":
-      return (
-        <svg {...props}>
-          <path d="M12 16V4m-5 5 5-5 5 5" />
-          <path d="M5 14v5h14v-5" />
-        </svg>
-      );
-
-    case "fechar":
-      return (
-        <svg {...props}>
-          <path d="m7 7 10 10M17 7 7 17" />
-        </svg>
-      );
-
-    default:
-      return null;
-  }
-}
-
 export default function CadastroEPI() {
-  const inputImagem = useRef(null);
-
-  const [nome, setNome] = useState("Capacete");
-  const [descricao, setDescricao] = useState(
-    "Capacete de segurança industrial"
-  );
-  const [cor, setCor] = useState("Amarelo");
+  const router = useRouter();
   const [imagem, setImagem] = useState(null);
-  const [mensagem, setMensagem] = useState("");
+  const [preview, setPreview] = useState("");
+  const [dados, setDados] = useState({
+    nome: "",
+    categoria: "",
+    ca: "",
+    fabricante: "",
+    descricao: "",
+    validade: "",
+    status: "Ativo"
+  });
 
-  function selecionarImagem(event) {
-    const arquivo = event.target.files?.[0];
-
-    if (arquivo && arquivo.type.startsWith("image/")) {
-      setImagem(arquivo);
-      setMensagem("");
+  useEffect(() => {
+    if (!imagem) {
+      setPreview("");
+      return;
     }
 
-    event.target.value = "";
+    const url = URL.createObjectURL(imagem);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [imagem]);
+
+  function atualizar(e) {
+    setDados({ ...dados, [e.target.name]: e.target.value });
   }
 
-  function removerImagem() {
-    setImagem(null);
+  function cadastrar(e) {
+    e.preventDefault();
 
-    if (inputImagem.current) {
-      inputImagem.current.value = "";
-    }
-  }
+    const formulario = new FormData();
 
-  function cancelar() {
-    setNome("");
-    setDescricao("");
-    setCor("Amarelo");
-    setImagem(null);
-    setMensagem("");
-  }
+    Object.entries(dados).forEach(([chave, valor]) => {
+      formulario.append(chave, valor);
+    });
 
-  function cadastrar(event) {
-    event.preventDefault();
+    if (imagem) formulario.append("imagem", imagem);
 
-    setMensagem(
-      `Dados do EPI "${nome}" preenchidos! A conexão com a API ainda não foi implementada.`
-    );
+    console.log("Dados do EPI:", Object.fromEntries(formulario));
+    alert("Formulário pronto! Conecte a API para cadastrar o EPI.");
   }
 
   return (
-    <main className={styles.pagina}>
-      <header className={styles.cabecalho}>
-        <button
-          type="button"
-          className={`${styles.botaoCircular} ${styles.botaoMenu}`}
-          aria-label="Abrir menu"
-        >
-          <Icone tipo="menu" />
-        </button>
-
-        <a href="/" className={styles.logo} aria-label="OrosCorp">
-          <span className={styles.logoSimbolo} />
-          <span className={styles.logoTexto}>OROSCORP</span>
-        </a>
-
-        <button
-          type="button"
-          className={styles.botaoCircular}
-          aria-label="Voltar"
-          onClick={() => window.history.back()}
-        >
-          <Icone tipo="voltar" />
-        </button>
-      </header>
-
-      <section className={styles.conteudo}>
-        <div className={styles.tituloPagina}>
-          <h1>Cadastro de EPIs</h1>
-          <p>
-            Cadastre e gerencie os Equipamentos de Proteção Individual
-            utilizados na empresa.
-          </p>
+    <Shell>
+      <main className={styles.pagina}>
+        <div className={styles.titulo}>
+          <h1>Cadastro de EPI</h1>
+          <p>Preencha as informações para cadastrar um equipamento de proteção individual.</p>
         </div>
 
-        <form className={styles.formularioPrincipal} onSubmit={cadastrar}>
-          <div className={styles.colunaCampos}>
-            <div className={styles.campo}>
-              <label htmlFor="nomeEpi">
-                Nome do EPI <span className={styles.obrigatorio}>*</span>
-              </label>
+        <form className={styles.painel} onSubmit={cadastrar}>
+          <div className={styles.layout}>
+            <div className={styles.campos}>
+              <h2>Informações do EPI</h2>
 
-              <div className={styles.campoComIcone}>
-                <span className={styles.iconeRedondo}>
-                  <Icone tipo="capacete" />
-                </span>
-
-                <input
-                  id="nomeEpi"
-                  type="text"
-                  placeholder="Digite o nome do EPI"
-                  value={nome}
-                  onChange={(event) => setNome(event.target.value)}
-                  required
-                />
+              <div className={styles.campo}>
+                <label htmlFor="nome">Nome do EPI <span>*</span></label>
+                <input id="nome" name="nome" value={dados.nome}
+                  onChange={atualizar} placeholder="Digite o nome do EPI" required />
               </div>
-            </div>
 
-            <div className={styles.campo}>
-              <label htmlFor="descricaoEpi">Descrição</label>
-
-              <div className={styles.campoComIcone}>
-                <span className={styles.iconeRedondo}>
-                  <Icone tipo="descricao" />
-                </span>
-
-                <input
-                  id="descricaoEpi"
-                  type="text"
-                  placeholder="Descreva o equipamento"
-                  value={descricao}
-                  onChange={(event) => setDescricao(event.target.value)}
-                />
+              <div className={styles.campo}>
+                <label htmlFor="categoria">Categoria <span>*</span></label>
+                <select id="categoria" name="categoria" value={dados.categoria}
+                  onChange={atualizar} required>
+                  <option value="">Selecione a categoria</option>
+                  <option>Proteção da cabeça</option>
+                  <option>Proteção dos olhos</option>
+                  <option>Proteção das mãos</option>
+                  <option>Proteção dos pés</option>
+                  <option>Proteção auditiva</option>
+                  <option>Proteção respiratória</option>
+                  <option>Outros</option>
+                </select>
               </div>
-            </div>
 
-            <div className={styles.campo}>
-              <label htmlFor="corEpi">Cor</label>
+              <div className={styles.linha}>
+                <div className={styles.campo}>
+                  <label htmlFor="ca">Certificado de Aprovação (CA)</label>
+                  <input id="ca" name="ca" value={dados.ca}
+                    onChange={atualizar} placeholder="Número do CA" />
+                </div>
+                <div className={styles.campo}>
+                  <label htmlFor="fabricante">Fabricante</label>
+                  <input id="fabricante" name="fabricante" value={dados.fabricante}
+                    onChange={atualizar} placeholder="Nome do fabricante" />
+                </div>
+              </div>
 
-              <div className={styles.campoComIcone}>
-                <span className={styles.iconeRedondo}>
-                  <Icone tipo="cor" />
-                </span>
+              <div className={styles.campo}>
+                <label htmlFor="validade">Validade</label>
+                <input id="validade" type="date" name="validade"
+                  value={dados.validade} onChange={atualizar} />
+              </div>
 
-                <div className={styles.seletorCor}>
-                  <select
-                    id="corEpi"
-                    value={cor}
-                    onChange={(event) => setCor(event.target.value)}
-                  >
-                    <option value="Amarelo">Amarelo</option>
-                    <option value="Branco">Branco</option>
-                    <option value="Laranja">Laranja</option>
-                    <option value="Vermelho">Vermelho</option>
-                  </select>
+              <div className={styles.campo}>
+                <label htmlFor="descricao">Descrição</label>
+                <textarea id="descricao" name="descricao" rows={4}
+                  placeholder="Descreva as características e a utilização do EPI..."
+                  value={dados.descricao} onChange={atualizar} />
+              </div>
 
-                  <span className={styles.amostraCor}>
-                    <span
-                      className={`${styles.bolinhaCor} ${
-                        styles[`cor${cor}`]
-                      }`}
-                    />
-                  </span>
+              <div className={styles.campo}>
+                <label>Status</label>
+                <div className={styles.status}>
+                  {["Ativo", "Inativo"].map((opcao) => (
+                    <button type="button" key={opcao}
+                      className={dados.status === opcao ? styles.statusAtivo : ""}
+                      onClick={() => setDados({ ...dados, status: opcao })}>
+                      {opcao}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className={styles.colunaImagem}>
-            <label className={styles.rotuloImagem}>Foto do EPI</label>
+            <div className={styles.areaImagem}>
+              <h2>Imagem do EPI</h2>
 
-            <div className={styles.caixaImagem}>
-              <div className={styles.preview}>
-                {imagem ? (
-                  <>
-                    <img
-                      src={URL.createObjectURL(imagem)}
-                      alt={`Imagem do EPI ${nome || "cadastrado"}`}
-                    />
-
-                    <button
-                      type="button"
-                      className={styles.removerImagem}
-                      onClick={removerImagem}
-                      aria-label="Remover imagem"
-                    >
-                      <Icone tipo="fechar" />
-                    </button>
-                  </>
+              <label className={styles.uploadImagem}>
+                {preview ? (
+                  <img src={preview} alt="Imagem do EPI"
+                    className={styles.previewImagem} />
                 ) : (
-                  <div className={styles.ilustracaoCapacete}>
-                    <span role="img" aria-label="Capacete de segurança">
-                      ⛑️
-                    </span>
+                  <div className={styles.espacoImagem}>
+                    <p>Clique para anexar uma imagem</p>
+                    <small>PNG, JPG ou JPEG</small>
                   </div>
                 )}
-              </div>
 
-              <input
-                ref={inputImagem}
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={selecionarImagem}
-              />
+                <input type="file" accept="image/png,image/jpeg" hidden
+                  onChange={(e) => setImagem(e.target.files?.[0] || null)} />
+              </label>
 
-              <button
-                type="button"
-                className={styles.botaoImagem}
-                onClick={() => inputImagem.current?.click()}
-              >
-                <Icone tipo="upload" />
-                Alterar imagem
-              </button>
+              <p className={styles.legenda}>
+                Imagem do equipamento de proteção individual.
+              </p>
+
+              {imagem && (
+                <button type="button" className={styles.removerImagem}
+                  onClick={() => setImagem(null)}>
+                  Remover imagem
+                </button>
+              )}
             </div>
           </div>
 
-          {mensagem && (
-            <p className={styles.mensagem} role="status">
-              {mensagem}
-            </p>
-          )}
-
           <div className={styles.acoes}>
-            <button
-              type="button"
-              className={styles.botaoCancelar}
-              onClick={cancelar}
-            >
-              Cancelar
+            <button type="button" className={styles.cancelar}
+              onClick={() => router.back()}>
+              CANCELAR
             </button>
-
-            <button type="submit" className={styles.botaoCadastrar}>
-              Cadastrar
+            <button type="submit" className={styles.salvar}>
+              CADASTRAR EPI
             </button>
           </div>
         </form>
-      </section>
-    </main>
+      </main>
+    </Shell>
   );
 }

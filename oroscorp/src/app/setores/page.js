@@ -1,5 +1,5 @@
-
-"use client";
+"use client"
+import Shell from "../components/Shell";
 
 /*
 Data: 9 de Outubro de 2026
@@ -126,32 +126,8 @@ export default function Setores() {
     };
   
   return (
-    <main className={styles.pagina}>
-      <header className={styles.cabecalho}>
-        <button
-          className={styles.botaoCircular}
-          aria-label="Abrir menu"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-
-        <a href="/" className={styles.logo}>
-          <span className={styles.logoSimbolo} />
-          <span className={styles.logoTexto}>OROSCORP</span>
-        </a>
-
-        <button
-          className={styles.botaoCircular}
-          aria-label="Voltar"
-          onClick={() => window.history.back()}
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M10 5 3 12l7 7v-4h11V9H10V5Z" />
-          </svg>
-        </button>
-      </header>
+    <Shell>
+      
 
       <section className={styles.conteudo}>
         <div className={styles.topoConteudo}>
@@ -204,6 +180,6 @@ export default function Setores() {
           ))}
         </div>
       </section>
-    </main>
+    </Shell>
   );
 }

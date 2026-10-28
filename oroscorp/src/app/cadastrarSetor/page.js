@@ -1,5 +1,5 @@
-
-"use client";
+"use client"
+import Shell from "../components/Shell";
 
 /*
 Data: 9 de Outubro de 2026
@@ -10,9 +10,6 @@ Autor: João Pedro e Kaique Carvalho
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import styles from "../style/cadastrarsetor.module.css";
-
-
-
 
 function Icone({ tipo, className = "" }) {
   const props = {
@@ -225,30 +222,8 @@ export default function CadastroSetor() {
   }
 
   return (
-    <main className={styles.pagina}>
-      <header className={styles.cabecalho}>
-        <button
-          type="button"
-          className={`${styles.botaoCircular} ${styles.botaoMenu}`}
-          aria-label="Abrir menu"
-        >
-          <Icone tipo="menu" />
-        </button>
-
-        <a href="/" className={styles.logo} aria-label="OrosCorp">
-          <span className={styles.logoSimbolo} />
-          <span className={styles.logoTexto}>OROSCORP</span>
-        </a>
-
-        <button
-          type="button"
-          className={styles.botaoCircular}
-          aria-label="Voltar"
-          onClick={() => window.history.back()}
-        >
-          <Icone tipo="voltar" />
-        </button>
-      </header>
+    <Shell>
+      
 
       <section className={styles.conteudo}>
         <div className={styles.tituloPagina}>
@@ -592,6 +567,6 @@ export default function CadastroSetor() {
           </div>
         </form>
       </section>
-    </main>
+    </Shell>
   );
 }
