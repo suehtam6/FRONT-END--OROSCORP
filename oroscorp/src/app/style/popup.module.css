@@ -1,0 +1,100 @@
+.erro {
+  --cor: #ff5a5a;
+}
+
+.sucesso {
+  --cor: #3ddc84;
+}
+
+.fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(2px);
+  animation: aparecer 0.15s ease-out;
+}
+
+.caixa {
+  width: 100%;
+  max-width: 380px;
+  padding: 28px 24px 24px;
+  border-radius: 16px;
+  border: 1px solid #2f2f2f;
+  border-top: 4px solid var(--cor);
+  background: #161616;
+  color: #ffffff;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  animation: subir 0.18s ease-out;
+}
+
+.icone {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 14px;
+  border: 2px solid var(--cor);
+  border-radius: 50%;
+  color: var(--cor);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.titulo {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.mensagem {
+  margin: 0 0 22px;
+  color: #d0d0d0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.botao {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #ff6a00;
+  font-family: inherit;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.botao:hover {
+  background: #f1f1f1;
+}
+
+.botao:focus-visible {
+  outline: 3px solid var(--cor);
+  outline-offset: 2px;
+}
+
+@keyframes aparecer {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes subir {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fundo,
+  .caixa {
+    animation: none;
+  }
+}
