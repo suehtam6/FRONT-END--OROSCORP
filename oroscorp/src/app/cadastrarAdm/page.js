@@ -221,7 +221,7 @@ export default function Home() {
               outline: arrastando ? "2px dashed currentColor" : undefined,
             }}
           >
-            {/* Input real, escondido. A área acima apenas o aciona. */}
+            
             <input
               ref={inputFotoRef}
               type="file"
