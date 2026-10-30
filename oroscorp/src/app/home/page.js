@@ -42,10 +42,11 @@ export default function Home() {
           ☰
         </button>
 
-        <div className={styles.logo}>
-          <span />
-          OROSCORP
-        </div>
+        <img
+          src="/logo-oroscorp.png"
+          alt="Oroscorp"
+          className={styles.logo}
+        />
       </header>
 
       <Menu aberto={menuAberto} aoFechar={() => setMenuAberto(false)} />
