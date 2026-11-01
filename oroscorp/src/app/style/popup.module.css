@@ -1,3 +1,5 @@
+/* Popup de aviso. As cores ficam no topo para você ajustar ao tema do projeto. */
+
 .erro {
   --cor: #ff5a5a;
 }
@@ -60,6 +62,7 @@
 }
 
 .botao {
+  box-sizing: border-box;
   width: 100%;
   padding: 12px 16px;
   border: none;

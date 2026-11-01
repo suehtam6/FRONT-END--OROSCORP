@@ -9,6 +9,7 @@ Autor : João Pedro e Kaique Carvalho
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { uploadParaCloudinary } from "@/API/cloudinary";
+import Popup from "@/app/components/Popup";
 import styles from "../style/cadastrarAdm.module.css";
 
 const TIPOS_ACEITOS = ["image/jpeg", "image/png", "image/webp"];
@@ -16,7 +17,7 @@ const TAMANHO_MAXIMO_MB = 2;
 
 const soDigitos = (valor) => valor.replace(/\D/g, "");
 
-// Formata enquanto digita: 00.000.000/0000-00
+
 const mascararCnpj = (valor) =>
   soDigitos(valor)
     .slice(0, 14)
@@ -39,32 +40,30 @@ const FORM_INICIAL = {
 export default function Home() {
   const router = useRouter();
   const inputFotoRef = useRef(null);
-  // Última foto já enviada ao Cloudinary: evita enviar de novo se o cadastro
-  // falhar e a pessoa tentar outra vez com a mesma foto.
   const uploadRef = useRef({ arquivo: null, url: "" });
 
   const [form, setForm] = useState(FORM_INICIAL);
-  const [foto, setFoto] = useState(null); // arquivo escolhido (File) ou null
-  const [previewUrl, setPreviewUrl] = useState(""); // endereço temporário só para mostrar a prévia
+  const [foto, setFoto] = useState(null); 
+  const [previewUrl, setPreviewUrl] = useState(""); 
   const [arrastando, setArrastando] = useState(false);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
   const [carregando, setCarregando] = useState(false);
 
-  // Libera a memória da prévia quando ela troca ou quando a tela fecha.
+ 
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
 
-  // Um único handler para todos os campos de texto: atualizar("nome"), atualizar("cnpj")...
+
   const atualizar = (campo) => (e) => {
     const valor = campo === "cnpj" ? mascararCnpj(e.target.value) : e.target.value;
     setForm((atual) => ({ ...atual, [campo]: valor }));
   };
 
-  // ---------- Foto ----------
+
   const selecionarFoto = (arquivo) => {
     if (!arquivo) return;
 
@@ -86,7 +85,7 @@ export default function Home() {
 
   const aoEscolherArquivo = (e) => {
     const arquivo = e.target.files?.[0];
-    e.target.value = ""; // permite escolher o mesmo arquivo de novo depois
+    e.target.value = ""; 
     selecionarFoto(arquivo);
   };
 
@@ -96,14 +95,14 @@ export default function Home() {
     selecionarFoto(e.dataTransfer.files?.[0]);
   };
 
-  // ---------- Cadastro ----------
+ 
   const cancelarCadastro = (e) => {
     e.preventDefault();
     router.back();
   };
 
-  // Retorna a mensagem do primeiro problema encontrado, ou "" se estiver tudo certo.
-  const validar = () => {
+  
+const validar = () => {
     if (!form.nome.trim()) return "Informe o nome completo.";
     if (!form.email.trim()) return "Informe o e-mail.";
     if (form.email.trim().toLowerCase() !== form.confirmarEmail.trim().toLowerCase()) {
@@ -112,7 +111,15 @@ export default function Home() {
     if (soDigitos(form.cnpj).length !== 14) return "O CNPJ deve ter 14 dígitos.";
     if (!form.razaoSocial.trim()) return "Informe a razão social.";
     if (!form.dataNascimento) return "Informe a data de nascimento.";
-    if (form.senha.length < 8) return "A senha deve ter pelo menos 8 caracteres.";
+    
+    
+    if (form.senha.length < 8 || form.senha.length > 72) {
+      return "A senha deve ter entre 8 e 72 caracteres.";
+    }
+    if (!/[A-Z]/.test(form.senha)) {
+      return "A senha deve conter pelo menos uma letra maiúscula.";
+    }
+    
     if (form.senha !== form.confirmarSenha) return "As senhas não conferem.";
     return "";
   };
@@ -131,7 +138,7 @@ export default function Home() {
     setCarregando(true);
 
     try {
-      // 1) Se escolheu foto, envia para o Cloudinary e recebe o endereço (URL) dela.
+      
       let fotoUrl = "";
       if (foto) {
         if (uploadRef.current.arquivo !== foto) {
@@ -147,30 +154,29 @@ export default function Home() {
         fotoUrl = uploadRef.current.url;
       }
 
-      // 2) Envia os dados para o Next, que cadastra o usuário e o administrador no back.
-      const resposta = await fetch("/api/adm", {
+   
+      const response = await fetch("/api/adm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nome: form.nome.trim(),
           email: form.email.trim(),
           senha: form.senha,
-          data_nascimento: form.dataNascimento, // o input type="date" já entrega AAAA-MM-DD
-          cnpj: form.cnpj, // com máscara, igual ao seu exemplo do Postman
+          data_nascimento: form.dataNascimento, 
+          cnpj: form.cnpj,
           razao_social: form.razaoSocial.trim(),
-          foto: fotoUrl, // vazio = sem foto
+          foto: fotoUrl, 
         }),
       });
 
-      const dados = await resposta.json().catch(() => ({}));
+      const dados = await response.json().catch(() => ({}));
 
-      if (!resposta.ok) {
+      if (!response.ok) {
         setErro(dados.message || "Não foi possível cadastrar.");
         return;
       }
 
-      setSucesso("Administrador cadastrado! Redirecionando para o login...");
-      setTimeout(() => router.push("/"), 1500);
+      setSucesso("Agora é só entrar com o e-mail e a senha que você acabou de criar.");
     } catch {
       setErro("Erro de conexão. Tente novamente.");
     } finally {
@@ -192,14 +198,14 @@ export default function Home() {
       <section className={styles.cadastroBox}>
 
         <div className={styles.titulo}>
-          <h1>Cadastro do Adiministrador</h1>
+          <h1>Cadastro do Administrador</h1>
           <p>Preencha os dados para cadastrar um novo adm no sistema.</p>
         </div>
 
         <div className={styles.formulario}>
 
           <div
-            className={styles.fotoArea}
+            className={`${styles.fotoArea} ${arrastando ? styles.fotoAreaArrastando : ""}`}
             role="button"
             tabIndex={0}
             aria-label="Adicionar foto"
@@ -216,12 +222,8 @@ export default function Home() {
             }}
             onDragLeave={() => setArrastando(false)}
             onDrop={soltarFoto}
-            style={{
-              cursor: "pointer",
-              outline: arrastando ? "2px dashed currentColor" : undefined,
-            }}
           >
-            
+
             <input
               ref={inputFotoRef}
               type="file"
@@ -236,12 +238,7 @@ export default function Home() {
                 <img
                   src={previewUrl}
                   alt="Prévia da foto escolhida"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    borderRadius: "inherit",
-                  }}
+                  className={styles.fotoPreview}
                 />
               ) : (
                 <span>👤</span>
@@ -250,7 +247,7 @@ export default function Home() {
 
             <strong>{foto ? "Trocar foto" : "Adicionar foto"}</strong>
 
-            <p>
+            <p className={foto ? styles.fotoNome : undefined}>
               {foto ? (
                 foto.name
               ) : (
@@ -281,6 +278,19 @@ export default function Home() {
             </div>
 
             <div className={styles.campo}>
+              <label htmlFor="dataNascimento">
+                Data de nascimento <span>*</span>
+              </label>
+
+              <input
+                id="dataNascimento"
+                type="date"
+                value={form.dataNascimento}
+                onChange={atualizar("dataNascimento")}
+              />
+            </div>
+
+            <div className={styles.campo}>
               <label htmlFor="email">
                 E-mail <span>*</span>
               </label>
@@ -292,21 +302,6 @@ export default function Home() {
                 placeholder="exemplo@dominio.com"
                 value={form.email}
                 onChange={atualizar("email")}
-              />
-            </div>
-
-            <div className={styles.campo}>
-              <label htmlFor="cnpj">
-                CNPJ <span>*</span>
-              </label>
-
-              <input
-                id="cnpj"
-                type="text"
-                inputMode="numeric"
-                placeholder="00.000.000/0000-00"
-                value={form.cnpj}
-                onChange={atualizar("cnpj")}
               />
             </div>
 
@@ -326,6 +321,21 @@ export default function Home() {
             </div>
 
             <div className={styles.campo}>
+              <label htmlFor="cnpj">
+                CNPJ <span>*</span>
+              </label>
+
+              <input
+                id="cnpj"
+                type="text"
+                inputMode="numeric"
+                placeholder="00.000.000/0000-00"
+                value={form.cnpj}
+                onChange={atualizar("cnpj")}
+              />
+            </div>
+
+            <div className={styles.campo}>
               <label htmlFor="razaoSocial">
                 Razão social <span>*</span>
               </label>
@@ -337,19 +347,6 @@ export default function Home() {
                 placeholder="Nome da empresa"
                 value={form.razaoSocial}
                 onChange={atualizar("razaoSocial")}
-              />
-            </div>
-
-            <div className={styles.campo}>
-              <label htmlFor="dataNascimento">
-                Data de nascimento <span>*</span>
-              </label>
-
-              <input
-                id="dataNascimento"
-                type="date"
-                value={form.dataNascimento}
-                onChange={atualizar("dataNascimento")}
               />
             </div>
 
@@ -387,18 +384,6 @@ export default function Home() {
 
         </div>
 
-        {erro && (
-          <p role="alert" className={styles.erro}>
-            {erro}
-          </p>
-        )}
-
-        {sucesso && (
-          <p role="status" className={styles.sucesso}>
-            {sucesso}
-          </p>
-        )}
-
         <div className={styles.botoes}>
 
           <button
@@ -423,6 +408,16 @@ export default function Home() {
 
       </section>
 
+
+      <Popup mensagem={erro} tipo="erro" aoFechar={() => setErro("")} />
+
+      <Popup
+        mensagem={sucesso}
+        tipo="sucesso"
+        titulo="Administrador cadastrado!"
+        textoBotao="Ir para o login"
+        aoFechar={() => router.push("/")}
+      />
     </main>
   );
 }
