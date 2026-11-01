@@ -6,7 +6,9 @@ Mostra a foto, o nome e o tipo de conta de quem fez login.
 Pode ser reaproveitado em qualquer página que tenha o mesmo menu.
 */
 import { useEffect, useState } from "react";
-import styles from "@/app/style/menu.module.css"; 
+import styles from "@/app/style/menu.module.css";
+import { useRouter, useParams } from "next/navigation";
+import { Router } from "next/router";
 
 const DESCRICAO_NIVEL = {
   ADM: "Conta administrativa",
@@ -17,6 +19,7 @@ const ROTA_PERFIL = "/api/perfilToken";
 export default function PerfilUsuario() {
   const [perfil, setPerfil] = useState(undefined);
   const [fotoFalhou, setFotoFalhou] = useState(false);
+  const router = useRouter()
 
   useEffect(() => {
     let ativo = true;
@@ -43,10 +46,15 @@ export default function PerfilUsuario() {
   const fotoUrl = perfil?.foto?.startsWith("https://") ? perfil.foto : null;
 
   return (
-    <div className={styles.usuario}>
+    <div className={styles.usuario}
+      onClick={() => router.push("/perfil")}
+    >
+      
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          
+
         {fotoUrl && !fotoFalhou ? (
-          <img
+          <img 
             src={fotoUrl}
             alt=""
             width={36}
@@ -54,6 +62,7 @@ export default function PerfilUsuario() {
             style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
             onError={() => setFotoFalhou(true)}
           />
+          
         ) : (
           <span
             aria-hidden="true"

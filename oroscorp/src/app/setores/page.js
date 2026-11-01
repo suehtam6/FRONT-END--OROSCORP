@@ -124,11 +124,10 @@ export default function Setores() {
       e.preventDefault();
       router.push("/cadastrarSetor");
     };
+
   
   return (
     <Shell>
-      
-
       <section className={styles.conteudo}>
         <div className={styles.topoConteudo}>
           <div>
@@ -173,7 +172,10 @@ export default function Setores() {
                 />
               </div>
 
-              <button className={styles.botaoVer}>
+              <button 
+              className={styles.botaoVer}
+              onClick={() => router.push("/perfilSetor")}
+              >
                 Ver setor <span>›</span>
               </button>
             </article>
