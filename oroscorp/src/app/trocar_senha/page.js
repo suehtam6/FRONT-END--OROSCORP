@@ -39,12 +39,14 @@ export default function TrocarSenha() {
 
       const dados = await resposta.json().catch(() => ({}));
 
+      // Se a resposta não for OK (ex: erro 400 ou 404), mostra o erro e NÃO avança
       if (!resposta.ok) {
-        setErro(dados.message || "Não foi possível enviar o código.");
-        return;
+        setErro(dados.message || "E-mail não encontrado ou inválido.");
+        return; 
       }
 
-      router.push("./codigo");
+      // Se passou pela verificação acima, o e-mail existe e pode avançar
+      router.push("/codigo");
     } catch {
       setErro("Erro de conexão. Tente novamente.");
     } finally {
