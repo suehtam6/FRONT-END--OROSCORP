@@ -5,19 +5,16 @@ Objetivo : Bloco de perfil no rodapé do menu lateral.
 Mostra a foto, o nome e o tipo de conta de quem fez login.
 Pode ser reaproveitado em qualquer página que tenha o mesmo menu.
 */
-
 import { useEffect, useState } from "react";
-import styles from "@/app/style/home.module.css";
+import styles from "@/app/style/menu.module.css"; 
 
 const DESCRICAO_NIVEL = {
   ADM: "Conta administrativa",
 };
 
-
 const ROTA_PERFIL = "/api/perfilToken";
 
 export default function PerfilUsuario() {
-
   const [perfil, setPerfil] = useState(undefined);
   const [fotoFalhou, setFotoFalhou] = useState(false);
 
@@ -39,15 +36,10 @@ export default function PerfilUsuario() {
   }, []);
 
   const carregando = perfil === undefined;
-
-  // Se o perfil não carregar, vou fazer mostrar que ele é adm
   const nome = perfil?.nome || "Administrador";
   const nivel = String(perfil?.nivel_acesso || "ADM").toUpperCase();
   const descricao = DESCRICAO_NIVEL[nivel] || nivel;
   const inicial = carregando ? "" : nome.trim().charAt(0).toUpperCase();
-
-  // A foto é o endereço completo do Cloudinary. Qualquer outro valor (como
-  // "sem-foto.png" ou nomes de arquivo antigos) cai no círculo com a inicial.
   const fotoUrl = perfil?.foto?.startsWith("https://") ? perfil.foto : null;
 
   return (
@@ -63,8 +55,6 @@ export default function PerfilUsuario() {
             onError={() => setFotoFalhou(true)}
           />
         ) : (
-          
-            //Aqui eu vou colocar a Inicial do nome caso nn tenha foto
           <span
             aria-hidden="true"
             style={{
