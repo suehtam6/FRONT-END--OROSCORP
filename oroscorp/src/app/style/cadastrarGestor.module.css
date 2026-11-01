@@ -1,6 +1,4 @@
 
-/* CADASTRO DE GESTOR */
-
 .container {
   min-height: calc(100vh - 70px);
   width: 100%;
@@ -14,7 +12,6 @@
   font-family: Arial, sans-serif;
 }
 
-/* PAINEL */
 
 .cadastroBox {
   width: 100%;
@@ -26,7 +23,6 @@
   box-sizing: border-box;
 }
 
-/* TÍTULO */
 
 .titulo {
   display: flex;
@@ -50,7 +46,6 @@
   line-height: 1.5;
 }
 
-/* BOTÃO SAIR */
 
 .sair {
   padding: 10px 22px;
@@ -69,7 +64,6 @@
   color: #fff;
 }
 
-/* ORGANIZAÇÃO DO FORMULÁRIO */
 
 .formulario {
   display: flex;
@@ -77,7 +71,6 @@
   gap: 30px;
 }
 
-/* FOTO DO GESTOR */
 
 .fotoColuna {
   width: 260px;
@@ -145,7 +138,6 @@
   background: #402020;
 }
 
-/* CAMPOS */
 
 .campos {
   flex: 1;
@@ -197,34 +189,78 @@
   color-scheme: dark;
 }
 
-/* MOSTRAR SENHA */
 
-.mostrarSenha {
+.campo select {
+  width: 100%;
+  height: 43px;
+  padding: 0 12px;
+  background: #151a1f;
+  border: 1px solid #303842;
+  border-radius: 7px;
+  box-sizing: border-box;
+  color: #fff;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+.campo select:focus {
+  border-color: #ff7900;
+}
+
+.popupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.popupBox {
+  background: #151a1f;
+  border: 1px solid #303842;
+  padding: 30px 40px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  min-width: 300px;
+}
+
+.popupBox p {
+  color: #fff;
+  font-size: 15px;
+  margin: 0;
+  font-weight: 500;
+}
+
+.popupBox button {
+  padding: 10px 25px;
+  background: #ff7900;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-weight: bold;
   cursor: pointer;
-  font-size: 12px;
-  color: #aaa;
+  transition: 0.2s;
 }
 
-.mostrarSenha input {
-  accent-color: #ff7900;
-  cursor: pointer;
+.popupBox button:hover {
+  background: #ff951f;
 }
 
-/* MENSAGEM */
-
-.mensagem {
-  margin-top: 20px;
-  color: #ffad70;
-  font-size: 12px;
-}
-
-/* BOTÕES */
 
 .botoes {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 12px;
   margin-top: 30px;
@@ -240,6 +276,19 @@
   font-weight: bold;
   cursor: pointer;
   transition: 0.2s;
+}
+
+
+.btnNovoNivel {
+  margin-right: auto; 
+  background: transparent !important;
+  border: 1px solid #303842 !important;
+  color: #929ba8 !important;
+}
+
+.btnNovoNivel:hover {
+  border-color: #ff7900 !important;
+  color: #ff7900 !important;
 }
 
 .cancelar {
@@ -261,7 +310,6 @@
 }
 
 /* RESPONSIVIDADE */
-
 @media (max-width: 800px) {
   .formulario {
     flex-direction: column;
@@ -299,6 +347,16 @@
 
   .campos {
     grid-template-columns: 1fr;
+  }
+
+  .botoes {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btnNovoNivel {
+    margin-right: 0;
+    margin-bottom: 10px;
   }
 
   .botoes button {

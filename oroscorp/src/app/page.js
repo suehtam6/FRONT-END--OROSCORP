@@ -8,6 +8,7 @@ Autor : João Pedro e Kaique Carvalho
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Popup from "@/app/components/Popup"; 
 import styles from "@/app/style/page.module.css";
 
 export default function Home() {
@@ -43,12 +44,12 @@ export default function Home() {
       const dados = await resposta.json().catch(() => ({}));
 
       if (!resposta.ok) {
-        setErro(dados.message || "Não foi possível entrar.");
+        
+        setErro(dados.message || "Email ou senha inválidos.");
         return;
       }
 
-      // Dados não sensíveis para exibir na interface (nome, foto...).
-      // O token fica no cookie httpOnly, fora do alcance do JavaScript.
+
       sessionStorage.setItem("usuario", JSON.stringify(dados.usuario));
 
       router.push("/home");
@@ -74,7 +75,6 @@ export default function Home() {
         <div className={styles.loginBox}>
           <h1 className={styles.title}>ENTRE NA SUA CONTA</h1>
 
-          {/* Só o onSubmit chama o entrar. O onClick no botão fazia a função rodar duas vezes. */}
           <form onSubmit={entrar} className={styles.form}>
             <div className={styles.inputGroup}>
               <input
@@ -102,11 +102,7 @@ export default function Home() {
               />
             </div>
 
-            {erro && (
-              <p role="alert" className={styles.erro}>
-                {erro}
-              </p>
-            )}
+       
 
             <div className={styles.forgotWrapper}>
               <a onClick={trocarSenha} className={styles.forgot}>
@@ -131,6 +127,9 @@ export default function Home() {
           </form>
         </div>
       </section>
+
+    
+      <Popup mensagem={erro} tipo="erro" aoFechar={() => setErro("")} />
     </main>
   );
 }
