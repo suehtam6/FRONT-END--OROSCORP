@@ -6,6 +6,22 @@ import { useRouter } from "next/navigation";
 import Shell from "../components/Shell";
 import styles from "../style/cadastrarFuncionario.module.css";
 
+    const CARGOS = [
+  { id: 1, nome: "Operador" },
+  { id: 2, nome: "Supervisor" },
+];
+
+const SETORES = [
+  { id: 1, nome: "Produção" },
+  { id: 2, nome: "Almoxarifado" },
+];
+
+const STATUS = [
+  { id: 1, nome: "Ativo" },
+  { id: 2, nome: "Afastado" },
+];
+
+
 export default function CadastrarFuncionario() {
   const router = useRouter();
 
@@ -18,7 +34,10 @@ export default function CadastrarFuncionario() {
     email: "",
     confirmarEmail: "",
     cpf: "",
-    nascimento: ""
+    nascimento: "",
+    id_cargo: "",
+    id_setor: "",
+    id_status_funcionario: ""
   });
 
   useEffect(() => {
@@ -49,6 +68,20 @@ export default function CadastrarFuncionario() {
       return;
     }
 
+
+const corpo = {
+  nome: dados.nome,
+  data_nascimento: dados.nascimento,
+  cpf: dados.cpf,
+  email: dados.email,
+  foto: "URL da foto do funcionario", // depois ligamos ao upload
+  id_cargo: Number(dados.id_cargo),
+  id_setor: Number(dados.id_setor),
+  id_status_funcionario: Number(dados.id_status_funcionario),
+};
+
+console.log(corpo); // confira no F12 se está igual ao formato da API
+
     // O envio para a API será implementado aqui.
     setMensagem("Dados validados. Cadastro aguardando integração com a API.");
   }
@@ -66,7 +99,7 @@ export default function CadastrarFuncionario() {
             <button
               type="button"
               className={styles.sair}
-              onClick={() => router.push("/home")}
+              onClick={() => router.push("/funcionarios")}
             >
               SAIR
             </button>
@@ -172,6 +205,55 @@ export default function CadastrarFuncionario() {
                     required
                   />
                 </div>
+
+                <div className={styles.campo}>
+                <label htmlFor="id_cargo">Cargo <span>*</span></label>
+                <select
+                  id="id_cargo"
+                  name="id_cargo"
+                  value={dados.id_cargo}
+                  onChange={atualizar}
+                  required
+                >
+                  <option value="">Selecione o cargo</option>
+                  {CARGOS.map((c) => (
+                    <option key={c.id} value={c.id}>{c.nome}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.campo}>
+                <label htmlFor="id_setor">Setor <span>*</span></label>
+                <select
+                  id="id_setor"
+                  name="id_setor"
+                  value={dados.id_setor}
+                  onChange={atualizar}
+                  required
+                >
+                  <option value="">Selecione o setor</option>
+                  {SETORES.map((s) => (
+                    <option key={s.id} value={s.id}>{s.nome}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.campo}>
+                <label htmlFor="id_status_funcionario">Status <span>*</span></label>
+                <select
+                  id="id_status_funcionario"
+                  name="id_status_funcionario"
+                  value={dados.id_status_funcionario}
+                  onChange={atualizar}
+                  required
+                >
+                  <option value="">Selecione o status</option>
+                  {STATUS.map((st) => (
+                    <option key={st.id} value={st.id}>{st.nome}</option>
+                  ))}
+                </select>
+              </div>
+
               </div>
             </div>
 
@@ -183,7 +265,7 @@ export default function CadastrarFuncionario() {
               <button
                 type="button"
                 className={styles.cancelar}
-                onClick={() => router.push("/home")}
+                onClick={() => router.push("/funcionarios")}
               >
                 CANCELAR
               </button>

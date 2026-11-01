@@ -245,6 +245,27 @@
   background: #ff951f;
 }
 
+.campo input:not([type="checkbox"]),
+.campo select {
+  width: 100%;
+  height: 43px;
+  background: #151a1f;
+  border: 1px solid #303842;
+  border-radius: 7px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  color: #fff;
+  font-size: 12px;
+  outline: none;
+}
+
+.campo input:focus,
+.campo select:focus {
+  border-color: #ff7900;
+}
+
+
+
 /* RESPONSIVIDADE */
 
 @media (max-width: 800px) {
