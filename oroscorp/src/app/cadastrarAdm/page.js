@@ -4,6 +4,11 @@
 Data : 7 de Outubro de 2026
 Objetivo : Tela de cadastro
 Autor : João Pedro e Kaique Carvalho
+
+Autor JS  : Matheus Lucas
+Data      : 2 de novembro de 2026 
+
+
 */
 
 import { useEffect, useRef, useState } from "react";
@@ -118,6 +123,10 @@ const validar = () => {
     }
     if (!/[A-Z]/.test(form.senha)) {
       return "A senha deve conter pelo menos uma letra maiúscula.";
+    }
+
+    if (!/[1-9]/.test(form.senha)) {
+      return "A senha deve conter pelo menos um número.";
     }
     
     if (form.senha !== form.confirmarSenha) return "As senhas não conferem.";
