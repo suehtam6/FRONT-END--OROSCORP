@@ -83,7 +83,7 @@ export async function POST(request) {
     );
   }
 
-  // 3. Cria o Responsável
+ 
   let cadastroResponsavel = null;
   try {
     const respostaResp = await fetch(`${API_URL}${ROTA_RESPONSAVEL}`, {
@@ -108,7 +108,7 @@ export async function POST(request) {
     return NextResponse.json({ ok: true }, { status: 201 });
   }
 
-  // 4. Se falhou ao criar o responsável, desfaz o usuário
+
   const desfez = await desfazerUsuarioBackEnd(idUsuario, token);
 
   const motivo = cadastroResponsavel
@@ -123,4 +123,43 @@ export async function POST(request) {
     },
     { status: cadastroResponsavel && !cadastroResponsavel.resposta.ok ? cadastroResponsavel.resposta.status : 502 }
   );
+}
+
+
+export async function GET(request) {
+  const token = request.cookies.get('token')?.value;
+
+  if (!token) {
+    return NextResponse.json(
+      { message: 'Token não informado. Faça login novamente.' },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const resposta = await fetch(`${API_URL}${ROTA_RESPONSAVEL}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      cache: 'no-store',
+    });
+
+    const dados = await resposta.json().catch(() => ({}));
+
+    if (!resposta.ok) {
+      return NextResponse.json(
+        { message: mensagemDe(dados, 'Erro ao buscar os responsáveis do backend.') },
+        { status: resposta.status }
+      );
+    }
+
+    return NextResponse.json(dados, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { message: 'Não foi possível conectar ao servidor para buscar os responsáveis.' },
+      { status: 502 }
+    );
+  }
 }

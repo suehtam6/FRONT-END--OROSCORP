@@ -1,0 +1,233 @@
+/* Overlay e Container Principal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContainer {
+  background-color: #161a22;
+  border: 1px solid #232936;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 460px;
+  padding: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Cabeçalho */
+.modalCabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modalCabecalho h3 {
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.modalFechar {
+  background: transparent;
+  border: none;
+  color: #8b949e;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.modalFechar:hover {
+  color: #ffffff;
+}
+
+/* Formulário de Adicionar */
+.modalFormulario {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.modalInput {
+  flex: 1;
+  background: #0d1117;
+  border: 1px solid #21262d;
+  color: #f0f6fc;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.modalInput:focus {
+  border-color: #ff6b00;
+}
+
+.modalBotaoAdicionar {
+  background: #ff6b00;
+  color: #ffffff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.modalBotaoAdicionar:hover {
+  background: #e05d00;
+}
+
+/* Lista de Itens com Scrollbar Customizada */
+.modalLista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-bottom: 20px;
+}
+
+/* Customização da Scrollbar */
+.modalLista::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modalLista::-webkit-scrollbar-track {
+  background: #0d1117;
+  border-radius: 4px;
+}
+
+.modalLista::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 4px;
+}
+
+.modalLista::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}
+
+/* Card do Item */
+.modalItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0d1117;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid #21262d;
+}
+
+.modalItemTexto {
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Botões do Item (Estilo da Foto 1) */
+.modalAcoesItem {
+  display: flex;
+  gap: 8px;
+}
+
+.modalBotaoEditar {
+  background: #2d333b;
+  color: #adbac7;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.modalBotaoEditar:hover {
+  background: #373e47;
+  color: #ffffff;
+}
+
+.modalBotaoExcluir {
+  background: #dc3545;
+  color: #ffffff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.modalBotaoExcluir:hover {
+  background: #bb2d3b;
+}
+
+/* Edição Inline */
+.modalInputEdicao {
+  flex: 1;
+  background: #161a22;
+  border: 1px solid #ff6b00;
+  color: #ffffff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-right: 8px;
+  font-size: 0.85rem;
+}
+
+.modalBotaoSalvar {
+  background: #238636;
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.modalBotaoCancelarItem {
+  background: #30363d;
+  color: #c9d1d9;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+/* Rodapé */
+.modalRodape {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modalBotaoConcluido {
+  background: #2d333b;
+  color: #adbac7;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modalBotaoConcluido:hover {
+  background: #373e47;
+  color: #ffffff;
+}

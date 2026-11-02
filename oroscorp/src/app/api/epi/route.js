@@ -1,15 +1,49 @@
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
-const API_URL = process.env.API_URL;
-const ROTA_EPI = '/v1/oroscorp/epi';
+const API_URL = process.env.API_URL || 'http://localhost:8080';
+// Nota a barra "/" no final para bater com o mapeamento exato da tua controller Java
+const ROTA_EPI = '/v1/oroscorp/epi/';
+
+export async function GET(request) {
+  try {
+    const token = request.cookies.get('token')?.value;
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const resposta = await fetch(`${API_URL}${ROTA_EPI}`, {
+      method: 'GET',
+      headers,
+      cache: 'no-store',
+    });
+
+    const text = await resposta.text();
+    const dados = text ? JSON.parse(text) : [];
+
+    if (!resposta.ok) {
+      return NextResponse.json(
+        { message: 'Erro ao buscar os EPIs no backend.' }, 
+        { status: resposta.status }
+      );
+    }
+
+    return NextResponse.json(dados, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { message: 'Não foi possível conectar ao servidor para buscar os EPIs.' }, 
+      { status: 502 }
+    );
+  }
+}
 
 export async function POST(request) {
   try {
-    // Captura o corpo enviado pelo frontend
+    const token = request.cookies.get('token')?.value;
     const body = await request.json();
 
-    // Monta o payload exatamente no formato esperado pelo Spring Boot
     const payload = {
       nome: body.nome,
       descricao: body.descricao,
@@ -18,12 +52,14 @@ export async function POST(request) {
       id_categoria: Number(body.id_categoria)
     };
 
-    // Faz a requisição para o backend externo
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const resposta = await fetch(`${API_URL}${ROTA_EPI}`, {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json' 
-      },
+      headers,
       body: JSON.stringify(payload),
       cache: 'no-store',
     });
@@ -32,19 +68,12 @@ export async function POST(request) {
     const dados = text ? JSON.parse(text) : {};
 
     if (!resposta.ok) {
-      const mensagemErro = dados.message || dados.response?.message || 'Erro ao cadastrar o EPI no servidor.';
-      return NextResponse.json(
-        { message: mensagemErro }, 
-        { status: resposta.status }
-      );
+      const msg = dados.message || dados.response?.message || 'Erro ao cadastrar EPI.';
+      return NextResponse.json({ message: msg }, { status: resposta.status });
     }
 
     return NextResponse.json(dados, { status: 201 });
   } catch (error) {
-    console.error('Erro na rota API /api/epi:', error);
-    return NextResponse.json(
-      { message: 'Erro interno no servidor Next.js ao processar a requisição.' }, 
-      { status: 500 }
-    );
+    return NextResponse.json({ message: 'Erro interno no servidor Next.js.' }, { status: 500 });
   }
 }
