@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Shell from "../components/Shell";
 import styles from "../style/cadastrarCamera.module.css";
+import modalStyles from "../style/modalGerenciador.module.css";
 import Popup from "../components/Popup";
 
 export default function CadastrarCamera() {
@@ -11,11 +12,9 @@ export default function CadastrarCamera() {
 
   const [imagem, setImagem] = useState(null);
   const [carregando, setCarregando] = useState(false);
-  
 
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
-  
 
   const [modalStatusAberto, setModalStatusAberto] = useState(false);
   const [novoStatusNome, setNovoStatusNome] = useState("");
@@ -80,7 +79,6 @@ export default function CadastrarCamera() {
     });
   }
 
-
   async function criarNovoStatus(e) {
     e.preventDefault();
     if (!novoStatusNome.trim()) return;
@@ -89,7 +87,7 @@ export default function CadastrarCamera() {
       const res = await fetch("/api/status-camera", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: novoStatusNome })
+        body: JSON.stringify({ status: novoStatusNome.trim() })
       });
 
       if (res.ok) {
@@ -104,7 +102,6 @@ export default function CadastrarCamera() {
     }
   }
 
-  
   async function salvarEdicaoStatus(id) {
     if (!nomeEditado.trim()) return;
 
@@ -112,7 +109,7 @@ export default function CadastrarCamera() {
       const res = await fetch(`/api/status-camera/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: nomeEditado })
+        body: JSON.stringify({ status: nomeEditado.trim() })
       });
 
       if (res.ok) {
@@ -128,7 +125,6 @@ export default function CadastrarCamera() {
     }
   }
 
-  
   async function deletarStatus(id) {
     if (!confirm("Tem certeza que deseja excluir este status?")) return;
 
@@ -138,7 +134,6 @@ export default function CadastrarCamera() {
       });
 
       if (res.ok) {
-        
         if (Number(dados.id_status_camera) === id) {
           setDados((prev) => ({ ...prev, id_status_camera: "" }));
         }
@@ -152,7 +147,6 @@ export default function CadastrarCamera() {
     }
   }
 
-  
   async function registrar(e) {
     e.preventDefault();
     setCarregando(true);
@@ -201,8 +195,6 @@ export default function CadastrarCamera() {
 
         <form className={styles.painel} onSubmit={registrar}>
           <div className={styles.layout}>
-
-            
             <div className={styles.campos}>
               <h2>Informações da câmera</h2>
 
@@ -262,7 +254,6 @@ export default function CadastrarCamera() {
                 />
               </div>
 
-             
               <div className={styles.campo}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <label>Status inicial</label>
@@ -296,7 +287,6 @@ export default function CadastrarCamera() {
               </div>
             </div>
 
-            
             <div className={styles.imagemArea}>
               <h2>Imagem da câmera</h2>
 
@@ -364,140 +354,86 @@ export default function CadastrarCamera() {
           </div>
         </form>
 
-        
+        {/* MODAL PADRONIZADO DE GERENCIAMENTO DE STATUS DA CÂMERA */}
         {modalStatusAberto && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1000
-          }}>
-            <div style={{
-              backgroundColor: '#181f26',
-              padding: '24px',
-              borderRadius: '8px',
-              width: '100%',
-              maxWidth: '450px',
-              border: '1px solid #2a3441',
-              color: '#fff'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <h3 style={{ margin: 0 }}>Gerenciar Status das Câmeras</h3>
-                <button 
-                  type="button" 
+          <div className={modalStyles.modalOverlay}>
+            <div className={modalStyles.modalContainer}>
+              <div className={modalStyles.modalCabecalho}>
+                <h3>Gerenciar Status das Câmeras</h3>
+                <button
+                  type="button"
+                  className={modalStyles.modalFechar}
                   onClick={() => setModalStatusAberto(false)}
-                  style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '18px' }}
                 >
                   ✕
                 </button>
               </div>
 
-              
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+              <div className={modalStyles.modalFormulario}>
                 <input
                   type="text"
-                  placeholder="Novo status (ex: Manutenção)"
+                  placeholder="Novo status (ex: Manutenção)..."
                   value={novoStatusNome}
                   onChange={(e) => setNovoStatusNome(e.target.value)}
-                  style={{
-                    flex: 1,
-                    padding: '8px 12px',
-                    borderRadius: '4px',
-                    border: '1px solid #303842',
-                    backgroundColor: '#0f1419',
-                    color: '#fff',
-                    outline: 'none'
-                  }}
+                  className={modalStyles.modalInput}
                 />
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={criarNovoStatus}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#ff6b00',
-                    border: 'none',
-                    borderRadius: '4px',
-                    color: '#fff',
-                    fontWeight: 'bold',
-                    cursor: 'pointer'
-                  }}
+                  className={modalStyles.modalBotaoAdicionar}
                 >
                   Adicionar
                 </button>
               </div>
 
-              
-              <div style={{ maxHeight: '250px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div className={modalStyles.modalLista}>
                 {statusLista.map((item) => (
-                  <div key={item.id} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 12px',
-                    backgroundColor: '#0f1419',
-                    borderRadius: '4px',
-                    border: '1px solid #232d38'
-                  }}>
+                  <div key={item.id} className={modalStyles.modalItem}>
                     {statusEditandoId === item.id ? (
                       <input
                         type="text"
                         value={nomeEditado}
                         onChange={(e) => setNomeEditado(e.target.value)}
-                        style={{
-                          flex: 1,
-                          padding: '4px 8px',
-                          marginRight: '8px',
-                          borderRadius: '4px',
-                          border: '1px solid #ff6b00',
-                          backgroundColor: '#181f26',
-                          color: '#fff',
-                          outline: 'none'
-                        }}
+                        className={modalStyles.modalInputEdicao}
                       />
                     ) : (
-                      <span>● {item.status || item.nome}</span>
+                      <span className={modalStyles.modalItemTexto}>● {item.status || item.nome}</span>
                     )}
 
-                    <div style={{ display: 'flex', gap: '6px' }}>
+                    <div className={modalStyles.modalAcoesItem}>
                       {statusEditandoId === item.id ? (
                         <>
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             onClick={() => salvarEdicaoStatus(item.id)}
-                            style={{ background: '#28a745', border: 'none', color: '#fff', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                            className={modalStyles.modalBotaoSalvar}
                           >
                             Salvar
                           </button>
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             onClick={() => setStatusEditandoId(null)}
-                            style={{ background: '#6c757d', border: 'none', color: '#fff', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                            className={modalStyles.modalBotaoCancelarItem}
                           >
                             Cancelar
                           </button>
                         </>
                       ) : (
                         <>
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             onClick={() => {
                               setStatusEditandoId(item.id);
                               setNomeEditado(item.status || item.nome);
                             }}
-                            style={{ background: '#303842', border: 'none', color: '#fff', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                            className={modalStyles.modalBotaoEditar}
                           >
                             Editar
                           </button>
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             onClick={() => deletarStatus(item.id)}
-                            style={{ background: '#dc3545', border: 'none', color: '#fff', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                            className={modalStyles.modalBotaoExcluir}
                           >
                             Excluir
                           </button>
@@ -508,18 +444,11 @@ export default function CadastrarCamera() {
                 ))}
               </div>
 
-              <div style={{ marginTop: '20px', textAlign: 'right' }}>
-                <button 
-                  type="button" 
+              <div className={modalStyles.modalRodape}>
+                <button
+                  type="button"
                   onClick={() => setModalStatusAberto(false)}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#303842',
-                    border: 'none',
-                    borderRadius: '4px',
-                    color: '#fff',
-                    cursor: 'pointer'
-                  }}
+                  className={modalStyles.modalBotaoConcluido}
                 >
                   Concluído
                 </button>
@@ -528,7 +457,7 @@ export default function CadastrarCamera() {
           </div>
         )}
 
-        
+        {/* POPUPS DE NOTIFICAÇÃO */}
         <Popup mensagem={erro} tipo="erro" aoFechar={() => setErro("")} />
 
         <Popup

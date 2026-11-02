@@ -1,4 +1,3 @@
-
 .pagina {
   min-height: 100vh;
   background: #343434;
@@ -26,8 +25,14 @@
   cursor: pointer;
 }
 
-.header button:first-child { border-radius: 50%; }
-.logo { font-size: 25px; letter-spacing: 2px; }
+.header button:first-child { 
+  border-radius: 50%; 
+}
+
+.logo { 
+  font-size: 25px; 
+  letter-spacing: 2px; 
+}
 
 .sidebar {
   position: fixed;
@@ -43,80 +48,168 @@
   gap: 15px;
 }
 
-.sidebar a { color: #ddd; text-decoration: none; font-size: 13px; }
-.sidebar a:hover, .sidebar h3 { color: #ff9800; }
-.sidebar button { align-self: flex-end; cursor: pointer; }
+.sidebar a { 
+  color: #ddd; 
+  text-decoration: none; 
+  font-size: 13px; 
+}
 
-.conteudo { padding: 22px 32px 40px; }
-.conteudo h1 { font-size: 22px; margin: 0 0 8px; }
-.conteudo > p { font-size: 12px; color: #aaa; margin-bottom: 27px; }
+.sidebar a:hover, 
+.sidebar h3 { 
+  color: #ff9800; 
+}
+
+.sidebar button { 
+  align-self: flex-end; 
+  cursor: pointer; 
+}
+
+.conteudo { 
+  padding: 22px 32px 40px; 
+}
+
+.tituloPagina h1 { 
+  font-size: 22px; 
+  margin: 0 0 8px; 
+}
+
+.tituloPagina p,
+.conteudo > p { 
+  font-size: 12px; 
+  color: #aaa; 
+  margin-bottom: 27px; 
+}
 
 .painel {
   background: #111315;
   border: 1px solid #292d32;
   border-radius: 13px;
-  padding: 55px 16px 26px;
-  min-height: 740px;
+  padding: 35px 24px 26px;
+  min-height: 680px;
   display: flex;
   flex-direction: column;
 }
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 265px;
+  grid-template-columns: minmax(0, 1fr) 280px;
   gap: 32px;
 }
 
-.campos { display: flex; flex-direction: column; gap: 17px; }
-.linha { display: grid; grid-template-columns: 1fr 1fr; gap: 65px; }
-.campo { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.colunaEsquerda {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
 
-.campo label, .descricao label { font-size: 12px; }
-.campo label span { color: #ff7900; }
+.colunaDireita {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 10px;
+}
 
-.campo input, .campo select, .descricao textarea {
+.linhaDupla { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 20px; 
+}
+
+.campo { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 7px; 
+  min-width: 0; 
+}
+
+.campo label { 
+  font-size: 12px; 
+  color: #ddd; 
+  font-weight: 500;
+}
+
+.campo label span { 
+  color: #ff7900; 
+}
+
+.campo input, 
+.campo select, 
+.campo textarea {
   width: 100%;
   box-sizing: border-box;
   background: #101114;
   border: 1px solid #292d32;
   border-radius: 6px;
   color: #ddd;
-  font: 12px Arial;
+  font: 12px Arial, sans-serif;
   padding: 0 12px;
   outline: none;
+  transition: border-color 0.2s;
 }
 
-.campo input, .campo select { height: 34px; }
-.campo input[type="date"], .campo input[type="time"] { color-scheme: dark; }
+.campo input, 
+.campo select { 
+  height: 38px; 
+}
 
-.campo input:focus, .campo select:focus, .descricao textarea:focus {
+.campo textarea {
+  height: 100px;
+  padding: 12px;
+  resize: vertical;
+}
+
+.campo textarea::placeholder { 
+  color: #666; 
+}
+
+.campo input[type="date"], 
+.campo input[type="time"] { 
+  color-scheme: dark; 
+}
+
+.campo input:focus, 
+.campo select:focus, 
+.campo textarea:focus {
   border-color: #ff9800;
 }
 
-.prioridades { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
-
-.prioridades button {
-  height: 39px;
-  background: #111315;
-  color: #ddd;
-  border: 1px solid #292d32;
-  border-radius: 9px;
-  cursor: pointer;
+/* BOTÕES DE PRIORIDADE DINÂMICOS */
+.botoesPrioridade { 
+  display: grid; 
+  grid-template-columns: repeat(2, 1fr); 
+  gap: 8px; 
 }
 
-.prioridades .ativo {
-  border: 2px solid #ffae00;
-  color: #ffbd27;
-  background: #181714;
+.btnPrioridade {
+  height: 36px;
+  background: #101114;
+  color: #aaa;
+  border: 1px solid #292d32;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.2s;
+}
+
+.btnPrioridade:hover {
+  background: #181b20;
+  color: #fff;
+}
+
+.prioAtiva {
+  border: 2px solid #ffae00 !important;
+  color: #ffbd27 !important;
+  background: #181714 !important;
   font-weight: bold;
 }
 
-.imagemArea { padding-top: 30px; display: flex; flex-direction: column; gap: 30px; }
 
-.upload {
-  height: 290px;
+.uploadBox {
+  width: 100%;
+  min-height: 280px;
+  max-height: 480px;
   background: #101114;
-  border: 1px solid #292f39;
+  border: 1px dashed #292f39;
   border-radius: 9px;
   display: flex;
   align-items: center;
@@ -124,64 +217,154 @@
   text-align: center;
   cursor: pointer;
   overflow: hidden;
+  position: relative;
+  transition: border-color 0.2s;
+  padding: 8px;
+  box-sizing: border-box;
 }
 
-.upload strong { font-size: 12px; }
-.upload p { color: #777; font-size: 11px; line-height: 1.6; }
-.upload img { width: 100%; height: 100%; object-fit: contain; }
-.iconeUpload { font-size: 28px; margin-bottom: 8px; }
+.uploadBox:hover {
+  border-color: #ff9800;
+}
 
-.alterar {
+.previewPrint { 
+  max-width: 100%; 
+  max-height: 100%; 
+  width: auto;
+  height: auto;
+  object-fit: contain; 
+  border-radius: 6px;
+}
+
+.textoUpload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+}
+
+.textoUpload span { 
+  font-size: 28px; 
+  margin-bottom: 8px; 
+  color: #ff9800;
+}
+
+.textoUpload strong { 
+  font-size: 13px; 
+  color: #ddd;
+  margin-bottom: 4px;
+}
+
+.textoUpload p { 
+  color: #777; 
+  font-size: 11px; 
+  line-height: 1.5; 
+  margin: 0;
+}
+
+
+
+.btnAlterarImagem {
   background: #20252e;
+  border: 1px solid #292d32;
+  color: #ddd;
   padding: 10px;
   border-radius: 8px;
   text-align: center;
   font-size: 11px;
   cursor: pointer;
-  width: 85%;
-  align-self: center;
+  width: 100%;
+  transition: background 0.2s;
 }
 
-.descricao { width: calc(100% - 297px); margin-top: 100px; }
-.descricao label { display: block; margin-bottom: 8px; }
-.descricao textarea { height: 86px; padding: 12px; resize: vertical; }
-.descricao textarea::placeholder { color: #666; }
+.btnAlterarImagem:hover {
+  background: #2a313d;
+  color: #fff;
+}
 
+/* BOTÕES DE AÇÃO DO RODAPÉ */
 .acoes {
   display: flex;
   justify-content: flex-end;
-  gap: 24px;
-  margin-top: auto;
-  padding-top: 22px;
+  gap: 16px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #1a1d22;
 }
 
-.acoes button {
-  padding: 12px 18px;
+.btnCancelar,
+.btnRegistrar {
+  padding: 12px 24px;
   border: none;
   border-radius: 7px;
   cursor: pointer;
-  background: #1b1e23;
-  color: white;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
 }
 
-.acoes button:last-child { background: #ff7900; color: black; font-weight: bold; }
-.acoes button:last-child:hover { background: #ff981f; }
+.btnCancelar {
+  background: #1b1e23;
+  color: #aaa;
+  border: 1px solid #292d32;
+}
 
+.btnCancelar:hover {
+  background: #252a31;
+  color: #fff;
+}
+
+.btnRegistrar { 
+  background: #ff7900; 
+  color: #000; 
+  font-weight: bold; 
+}
+
+.btnRegistrar:hover { 
+  background: #ff981f; 
+}
+
+.btnRegistrar:disabled,
+.btnCancelar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* RESPONSIVIDADE */
 @media (max-width: 900px) {
-  .layout { grid-template-columns: 1fr 200px; gap: 20px; }
-  .linha { gap: 15px; }
-  .descricao { width: calc(100% - 220px); }
+  .layout { 
+    grid-template-columns: 1fr 220px; 
+    gap: 20px; 
+  }
+  .linhaDupla { 
+    gap: 15px; 
+  }
 }
 
 @media (max-width: 650px) {
-  .conteudo { padding: 20px 15px; }
-  .painel { padding: 20px 15px; min-height: auto; }
-  .layout, .linha { grid-template-columns: 1fr; }
-  .imagemArea { padding-top: 10px; gap: 15px; }
-  .upload { height: 220px; }
-  .descricao { width: 100%; margin-top: 30px; }
-  .acoes { margin-top: 25px; gap: 10px; }
-  .acoes button { flex: 1; }
-  .logo { font-size: 16px; }
+  .conteudo { 
+    padding: 20px 15px; 
+  }
+  .painel { 
+    padding: 20px 15px; 
+    min-height: auto; 
+  }
+  .layout, 
+  .linhaDupla { 
+    grid-template-columns: 1fr; 
+  }
+  .uploadBox { 
+    height: 220px; 
+  }
+  .acoes { 
+    margin-top: 25px; 
+    gap: 10px; 
+  }
+  .btnCancelar, 
+  .btnRegistrar { 
+    flex: 1; 
+  }
+  .logo { 
+    font-size: 16px; 
+  }
 }

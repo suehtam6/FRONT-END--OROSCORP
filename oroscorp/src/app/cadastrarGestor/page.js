@@ -3,12 +3,14 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Shell from "../components/Shell";
+import Popup from "../components/Popup";
 import styles from "../style/cadastrarGestor.module.css";
+import modalStyles from "../style/modalGerenciador.module.css";
 
-// Função para aplicar a máscara do CPF (111.111.111-11)
+
 function mascaraCPF(valor) {
-  let v = valor.replace(/\D/g, ""); // Remove tudo o que não é dígito
-  if (v.length > 11) v = v.substring(0, 11); // Limita a 11 dígitos
+  let v = valor.replace(/\D/g, "");
+  if (v.length > 11) v = v.substring(0, 11);
   
   if (v.length > 9) {
     v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, "$1.$2.$3-$4");
@@ -20,57 +22,44 @@ function mascaraCPF(valor) {
   return v;
 }
 
-
 function mascaraData(valor) {
   let v = valor.replace(/\D/g, ""); 
   if (v.length === 0) return "";
 
- 
   let dia = v.substring(0, 2);
   let mes = v.substring(2, 4);
   let ano = v.substring(4, 8);
 
-  
-  if (dia.length === 2 && parseInt(dia, 10) > 31) {
-    dia = "31";
-  }
+  if (dia.length === 2 && parseInt(dia, 10) > 31) dia = "31";
+  if (mes.length === 2 && parseInt(mes, 10) > 12) mes = "12";
 
-
-  if (mes.length === 2 && parseInt(mes, 10) > 12) {
-    mes = "12";
-  }
-
- 
   const anoAtual = new Date().getFullYear();
-  if (ano.length === 4 && parseInt(ano, 10) > anoAtual) {
-    ano = anoAtual.toString();
-  }
-
+  if (ano.length === 4 && parseInt(ano, 10) > anoAtual) ano = anoAtual.toString();
 
   let resultado = dia;
-  if (v.length >= 3) {
-    resultado += "/" + mes;
-  }
-  if (v.length >= 5) {
-    resultado += "/" + ano;
-  }
+  if (v.length >= 3) resultado += "/" + mes;
+  if (v.length >= 5) resultado += "/" + ano;
 
   return resultado;
 }
-
 
 export default function CadastrarGestor() {
   const router = useRouter();
 
   const [foto, setFoto] = useState(null);
   const [preview, setPreview] = useState("");
-  const [mensagem, setMensagem] = useState("");
   const [carregando, setCarregando] = useState(false);
   
-  // Estados para os Níveis de Acesso
+  
+  const [erro, setErro] = useState("");
+  const [sucesso, setSucesso] = useState("");
+
+ 
   const [niveisAcesso, setNiveisAcesso] = useState([]);
-  const [mostrarInputNivel, setMostrarInputNivel] = useState(false);
-  const [novoNivel, setNovoNivel] = useState("");
+  const [modalNivelAberto, setModalNivelAberto] = useState(false);
+  const [novoNivelNome, setNovoNivelNome] = useState("");
+  const [nivelEditandoId, setNivelEditandoId] = useState(null);
+  const [nomeNivelEditado, setNomeNivelEditado] = useState("");
 
   const [dados, setDados] = useState({
     nome: "",
@@ -83,25 +72,25 @@ export default function CadastrarGestor() {
     id_nivel_acesso: ""
   });
 
-  // Busca os níveis de acesso ao carregar a página
-  useEffect(() => {
-    async function carregarNiveis() {
-      try {
-        const res = await fetch("/api/nivel-acesso");
-        const dadosAPI = await res.json();
-        
-        if (res.ok) {
-          const listaNiveis = dadosAPI.response?.dados || dadosAPI.response || dadosAPI.dados || dadosAPI;
-          if (Array.isArray(listaNiveis)) {
-            setNiveisAcesso(listaNiveis);
-          } else {
-            setNiveisAcesso([]);
-          }
+  async function carregarNiveis() {
+    try {
+      const res = await fetch("/api/nivel-acesso");
+      const dadosAPI = await res.json().catch(() => ([]));
+      
+      if (res.ok) {
+        const listaNiveis = dadosAPI.response?.dados || dadosAPI.response || dadosAPI.dados || dadosAPI;
+        if (Array.isArray(listaNiveis)) {
+          setNiveisAcesso(listaNiveis);
+        } else {
+          setNiveisAcesso([]);
         }
-      } catch (error) {
-        console.error("Falha de ligação ao buscar níveis:", error);
       }
+    } catch (error) {
+      console.error("Falha de conexão ao buscar níveis de acesso:", error);
     }
+  }
+
+  useEffect(() => {
     carregarNiveis();
   }, []);
 
@@ -115,7 +104,6 @@ export default function CadastrarGestor() {
     return () => URL.revokeObjectURL(url);
   }, [foto]);
 
-  // Função atualizar que aplica as máscaras
   function atualizar(evento) {
     const { name, value } = evento.target;
     let novoValor = value;
@@ -130,69 +118,112 @@ export default function CadastrarGestor() {
       ...dados,
       [name]: novoValor
     });
-    setMensagem("");
+    setErro("");
   }
 
-  // Função para criar o novo nível internamente
-  async function salvarNovoNivel() {
-    if (!novoNivel || novoNivel.trim() === "") {
-      setMostrarInputNivel(false);
-      return;
-    }
+
+  async function criarNivelAcesso(e) {
+    e.preventDefault();
+    if (!novoNivelNome.trim()) return;
 
     try {
       const res = await fetch("/api/nivel-acesso", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome: novoNivel })
+        body: JSON.stringify({ nome: novoNivelNome.trim() })
       });
 
       if (res.ok) {
-        setMensagem(`Nível "${novoNivel}" criado com sucesso!`);
-        setNovoNivel(""); 
-        setMostrarInputNivel(false); 
-        
+        const criado = await res.json().catch(() => ({}));
+        setNovoNivelNome("");
+        await carregarNiveis();
 
-        const resAtualizada = await fetch("/api/nivel-acesso");
-        const dadosAPI = await resAtualizada.json();
-        const listaNiveis = dadosAPI.response?.dados || dadosAPI.response || dadosAPI.dados || dadosAPI;
-        setNiveisAcesso(Array.isArray(listaNiveis) ? listaNiveis : []);
+        const idNovo = criado.id || criado.response?.id;
+        if (idNovo) {
+          setDados(prev => ({ ...prev, id_nivel_acesso: String(idNovo) }));
+        }
       } else {
-        const erro = await res.json();
-        setMensagem(erro.message || "Erro ao criar o nível.");
+        const err = await res.json().catch(() => ({}));
+        setErro(err.message || "Erro ao criar nível de acesso.");
       }
-    } catch (error) {
-      setMensagem("Erro de ligação ao criar nível.");
+    } catch {
+      setErro("Erro de conexão ao criar nível de acesso.");
     }
   }
 
+  async function salvarEdicaoNivel(id) {
+    if (!nomeNivelEditado.trim()) return;
+
+    try {
+      const res = await fetch(`/api/nivel-acesso/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome: nomeNivelEditado.trim() })
+      });
+
+      if (res.ok) {
+        setNivelEditandoId(null);
+        setNomeNivelEditado("");
+        await carregarNiveis();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setErro(err.message || "Erro ao atualizar nível de acesso.");
+      }
+    } catch {
+      setErro("Erro de conexão ao atualizar nível de acesso.");
+    }
+  }
+
+  async function deletarNivel(id) {
+    if (!confirm("Deseja realmente excluir este nível de acesso?")) return;
+
+    try {
+      const res = await fetch(`/api/nivel-acesso/${id}`, {
+        method: "DELETE"
+      });
+
+      if (res.ok) {
+        if (Number(dados.id_nivel_acesso) === Number(id)) {
+          setDados(prev => ({ ...prev, id_nivel_acesso: "" }));
+        }
+        await carregarNiveis();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setErro(err.message || "Erro ao deletar nível de acesso.");
+      }
+    } catch {
+      setErro("Erro de conexão ao deletar nível de acesso.");
+    }
+  }
 
   async function cadastrar(evento) {
     evento.preventDefault();
 
     if (dados.email !== dados.confirmarEmail) {
-      setMensagem("Os e-mails não coincidem.");
+      setErro("Os e-mails não coincidem.");
       return;
     }
     if (dados.senha !== dados.confirmarSenha) {
-      setMensagem("As senhas não coincidem.");
+      setErro("As senhas não coincidem.");
       return;
     }
     if (!dados.id_nivel_acesso) {
-      setMensagem("Selecione um nível de acesso.");
+      setErro("Selecione um nível de acesso.");
       return;
     }
 
-    // Converte a data de DD/MM/AAAA para AAAA-MM-DD para a API
     let dataFormatada = dados.nascimento;
     const partesData = dados.nascimento.split('/');
     if (partesData.length === 3) {
       dataFormatada = `${partesData[2]}-${partesData[1]}-${partesData[0]}`;
     }
 
-
     setCarregando(true);
-    setMensagem("");
+    setErro("");
+    setSucesso("");
+
+    // Envia a foto apenas se for uma URL completa do Cloudinary/S3; caso contrário, envia string vazia
+    const fotoParaEnvio = (foto && typeof foto === "string" && foto.startsWith("http")) ? foto : "";
 
     try {
       const resposta = await fetch("/api/responsavel", {
@@ -205,21 +236,19 @@ export default function CadastrarGestor() {
           data_nascimento: dataFormatada, 
           senha: dados.senha,
           id_nivel_acesso: Number(dados.id_nivel_acesso),
-          foto: "" 
+          foto: fotoParaEnvio
         }),
       });
 
-      const retorno = await resposta.json();
+      const retorno = await resposta.json().catch(() => ({}));
 
       if (resposta.ok) {
-        setMensagem("Gestor cadastrado com sucesso!");
-
-        setTimeout(() => router.push("/home"), 1500);
+        setSucesso("Gestor cadastrado com sucesso!");
       } else {
-        setMensagem(retorno.message || "Erro ao cadastrar gestor.");
+        setErro(retorno.message || "Erro ao cadastrar gestor.");
       }
-    } catch (erro) {
-      setMensagem("Erro de ligação com o servidor.");
+    } catch {
+      setErro("Erro de conexão com o servidor.");
     } finally {
       setCarregando(false);
     }
@@ -327,65 +356,29 @@ export default function CadastrarGestor() {
                     required
                   >
                     <option value="" disabled>Selecione um nível</option>
-                    {/* Filtra para não mostrar o "ADM" */}
                     {niveisAcesso
-                      .filter((nivel) => nivel.nome.toUpperCase() !== "ADM")
-                      .map((nivel) => (
-                        <option key={nivel.id} value={nivel.id}>
-                          {nivel.nome}
-                        </option>
-                      ))}
+                      .filter((nivel) => (nivel.nome || "").toUpperCase() !== "ADM")
+                      .map((nivel) => {
+                        const nId = nivel.id || nivel.id_nivel_acesso;
+                        return (
+                          <option key={nId} value={nId}>
+                            {nivel.nome}
+                          </option>
+                        );
+                      })}
                   </select>
                 </div>
               </div>
             </div>
 
-          
-            {mensagem && (
-              <div className={styles.popupOverlay}>
-                <div className={styles.popupBox}>
-                  <p>{mensagem}</p>
-                  <button type="button" onClick={() => setMensagem("")}>
-                    OK
-                  </button>
-                </div>
-              </div>
-            )}
-
             <div className={styles.botoes}>
-              {!mostrarInputNivel ? (
-                <button 
-                  type="button" 
-                  className={styles.btnNovoNivel} 
-                  onClick={() => setMostrarInputNivel(true)}
-                >
-                  + NOVO NÍVEL DE ACESSO
-                </button>
-              ) : (
-                <div style={{ display: 'flex', gap: '8px', marginRight: 'auto', alignItems: 'center' }}>
-                  <input
-                    type="text"
-                    placeholder="Nome do nível..."
-                    value={novoNivel}
-                    onChange={(e) => setNovoNivel(e.target.value)}
-                    style={{
-                      height: '35px', 
-                      padding: '0 10px', 
-                      background: '#151a1f',
-                      border: '1px solid #303842', 
-                      borderRadius: '7px', 
-                      color: '#fff',
-                      outline: 'none'
-                    }}
-                  />
-                  <button type="button" onClick={salvarNovoNivel} className={styles.cadastrar} style={{ padding: '9px 12px' }}>
-                    SALVAR
-                  </button>
-                  <button type="button" onClick={() => { setMostrarInputNivel(false); setNovoNivel(""); }} className={styles.cancelar} style={{ padding: '9px 12px' }}>
-                    X
-                  </button>
-                </div>
-              )}
+              <button 
+                type="button" 
+                className={styles.btnNovoNivel} 
+                onClick={() => setModalNivelAberto(true)}
+              >
+                + GERENCIAR NÍVEIS DE ACESSO
+              </button>
 
               <button type="button" className={styles.cancelar} onClick={() => router.push("/home")} disabled={carregando}>
                 CANCELAR
@@ -396,6 +389,124 @@ export default function CadastrarGestor() {
             </div>
           </form>
         </section>
+
+        {/* MODAL PADRONIZADO DE GERENCIAMENTO DE NÍVEL DE ACESSO */}
+        {modalNivelAberto && (
+          <div className={modalStyles.modalOverlay}>
+            <div className={modalStyles.modalContainer}>
+              <div className={modalStyles.modalCabecalho}>
+                <h3>Gerenciar Níveis de Acesso</h3>
+                <button
+                  type="button"
+                  className={modalStyles.modalFechar}
+                  onClick={() => setModalNivelAberto(false)}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className={modalStyles.modalFormulario}>
+                <input
+                  type="text"
+                  placeholder="Novo Nível de Acesso..."
+                  value={novoNivelNome}
+                  onChange={(e) => setNovoNivelNome(e.target.value)}
+                  className={modalStyles.modalInput}
+                />
+                <button
+                  type="button"
+                  onClick={criarNivelAcesso}
+                  className={modalStyles.modalBotaoAdicionar}
+                >
+                  Adicionar
+                </button>
+              </div>
+
+              <div className={modalStyles.modalLista}>
+                {niveisAcesso.map((item, index) => {
+                  const itemId = item.id || item.id_nivel_acesso || index;
+                  const itemNome = item.nome || "Sem Nome";
+
+                  return (
+                    <div key={itemId} className={modalStyles.modalItem}>
+                      {nivelEditandoId === itemId ? (
+                        <input
+                          type="text"
+                          value={nomeNivelEditado}
+                          onChange={(e) => setNomeNivelEditado(e.target.value)}
+                          className={modalStyles.modalInputEdicao}
+                        />
+                      ) : (
+                        <span className={modalStyles.modalItemTexto}>● {itemNome}</span>
+                      )}
+
+                      <div className={modalStyles.modalAcoesItem}>
+                        {nivelEditandoId === itemId ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => salvarEdicaoNivel(itemId)}
+                              className={modalStyles.modalBotaoSalvar}
+                            >
+                              Salvar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setNivelEditandoId(null)}
+                              className={modalStyles.modalBotaoCancelarItem}
+                            >
+                              Cancelar
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setNivelEditandoId(itemId);
+                                setNomeNivelEditado(itemNome);
+                              }}
+                              className={modalStyles.modalBotaoEditar}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deletarNivel(itemId)}
+                              className={modalStyles.modalBotaoExcluir}
+                            >
+                              Excluir
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className={modalStyles.modalRodape}>
+                <button
+                  type="button"
+                  onClick={() => setModalNivelAberto(false)}
+                  className={modalStyles.modalBotaoConcluido}
+                >
+                  Concluído
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* POPUPS DE NOTIFICAÇÃO */}
+        <Popup mensagem={erro} tipo="erro" aoFechar={() => setErro("")} />
+        <Popup
+          mensagem={sucesso}
+          tipo="sucesso"
+          titulo="Gestor Cadastrado!"
+          textoBotao="Ir para Inicio"
+          aoFechar={() => router.push("/home")}
+        />
       </main>
     </Shell>
   );
