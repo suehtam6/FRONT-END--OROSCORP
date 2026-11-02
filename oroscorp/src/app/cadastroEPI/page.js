@@ -1,23 +1,42 @@
-
 "use client";
+
+
+/*
+Autor JS: Matheus Lucas
+Data: 02 de novembro de 2026
+Objetivo: Transformar a tela em dinamica
+*/
+
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Shell from "../components/Shell";
 import styles from "../style/cadastrarEpi.module.css";
+import Popup from "../components/Popup";
 
 export default function CadastroEPI() {
   const router = useRouter();
+
   const [imagem, setImagem] = useState(null);
   const [preview, setPreview] = useState("");
+  const [carregando, setCarregando] = useState(false);
+
+  // Popups de Notificação
+  const [erro, setErro] = useState("");
+  const [sucesso, setSucesso] = useState("");
+
+  // Modal Gerenciador de Categorias
+  const [modalCategoriaAberto, setModalCategoriaAberto] = useState(false);
+  const [novaCategoriaNome, setNovaCategoriaNome] = useState("");
+  const [categoriaEditandoId, setCategoriaEditandoId] = useState(null);
+  const [nomeCategoriaEditado, setNomeCategoriaEditado] = useState("");
+
+  const [categorias, setCategorias] = useState([]);
   const [dados, setDados] = useState({
     nome: "",
-    categoria: "",
-    ca: "",
-    fabricante: "",
-    descricao: "",
-    validade: "",
-    status: "Ativo"
+    id_categoria_epi: "",
+    cor: "",
+    descricao: ""
   });
 
   useEffect(() => {
@@ -25,29 +44,150 @@ export default function CadastroEPI() {
       setPreview("");
       return;
     }
-
     const url = URL.createObjectURL(imagem);
     setPreview(url);
     return () => URL.revokeObjectURL(url);
   }, [imagem]);
 
+  // Carregar categorias do backend
+  async function carregarCategorias() {
+    try {
+      const res = await fetch("/api/categoria-epi");
+      if (res.ok) {
+        const json = await res.json();
+        
+        let lista = [];
+        if (Array.isArray(json)) lista = json;
+        else if (Array.isArray(json.dados)) lista = json.dados;
+        else if (Array.isArray(json.response)) lista = json.response;
+        else if (json.response && Array.isArray(json.response.dados)) lista = json.response.dados;
+        else if (json.content && Array.isArray(json.content)) lista = json.content;
+
+        setCategorias(lista);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar categorias de EPI:", error);
+    }
+  }
+
+  useEffect(() => {
+    carregarCategorias();
+  }, []);
+
   function atualizar(e) {
     setDados({ ...dados, [e.target.name]: e.target.value });
   }
 
-  function cadastrar(e) {
+  // --- AÇÕES DO MODAL DE CATEGORIA ---
+  async function criarCategoria(e) {
     e.preventDefault();
+    if (!novaCategoriaNome.trim()) return;
 
-    const formulario = new FormData();
+    try {
+      const res = await fetch("/api/categoria-epi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ categoria: novaCategoriaNome.trim() })
+      });
 
-    Object.entries(dados).forEach(([chave, valor]) => {
-      formulario.append(chave, valor);
-    });
+      if (res.ok) {
+        setNovaCategoriaNome("");
+        await carregarCategorias();
+      } else {
+        const err = await res.json();
+        setErro(err.message || "Erro ao criar categoria.");
+      }
+    } catch {
+      setErro("Erro de conexão ao criar categoria.");
+    }
+  }
 
-    if (imagem) formulario.append("imagem", imagem);
+  async function salvarEdicaoCategoria(id) {
+    if (!nomeCategoriaEditado.trim()) return;
 
-    console.log("Dados do EPI:", Object.fromEntries(formulario));
-    alert("Formulário pronto! Conecte a API para cadastrar o EPI.");
+    try {
+      const res = await fetch(`/api/categoria-epi/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ categoria: nomeCategoriaEditado.trim() })
+      });
+
+      if (res.ok) {
+        setCategoriaEditandoId(null);
+        setNomeCategoriaEditado("");
+        await carregarCategorias();
+      } else {
+        const err = await res.json();
+        setErro(err.message || "Erro ao atualizar categoria.");
+      }
+    } catch {
+      setErro("Erro de conexão ao atualizar categoria.");
+    }
+  }
+
+  async function deletarCategoria(id) {
+    if (!confirm("Deseja realmente excluir esta categoria?")) return;
+
+    try {
+      const res = await fetch(`/api/categoria-epi/${id}`, {
+        method: "DELETE"
+      });
+
+      if (res.ok) {
+        if (Number(dados.id_categoria_epi) === id) {
+          setDados((prev) => ({ ...prev, id_categoria_epi: "" }));
+        }
+        await carregarCategorias();
+      } else {
+        const err = await res.json();
+        setErro(err.message || "Erro ao deletar categoria.");
+      }
+    } catch {
+      setErro("Erro de conexão ao deletar categoria.");
+    }
+  }
+
+  // --- SUBMIT DO FORMULÁRIO DE EPI ---
+  async function cadastrar(e) {
+    e.preventDefault();
+    setCarregando(true);
+    setErro("");
+    setSucesso("");
+
+    let urlDaFoto = "";
+    if (imagem) {
+      urlDaFoto = "capacete.png";
+    }
+
+    const payload = {
+      nome: dados.nome,
+      descricao: dados.descricao,
+      foto: urlDaFoto || "sem-foto.png",
+      cor: dados.cor,
+      id_categoria: Number(dados.id_categoria_epi)
+    };
+
+    try {
+      const resposta = await fetch("/api/epi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const retorno = await resposta.json();
+
+      if (resposta.ok) {
+        setSucesso("EPI cadastrado com sucesso!");
+        setDados({ nome: "", id_categoria_epi: "", cor: "", descricao: "" });
+        setImagem(null);
+      } else {
+        setErro(retorno.message || "Erro ao cadastrar o EPI.");
+      }
+    } catch {
+      setErro("Erro de conexão ao salvar o EPI.");
+    } finally {
+      setCarregando(false);
+    }
   }
 
   return (
@@ -65,90 +205,95 @@ export default function CadastroEPI() {
 
               <div className={styles.campo}>
                 <label htmlFor="nome">Nome do EPI <span>*</span></label>
-                <input id="nome" name="nome" value={dados.nome}
-                  onChange={atualizar} placeholder="Digite o nome do EPI" required />
+                <input
+                  id="nome"
+                  name="nome"
+                  value={dados.nome || ""}
+                  onChange={atualizar}
+                  placeholder="Digite o nome do EPI"
+                  required
+                />
               </div>
 
               <div className={styles.campo}>
-                <label htmlFor="categoria">Categoria <span>*</span></label>
-                <select id="categoria" name="categoria" value={dados.categoria}
-                  onChange={atualizar} required>
+                <div className={styles.cabecalhoCampo}>
+                  <label htmlFor="id_categoria_epi">Categoria <span>*</span></label>
+                  <button
+                    type="button"
+                    className={styles.botaoGerenciar}
+                    onClick={() => setModalCategoriaAberto(true)}
+                  >
+                    + Gerenciar Categorias
+                  </button>
+                </div>
+                <select
+                  id="id_categoria_epi"
+                  name="id_categoria_epi"
+                  value={dados.id_categoria_epi || ""}
+                  onChange={atualizar}
+                  required
+                >
                   <option value="">Selecione a categoria</option>
-                  <option>Proteção da cabeça</option>
-                  <option>Proteção dos olhos</option>
-                  <option>Proteção das mãos</option>
-                  <option>Proteção dos pés</option>
-                  <option>Proteção auditiva</option>
-                  <option>Proteção respiratória</option>
-                  <option>Outros</option>
+                  {categorias.map((cat, index) => {
+                    const catId = cat.id || cat.id_categoria_epi || cat.id_categoria || index;
+                    const catNome = cat.categoria || cat.nome_categoria || cat.nome || "Sem Nome";
+                    
+                    return (
+                      <option key={catId} value={catId}>
+                        {catNome}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
               <div className={styles.linha}>
                 <div className={styles.campo}>
-                  <label htmlFor="ca">Certificado de Aprovação (CA)</label>
-                  <input id="ca" name="ca" value={dados.ca}
-                    onChange={atualizar} placeholder="Número do CA" />
+                  <label htmlFor="cor">Cor</label>
+                  <input
+                    id="cor"
+                    name="cor"
+                    value={dados.cor || ""}
+                    onChange={atualizar}
+                    placeholder="Nome da Cor"
+                  />
                 </div>
-                <div className={styles.campo}>
-                  <label htmlFor="fabricante">Fabricante</label>
-                  <input id="fabricante" name="fabricante" value={dados.fabricante}
-                    onChange={atualizar} placeholder="Nome do fabricante" />
-                </div>
-              </div>
-
-              <div className={styles.campo}>
-                <label htmlFor="validade">Validade</label>
-                <input id="validade" type="date" name="validade"
-                  value={dados.validade} onChange={atualizar} />
               </div>
 
               <div className={styles.campo}>
                 <label htmlFor="descricao">Descrição</label>
-                <textarea id="descricao" name="descricao" rows={4}
+                <textarea
+                  id="descricao"
+                  name="descricao"
+                  rows={4}
                   placeholder="Descreva as características e a utilização do EPI..."
-                  value={dados.descricao} onChange={atualizar} />
-              </div>
-
-              <div className={styles.campo}>
-                <label>Status</label>
-                <div className={styles.status}>
-                  {["Ativo", "Inativo"].map((opcao) => (
-                    <button type="button" key={opcao}
-                      className={dados.status === opcao ? styles.statusAtivo : ""}
-                      onClick={() => setDados({ ...dados, status: opcao })}>
-                      {opcao}
-                    </button>
-                  ))}
-                </div>
+                  value={dados.descricao || ""}
+                  onChange={atualizar}
+                />
               </div>
             </div>
 
             <div className={styles.areaImagem}>
               <h2>Imagem do EPI</h2>
-
               <label className={styles.uploadImagem}>
                 {preview ? (
-                  <img src={preview} alt="Imagem do EPI"
-                    className={styles.previewImagem} />
+                  <img src={preview} alt="Imagem do EPI" className={styles.previewImagem} />
                 ) : (
                   <div className={styles.espacoImagem}>
                     <p>Clique para anexar uma imagem</p>
                     <small>PNG, JPG ou JPEG</small>
                   </div>
                 )}
-
-                <input type="file" accept="image/png,image/jpeg" hidden
-                  onChange={(e) => setImagem(e.target.files?.[0] || null)} />
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg"
+                  hidden
+                  onChange={(e) => setImagem(e.target.files?.[0] || null)}
+                />
               </label>
-
-              <p className={styles.legenda}>
-                Imagem do equipamento de proteção individual.
-              </p>
-
+              <p className={styles.legenda}>Imagem do equipamento de proteção individual.</p>
               {imagem && (
-                <button type="button" className={styles.removerImagem}
-                  onClick={() => setImagem(null)}>
+                <button type="button" className={styles.removerImagem} onClick={() => setImagem(null)}>
                   Remover imagem
                 </button>
               )}
@@ -156,15 +301,132 @@ export default function CadastroEPI() {
           </div>
 
           <div className={styles.acoes}>
-            <button type="button" className={styles.cancelar}
-              onClick={() => router.back()}>
+            <button
+              type="button"
+              className={styles.cancelar}
+              onClick={() => router.back()}
+              disabled={carregando}
+            >
               CANCELAR
             </button>
-            <button type="submit" className={styles.salvar}>
-              CADASTRAR EPI
+            <button type="submit" className={styles.salvar} disabled={carregando}>
+              {carregando ? "CADASTRANDO..." : "CADASTRAR EPI"}
             </button>
           </div>
         </form>
+
+        {/* MODAL DE GERENCIAMENTO DE CATEGORIAS */}
+        {modalCategoriaAberto && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalContainer}>
+              <div className={styles.modalCabecalho}>
+                <h3>Gerenciar Categorias de EPI</h3>
+                <button
+                  type="button"
+                  className={styles.modalFechar}
+                  onClick={() => setModalCategoriaAberto(false)}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className={styles.modalFormulario}>
+                <input
+                  type="text"
+                  placeholder="Nova Categoria..."
+                  value={novaCategoriaNome || ""}
+                  onChange={(e) => setNovaCategoriaNome(e.target.value)}
+                  className={styles.modalInput}
+                />
+                <button type="button" onClick={criarCategoria} className={styles.modalBotaoAdicionar}>
+                  Adicionar
+                </button>
+              </div>
+
+              <div className={styles.modalLista}>
+                {categorias.map((item, index) => {
+                  const itemId = item.id || item.id_categoria_epi || item.id_categoria || index;
+                  const itemNome = item.categoria || item.nome_categoria || item.nome || "Sem Nome";
+                  
+                  return (
+                    <div key={itemId} className={styles.modalItem}>
+                      {categoriaEditandoId === itemId ? (
+                        <input
+                          type="text"
+                          value={nomeCategoriaEditado || ""}
+                          onChange={(e) => setNomeCategoriaEditado(e.target.value)}
+                          className={styles.modalInputEdicao}
+                        />
+                      ) : (
+                        <span>● {itemNome}</span>
+                      )}
+
+                      <div className={styles.modalAcoesItem}>
+                        {categoriaEditandoId === itemId ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => salvarEdicaoCategoria(itemId)}
+                              className={styles.modalBotaoSalvar}
+                            >
+                              Salvar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setCategoriaEditandoId(null)}
+                              className={styles.modalBotaoCancelarItem}
+                            >
+                              Cancelar
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCategoriaEditandoId(itemId);
+                                setNomeCategoriaEditado(itemNome);
+                              }}
+                              className={styles.modalBotaoEditar}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deletarCategoria(itemId)}
+                              className={styles.modalBotaoExcluir}
+                            >
+                              Excluir
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className={styles.modalRodape}>
+                <button
+                  type="button"
+                  onClick={() => setModalCategoriaAberto(false)}
+                  className={styles.modalBotaoConcluido}
+                >
+                  Concluído
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <Popup mensagem={erro} tipo="erro" aoFechar={() => setErro("")} />
+        <Popup
+          mensagem={sucesso}
+          tipo="sucesso"
+          titulo="EPI Cadastrado!"
+          textoBotao="Ir para EPIs"
+          aoFechar={() => router.push("/home")}
+        />
       </main>
     </Shell>
   );
