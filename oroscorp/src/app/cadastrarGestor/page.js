@@ -39,7 +39,7 @@ function mascaraData(valor) {
   let resultado = dia;
   if (v.length >= 3) resultado += "/" + mes;
   if (v.length >= 5) resultado += "/" + ano;
-
+ 
   return resultado;
 }
 

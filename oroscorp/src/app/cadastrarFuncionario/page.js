@@ -4,6 +4,26 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Shell from "../components/Shell";
 import styles from "../style/cadastrarFuncionario.module.css";
+import post from "../api/funcionario/route.js";
+import Popup from "../components/Popup";
+import style from "../style/modalGerenciador.module.css"
+
+
+
+
+function mascaraCPF(valor) {
+  let v = valor.replace(/\D/g, "");
+  if (v.length > 11) v = v.substring(0, 11);
+  
+  if (v.length > 9) {
+    v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, "$1.$2.$3-$4");
+  } else if (v.length > 6) {
+    v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, "$1.$2.$3");
+  } else if (v.length > 3) {
+    v = v.replace(/(\d{3})(\d{1,3})/, "$1.$2");
+  }
+  return v;
+}
 
 const CARGOS = [
   { id: 1, nome: "Operador" },
@@ -23,6 +43,25 @@ const STATUS = [
 ];
 
 export default function CadastrarFuncionario() {
+
+function atualizar(evento) {
+    const { name, value } = evento.target;
+    let novoValor = value;
+
+    if (name === "cpf") {
+      novoValor = mascaraCPF(value);
+    } 
+
+    setDados({
+      ...dados,
+      [name]: novoValor
+    });
+    setErro("");
+  }
+
+  const [erro, setErro] = useState("");
+  const [sucesso, setSucesso] = useState("");
+
   const router = useRouter();
 
   const [foto, setFoto] = useState(null);
@@ -55,13 +94,7 @@ export default function CadastrarFuncionario() {
     return () => URL.revokeObjectURL(url);
   }, [foto]);
 
-  function atualizar(evento) {
-    setDados({
-      ...dados,
-      [evento.target.name]: evento.target.value
-    });
-    setMensagem("");
-  }
+
 
   function adicionarCargo(evento) {
     evento.preventDefault();
@@ -356,6 +389,18 @@ export default function CadastrarFuncionario() {
           </div>
         </div>
       )}
+
+              {/* POPUPS DE NOTIFICAÇÃO */}
+              <Popup mensagem={erro} tipo="erro" aoFechar={() => setErro("")} />
+              <Popup
+                mensagem={sucesso}
+                tipo="sucesso"
+                titulo="Gestor Cadastrado!"
+                textoBotao="Ir para Inicio"
+                aoFechar={() => router.push("/home")}
+              />
+
+
     </Shell>
   );
 }
