@@ -1,0 +1,285 @@
+/* ===== CARTÕES ===== */
+.painel {
+  position: relative;
+  background: #141618;
+  border: 1px solid #25292d;
+  border-radius: 16px;
+  padding: 28px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+/* cartão do topo: linha laranja em cima */
+.topo {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  padding: 30px 40px;
+}
+
+.topo::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 28px;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #ff7900, transparent 80%);
+}
+
+.foto {
+  width: 165px;
+  height: 165px;
+  flex-shrink: 0;
+  border: 3px solid #ff7900;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.fotoVazia {
+  display: grid;
+  place-items: center;
+  background: #2a1d17;
+  color: #ff7900;
+  font-size: 48px;
+  font-weight: bold;
+}
+
+.nome {
+  color: #fff;
+  font-size: 40px;
+  font-weight: 700;
+  margin-bottom: 22px;
+}
+
+.descricao {
+  color: #929ba8;
+  font-size: 18px;
+}
+
+/* ===== TÍTULOS DE SEÇÃO ===== */
+.secao {
+  color: #ff7900;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  margin-bottom: 24px;
+}
+
+/* ===== TABELA ===== */
+.rolagem {
+  overflow-x: auto;
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 15px;
+  color: #c9ced6;
+}
+
+.tabela th {
+  color: #6f7885;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 14px 12px;
+  border-bottom: 1px solid #25292d;
+}
+
+.tabela td {
+  padding: 18px 12px;
+  border-bottom: 1px solid #1f2327;
+}
+
+.tabela tr:last-child td {
+  border-bottom: none;
+}
+
+.pessoa {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #3a1d24;
+  color: #ff6b7a;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.contador {
+  display: inline-block;
+  min-width: 32px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #1c2024;
+  text-align: center;
+  font-size: 13px;
+}
+
+.vazio {
+  text-align: center;
+  color: #858585;
+  padding: 50px 10px !important;
+}
+
+/* ===== STATUS ===== */
+.badge {
+  display: inline-block;
+  padding: 7px 14px;
+  border: 1px solid #1f5a3a;
+  border-radius: 20px;
+  background: #0f2a1d;
+  color: #3ddc84;
+  font-size: 12px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+/* ===== INFORMAÇÕES ===== */
+.infoCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 24px;
+  background: #0f1113;
+  border: 1px solid #25292d;
+  border-radius: 12px;
+}
+
+.infoTopo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.codigo {
+  color: #6f7885;
+  font-size: 14px;
+}
+
+.tag {
+  padding: 4px 10px;
+  border-radius: 5px;
+  background: #23272c;
+  color: #c9ced6;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.infoTexto {
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ===== BOTÕES ===== */
+.acoes {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 50px;
+}
+
+.editar,
+.deletar,
+.negar {
+  padding: 14px 30px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.editar {
+  background: #1f3a17;
+  border: 2px solid #2f5a22;
+  color: #ff7900;
+}
+
+.editar:hover {
+  background: #2a4d20;
+}
+
+.deletar {
+  background: #3a1a1f;
+  border: 2px solid #5a2a30;
+  color: #ff7900;
+}
+
+.deletar:hover {
+  background: #4d2228;
+}
+
+.negar {
+  background: #22272c;
+  border: 2px solid #2f353b;
+  color: #ddd;
+}
+
+/* ===== MODAL ===== */
+.modalFundo {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.modal {
+  max-width: 380px;
+  padding: 28px;
+  background: #1c1c1c;
+  border: 1px solid #ff3939;
+  border-radius: 12px;
+  color: #fff;
+  text-align: center;
+}
+
+.modalBotoes {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+/* ===== CELULAR ===== */
+@media (max-width: 700px) {
+  .topo {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px;
+  }
+
+  .foto {
+    width: 120px;
+    height: 120px;
+  }
+
+  .nome {
+    font-size: 28px;
+    margin-bottom: 10px;
+  }
+
+  .tabela {
+    min-width: 560px;
+  }
+
+  .infoCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
