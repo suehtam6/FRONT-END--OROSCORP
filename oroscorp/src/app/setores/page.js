@@ -149,7 +149,7 @@ export default function Setores() {
             {listaSetores.length > 0 ? (
               listaSetores.map((setor, index) => (
                 /* A chave agora usa o index para evitar o erro do Next.js */
-                <article className={styles.card} key={`${setor.id}-${index}`}>
+                <article className={styles.card} key={setor.id}>
                   <h2>{setor.nome}</h2>
 
                   <p className={styles.descricao}>
