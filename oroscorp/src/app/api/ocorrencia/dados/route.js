@@ -19,12 +19,6 @@ export async function GET(request) {
 
     const dados = await resposta.json().catch(() => ({}));
 
-    if (!resposta.ok) {
-      return NextResponse.json(
-        { message: 'Nenhuma ocorrência cadastrada ainda.' },
-        { status: resposta.status }
-      );
-    }
 
     return NextResponse.json(dados, { status: 200 });
   } catch (error) {

@@ -70,7 +70,7 @@ export default function Funcionarios() {
             className={s.botao}
             onClick={() => router.push("/cadastrarFuncionario")}
           >
-            + CADASTRAR FUNCIONÁRIO
+            cadastrar funcionario
           </button>
         </div>
         
@@ -111,7 +111,7 @@ export default function Funcionarios() {
               ) : (
                 <tr>
                   <td colSpan="7" className={s.vazio}>
-                    Os funcionários da API aparecerão aqui.
+                    Os funcionários aparecerão aqui.
                   </td>
                 </tr>
               )}

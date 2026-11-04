@@ -121,7 +121,7 @@ export default function RegistrarOcorrencia() {
     const payload = {
       descricao: descricao,
       id_setor: Number(idSetor),
-      id_funcionario: Number(idFuncionario),
+      id_funcionario: Number(idFuncionario) || null,
       id_motivo_ocorrencia: 1,
       id_status_ocorrencia: Number(idStatusOcorrencia),
       id_usuario_registro: 1,
@@ -191,7 +191,6 @@ export default function RegistrarOcorrencia() {
                 </select>
               </div>
 
-              {/* SETOR E CÂMERA (FILTRADA PELO SETOR) */}
               <div className={styles.linhaDupla}>
                 <div className={styles.campo}>
                   <label>Setor <span>*</span></label>
@@ -266,7 +265,6 @@ export default function RegistrarOcorrencia() {
                 </div>
               </div>
 
-              {/* PRIORIDADE E STATUS INICIAL */}
               <div className={styles.linhaDupla}>
                 <div className={styles.campo}>
                   <label>Prioridade</label>
@@ -305,7 +303,6 @@ export default function RegistrarOcorrencia() {
                 </div>
               </div>
 
-              {/* DESCRIÇÃO */}
               <div className={styles.campo}>
                 <label>Descrição</label>
                 <textarea
@@ -318,7 +315,7 @@ export default function RegistrarOcorrencia() {
 
             </div>
 
-            {/* UPLOAD DE PRINT */}
+            
             <div className={styles.colunaDireita}>
               <div 
                 className={styles.uploadBox}
@@ -356,7 +353,6 @@ export default function RegistrarOcorrencia() {
             </div>
           </div>
 
-          {/* BOTÕES DE AÇÃO */}
           <div className={styles.acoes}>
             <button 
               type="button" 
@@ -376,7 +372,6 @@ export default function RegistrarOcorrencia() {
           </div>
         </form>
 
-        {/* POPUPS DE NOTIFICAÇÃO */}
         <Popup mensagem={erro} tipo="erro" aoFechar={() => setErro("")} />
         <Popup
           mensagem={sucesso}
