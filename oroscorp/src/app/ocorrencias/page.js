@@ -22,7 +22,7 @@ export default function Ocorrencias() {
     tipo: ""
   });
 
-  // Função auxiliar para formatar datas ISO 8601 em dia/mes/ano hora:minuto:segundo
+
   const formatarData = (dataStr) => {
     if (!dataStr) return "--/--/---- --:--:--";
 
@@ -39,7 +39,7 @@ export default function Ocorrencias() {
     return `${dia}/${mes}/${ano} ${horas}:${minutos}:${segundos}`;
   };
 
-  // Mapeia o retorno direto da Stored Procedure
+
   const MapearProcedure = (item) => {
     return {
       id: item.ID_ocorrencia || item.id,
@@ -63,7 +63,6 @@ export default function Ocorrencias() {
         const res = await fetch("/api/ocorrencia/dados");
         if (res.ok) {
           const json = await res.json();
-          // Garante o mapeamento do array vindo da controller
           const listaBruta = json.response?.dados || json.dados || [];
           const listaFormatada = listaBruta.map(MapearProcedure);
           setOcorrencias(listaFormatada);
@@ -84,23 +83,23 @@ export default function Ocorrencias() {
     setFiltros({ ...filtros, [e.target.name]: e.target.value });
   }
 
-  // Opções dos selects extraídas dinamicamente
+
   const opcoesStatus = [...new Set(ocorrencias.map((o) => o.status))].filter(Boolean);
   const opcoesOrigem = [...new Set(ocorrencias.map((o) => o.origem))].filter(Boolean);
   const opcoesSetor = [...new Set(ocorrencias.map((o) => o.setor))].filter(Boolean);
   const opcoesPrioridade = [...new Set(ocorrencias.map((o) => o.prioridade))].filter(Boolean);
   const opcoesTipo = [...new Set(ocorrencias.map((o) => o.tipo))].filter(Boolean);
 
-  // Filtro completo na tabela
+
   const listaFiltrada = ocorrencias.filter((item) => {
     const texto = `${item.id} ${item.funcionario} ${item.tipo} ${item.setor} ${item.descricao}`.toLowerCase();
     const correspondeBusca = texto.includes(busca.toLowerCase());
 
-    const correspondeStatus = !filtros.status || item.status === filtros.status;
-    const correspondeOrigem = !filtros.origem || item.origem === filtros.origem;
-    const correspondeSetor = !filtros.setor || item.setor === filtros.setor;
-    const correspondePrioridade = !filtros.prioridade || item.prioridade === filtros.prioridade;
-    const correspondeTipo = !filtros.tipo || item.tipo === filtros.tipo;
+    const correspondeStatus       = !filtros.status || item.status === filtros.status;
+    const correspondeOrigem       = !filtros.origem || item.origem === filtros.origem;
+    const correspondeSetor        = !filtros.setor || item.setor === filtros.setor;
+    const correspondePrioridade   = !filtros.prioridade || item.prioridade === filtros.prioridade;
+    const correspondeTipo         = !filtros.tipo || item.tipo === filtros.tipo;
 
     return (
       correspondeBusca &&
@@ -128,7 +127,7 @@ export default function Ocorrencias() {
           </button>
         </div>
 
-        {/* PAINEL DE FILTROS */}
+
         <div className={styles.painelFiltros}>
           <h3>⚑ Filtros</h3>
 
@@ -177,7 +176,7 @@ export default function Ocorrencias() {
           </div>
         </div>
 
-        {/* TABELA DE OCORRÊNCIAS */}
+
         <div className={styles.painelTabela}>
           <p className={styles.quantidade}>
             {carregando ? "Carregando..." : `${listaFiltrada.length} ocorrências`}

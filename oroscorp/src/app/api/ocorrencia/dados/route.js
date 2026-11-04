@@ -10,7 +10,7 @@ export async function GET(request) {
     const headers = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    // Faz a requisição para a rota da procedure no Node.js
+
     const resposta = await fetch(`${API_URL}${ROTA_PROCEDURE}`, {
       method: 'GET',
       headers,
@@ -21,7 +21,7 @@ export async function GET(request) {
 
     if (!resposta.ok) {
       return NextResponse.json(
-        { message: 'Erro ao buscar dados da procedure de ocorrências.' },
+        { message: 'Nenhuma ocorrência cadastrada ainda.' },
         { status: resposta.status }
       );
     }

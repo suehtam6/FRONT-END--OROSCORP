@@ -1,11 +1,13 @@
 .titulo {
-    font-size: 25px;
-    margin: 0 0 7px
+    font-size: 28px;
+    margin: 0 0 7px;
+    color: #ffffff;
 }
 
 .sub {
     color: #aaa;
-    margin: 0 0 25px
+    margin: 0 0 25px;
+    font-size: 14px;
 }
 
 .painel {
@@ -13,7 +15,22 @@
     border: 1px solid #282b2f;
     border-radius: 12px;
     padding: 24px;
-    margin-bottom: 18px
+    margin-bottom: 18px;
+}
+
+/* Novo: Borda laranja no topo do primeiro painel */
+.painelTopo {
+    position: relative;
+    overflow: hidden;
+}
+.painelTopo::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 24px;
+    right: 24px;
+    height: 2px;
+    background: linear-gradient(90deg, #ff7900 0%, transparent 100%);
 }
 
 .linha {
@@ -21,255 +38,254 @@
     gap: 14px;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap
+    flex-wrap: wrap;
 }
 
 .grade {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    gap: 18px
+    gap: 18px;
 }
 
 .cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-top: 22px
+    gap: 16px;
+    margin-top: 22px;
 }
 
 .card {
     background: #0f1113;
     border: 1px solid #272a2d;
     border-radius: 9px;
-    padding: 18px
+    padding: 18px;
 }
 
-.card small {
-    color: #999
+/* Flexbox para alinhar o ícone e o texto no cartão */
+.cardCabecalho {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #999;
+    font-size: 12px;
 }
 
 .card h2 {
-    font-size: 25px;
-    margin: 9px 0 0
+    font-size: 28px;
+    margin: 12px 0 0;
+    color: #fff;
 }
 
 .laranja {
-    color: #ff8900
+    color: #ff8900 !important;
 }
 
 .secao {
     font-size: 12px;
     letter-spacing: 1px;
     color: #ff8900;
-    margin: 0 0 18px
+    margin: 0 0 18px;
+    font-weight: 700;
 }
 
-.campo {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-    flex: 1;
-    min-width: 160px
-}
-
-.campo label {
-    font-size: 11px;
-    color: #ddd
-}
-
-.campo input,
-.campo select,
-.campo textarea,
-.busca {
-    width: 100%;
-    background: #111417;
-    border: 1px solid #2a3035;
-    color: #ddd;
-    border-radius: 6px;
-    padding: 12px;
-    outline: none
-}
-
-.campo textarea {
-    min-height: 110px;
-    resize: vertical
-}
-
-.botao {
-    background: #ff7900;
-    border: 0;
-    border-radius: 6px;
-    padding: 12px 18px;
-    color: #151515;
-    font-weight: bold;
-    cursor: pointer
-}
-
-.secundario {
-    background: #22272c;
-    color: #ddd
-}
-
+/* Tabelas e Rolagem */
 .tabela {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
-    font-size: 12px
+    font-size: 13px;
 }
 
 .tabela th {
     color: #888;
     font-size: 10px;
-    text-transform: uppercase
+    text-transform: uppercase;
+    font-weight: 600;
+    padding-bottom: 12px;
 }
 
-.tabela td,
-.tabela th {
-    padding: 16px 12px;
-    border-bottom: 1px solid #292c30
+.tabela td {
+    padding: 14px 12px;
+    border-bottom: 1px solid #212428;
+    vertical-align: middle;
+    color: #ccc;
+}
+.tabela td:first-child, .tabela th:first-child {
+    padding-left: 0;
 }
 
 .rolagem {
-    overflow-x: auto
+    overflow-x: auto;
 }
 
 .vazio {
     text-align: center;
     color: #858585;
-    padding: 60px 10px !important
+    padding: 60px 10px !important;
 }
 
-.badge {
+/* =========================================
+   NOVOS ESTILOS PARA COMPONENTES DA IMAGEM
+   ========================================= */
+
+/* Avatar do funcionário */
+.perfilRow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #fff;
+    font-weight: 600;
+}
+
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #4a2529;
+    color: #ff8b8b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+/* Badges e Status */
+.badgeContainer {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
     border-radius: 20px;
-    background: #103025;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.badgeVerde {
+    background: rgba(54, 209, 138, 0.1);
     color: #36d18a;
-    padding: 5px 10px;
-    font-size: 10px
 }
 
-.upload {
-    border: 1px dashed #303941;
-    background: #121619;
-    border-radius: 10px;
-    min-height: 155px;
+.badgeVermelho {
+    background: rgba(255, 69, 69, 0.1);
+    color: #ff4545;
+}
+
+.badgeCinza {
+    background: #1a1d21;
+    color: #888;
+    padding: 4px 8px;
+}
+
+.badgePequeno {
+    background: #1a1d21;
+    color: #aaa;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+}
+
+/* Lista de Câmeras */
+.listaCameras {
+    list-style: none;
+    padding: 0;
+    margin: 0;
     display: flex;
-    align-items: center;
-    justify-content: center;
     flex-direction: column;
-    cursor: pointer;
-    color: #999;
-    text-align: center;
-    padding: 15px
+    gap: 10px;
 }
 
-.upload img {
-    max-height: 145px;
-    max-width: 100%;
-    object-fit: contain
+.itemCamera {
+    background: #0f1113;
+    border: 1px solid #212428;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.duas {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px
-}
-
-.espaco {
-    margin-top: 25px
-}
-
-.video {
-    background: #0b0e12;
-    min-height: 400px;
-    border: 2px solid #ff8b00;
-    border-radius: 4px;
+.cameraNome {
     display: flex;
     align-items: center;
-    justify-content: center;
-    color: #777
+    gap: 10px;
+    color: #ddd;
+    font-size: 13px;
 }
 
-.modalFundo {
-    position: fixed;
-    inset: 0;
-    background: #0009;
-    display: grid;
-    place-items: center;
-    z-index: 50
-}
-
-.modal {
-    background: #222;
-    border: 1px solid #ff3939;
-    border-radius: 10px;
-    padding: 25px;
-    text-align: center;
-    max-width: 340px
-}
-
-.cameraGrade {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px
-}
-
-.cameraCard {
-    background: #202020;
-    border-radius: 10px;
-    overflow: hidden;
-    cursor: pointer
-}
-
-.cameraCard .video {
-    border: 0;
-    min-height: 140px
-}
-
-.cameraCard h3 {
-    padding: 0 15px
-}
-
-.cameraCard p {
-    padding: 0 15px 15px;
-    color: #aaa
-}
-
-.formGrade {
+/* Grid de Ocorrências */
+.gradeOcorrencias {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px
+    gap: 16px;
 }
 
-.largura {
-    grid-column: 1/-1
+.cardOcorrencia {
+    background: #0f1113;
+    border: 1px solid #212428;
+    border-radius: 8px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s;
 }
 
-@media(max-width:800px) {
+.cardOcorrencia:hover {
+    border-color: #3a3f45;
+}
 
-    .grade,
-    .duas,
-    .formGrade {
-        grid-template-columns: 1fr
-    }
+.ocoCabecalho {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: #777;
+}
 
-    .cards,
-    .cameraGrade {
-        grid-template-columns: repeat(2, 1fr)
+.ocoTitulo {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.ocoRodape {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: #777;
+    margin-top: 4px;
+}
+
+.ocoBadgeSeta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Responsividade */
+@media(max-width:900px) {
+    .grade, .gradeOcorrencias {
+        grid-template-columns: 1fr;
     }
 }
 
-@media(max-width:550px) {
-
-    .cards,
-    .cameraGrade {
-        grid-template-columns: 1fr
+@media(max-width:600px) {
+    .cards {
+        grid-template-columns: 1fr;
     }
-
-    .painel {
-        padding: 15px
-    }
-
     .tabela {
-        min-width: 650px
+        min-width: 500px;
     }
 }
