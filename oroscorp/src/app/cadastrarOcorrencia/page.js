@@ -33,7 +33,7 @@ export default function RegistrarOcorrencia() {
   const [sucesso, setSucesso] = useState("");
   const [carregando, setCarregando] = useState(false);
 
-  // Extração resiliente de arrays
+
   const extrairLista = (resJson) => {
     if (!resJson) return [];
     return (
@@ -125,7 +125,7 @@ export default function RegistrarOcorrencia() {
       id_motivo_ocorrencia: 1,
       id_status_ocorrencia: Number(idStatusOcorrencia),
       id_usuario_registro: 1,
-      id_origem: 1, // Registo manual fixo vindo do formulário front-end
+      id_origem: 1,
       id_prioridade: Number(idPrioridade),
       id_epi: [{ id: 1 }],
       cameras: idCamera ? [
@@ -171,7 +171,6 @@ export default function RegistrarOcorrencia() {
           <div className={styles.painel}>
             <div className={styles.colunaEsquerda}>
               
-              {/* FUNCIONÁRIO */}
               <div className={styles.campo}>
                 <label>Funcionário <span>*</span></label>
                 <select 
