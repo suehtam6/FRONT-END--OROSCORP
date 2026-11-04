@@ -9,7 +9,8 @@ import Popup from "../components/Popup";
 import style from "../style/modalGerenciador.module.css"
 
 
-
+const [idSetor, setIdSetor] = useState("");
+const [setores, setSetores] = useState([]);
 
 function mascaraCPF(valor) {
   let v = valor.replace(/\D/g, "");
@@ -25,24 +26,32 @@ function mascaraCPF(valor) {
   return v;
 }
 
-const CARGOS = [
-  { id: 1, nome: "Operador" },
-  { id: 2, nome: "Supervisor" },
-  { id: 3, nome: "pedreiro" },
-];
 
-const SETORES = [
-  { id: 1, nome: "Produção" },
-  { id: 2, nome: "Almoxarifado" },
-  { id: 3, nome: "na obra" },
-];
-
-const STATUS = [
-  { id: 1, nome: "Ativo" },
-  { id: 2, nome: "Afastado" },
-];
 
 export default function CadastrarFuncionario() {
+
+  useEffect(() => {
+    async function carregarDependencias() {
+      try {
+        const [resCrg, resSetor] = await Promise.all([
+          fetch("/api/cargo"),
+          fetch("/api/setor"),
+        ]);
+
+        if (resCrg.ok) setFuncionarios(extrairLista(await resCrg.json()));
+        if (resSetor.ok) setSetores(extrairLista(await resSetor.json()));
+       
+        if (resStat.ok) {
+          const listaStat = extrairLista(await resStat.json());
+          setStatusLista(listaStat);
+          if (listaStat.length > 0) setIdStatusOcorrencia(listaStat[0].id || 1);
+        }
+      } catch (err) {
+        console.error("Erro ao carregar dependências da ocorrência:", err);
+      }
+    }
+    carregarDependencias();
+  }, []);
 
 function atualizar(evento) {
     const { name, value } = evento.target;

@@ -27,9 +27,9 @@ export async function GET() {
   }
 }
 
+
 export async function POST(request) {
   try {
-
     //variavel reponsavel por validar o token de usuario (ela vai lá e pega do cookies)
     const token = request.cookies.get('token')?.value;
     
