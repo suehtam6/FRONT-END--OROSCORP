@@ -8,9 +8,19 @@ import post from "../api/funcionario/route.js";
 import Popup from "../components/Popup";
 import style from "../style/modalGerenciador.module.css"
 
+export default function CadastrarFuncionario() {
 
 const [idSetor, setIdSetor] = useState("");
 const [setores, setSetores] = useState([]);
+const [idCargo ,setIdCargo] = useState("");
+const [cargos, setCargos] = useState([]);
+
+const[status, setStatus] = useState([]);
+const[idstatus, setIdStatus] = useState("");
+
+  const [erro, setErro] = useState("");
+  const [sucesso, setSucesso] = useState("");
+  const [carregando, setCarregando] = useState("");
 
 function mascaraCPF(valor) {
   let v = valor.replace(/\D/g, "");
@@ -26,28 +36,36 @@ function mascaraCPF(valor) {
   return v;
 }
 
-
-
-export default function CadastrarFuncionario() {
+ const extrairLista = (resJson) => {
+    if (!resJson) return [];
+    return (
+      resJson.response?.dados ||
+      resJson.dados ||
+      resJson.response ||
+      resJson.content ||
+      (Array.isArray(resJson) ? resJson : [])
+    );
+  };
 
   useEffect(() => {
     async function carregarDependencias() {
       try {
-        const [resCrg, resSetor] = await Promise.all([
-          fetch("/api/cargo"),
+        const [resCrg, resSetor, resStat] = await Promise.all([
+          fetch("/api/funcionario/cargos"),
           fetch("/api/setor"),
+          fetch("/api/funcionario/status_funcionario")
         ]);
 
-        if (resCrg.ok) setFuncionarios(extrairLista(await resCrg.json()));
+        if (resCrg.ok) setCargos(extrairLista(await resCrg.json()));
         if (resSetor.ok) setSetores(extrairLista(await resSetor.json()));
        
         if (resStat.ok) {
           const listaStat = extrairLista(await resStat.json());
-          setStatusLista(listaStat);
-          if (listaStat.length > 0) setIdStatusOcorrencia(listaStat[0].id || 1);
+          setStatus(listaStat);
+          if (listaStat.length > 0) setIdStatus(listaStat[0].id || 1);
         }
-      } catch (err) {
-        console.error("Erro ao carregar dependências da ocorrência:", err);
+      } catch (erro) {
+        console.error("Erro ao carregar dependências da ocorrência:", erro);
       }
     }
     carregarDependencias();
@@ -68,15 +86,13 @@ function atualizar(evento) {
     setErro("");
   }
 
-  const [erro, setErro] = useState("");
-  const [sucesso, setSucesso] = useState("");
+
 
   const router = useRouter();
 
   const [foto, setFoto] = useState(null);
   const [preview, setPreview] = useState("");
   const [mensagem, setMensagem] = useState("");
-  const [cargos, setCargos] = useState(CARGOS);
   const [popupCargo, setPopupCargo] = useState(false);
   const [novoCargo, setNovoCargo] = useState("");
 
@@ -131,7 +147,7 @@ function atualizar(evento) {
     }
   }
 
-  function cadastrar(evento) {
+  async function cadastrar(evento) {
     evento.preventDefault();
 
     if (dados.email !== dados.confirmarEmail) {
@@ -145,16 +161,32 @@ function atualizar(evento) {
       data_nascimento: dados.nascimento,
       cpf: dados.cpf,
       email: dados.email,
-      foto: "URL da foto do funcionario", // depois ligamos ao upload
+      foto: "URL da foto do funcionario", 
       id_cargo: Number(dados.id_cargo),
       id_setor: Number(dados.id_setor),
       id_status_funcionario: Number(dados.id_status_funcionario),
     };
+      
+    try {
+      const res = await fetch("/api/funcionario", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(corpo)
+      });
 
-    console.log(corpo); // confira no F12
+      const retorno = await res.json().catch(() => ({}));
+      console.log(res)
+      if (res.ok) {
+        setSucesso("Funcionario registrado com sucesso!");
+      } else {
+        setErro(retorno.message || "Erro ao registrar um funcionario.");
+      }
+    } catch {
+      setErro("Erro de conexão com o servidor.");
+    } finally {
+      setCarregando(false);
+    }
 
-    // O envio para a API será implementado aqui.
-    setMensagem("Dados validados. Cadastro aguardando integração com a API.");
   }
 
   return (
@@ -286,11 +318,11 @@ function atualizar(evento) {
                   >
                     <option value="">Selecione o cargo</option>
                     {cargos.map((c) => (
-                      <option key={c.id} value={c.id}>{c.nome}</option>
+                      <option key={c.id} value={c.id}>{c.cargo}</option>
                     ))}
                   </select>
                 </div>
-
+                  
                 <div className={styles.campo}>
                   <label htmlFor="id_setor">Setor <span>*</span></label>
                   <select
@@ -301,7 +333,9 @@ function atualizar(evento) {
                     required
                   >
                     <option value="">Selecione o setor</option>
-                    {SETORES.map((s) => (
+                
+                    {setores.map((s) => (
+                      
                       <option key={s.id} value={s.id}>{s.nome}</option>
                     ))}
                   </select>
@@ -317,8 +351,8 @@ function atualizar(evento) {
                     required
                   >
                     <option value="">Selecione o status</option>
-                    {STATUS.map((st) => (
-                      <option key={st.id} value={st.id}>{st.nome}</option>
+                    {status.map((st) => (
+                      <option key={st.id} value={st.id}>{st.status}</option>
                     ))}
                   </select>
                 </div>
@@ -404,9 +438,9 @@ function atualizar(evento) {
               <Popup
                 mensagem={sucesso}
                 tipo="sucesso"
-                titulo="Gestor Cadastrado!"
+                titulo="Funcionario Cadastrado!"
                 textoBotao="Ir para Inicio"
-                aoFechar={() => router.push("/home")}
+                aoFechar={() => router.push("/funcionarios")}
               />
 
 

@@ -34,7 +34,7 @@ export default function RegistrarOcorrencia() {
   const [carregando, setCarregando] = useState(false);
 
   // Extração resiliente de arrays
-  const extrairLista = (resJson) => {
+  const extrairLista = (resJson) => { 
     if (!resJson) return [];
     return (
       resJson.response?.dados ||

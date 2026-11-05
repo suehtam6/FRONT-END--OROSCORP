@@ -27,7 +27,7 @@ export async function GET() {
   }
 }
 
-
+// esse aqui é meu Nathan
 export async function POST(request) {
   try {
     //variavel reponsavel por validar o token de usuario (ela vai lá e pega do cookies)
