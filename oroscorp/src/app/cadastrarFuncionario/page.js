@@ -335,7 +335,6 @@ function atualizar(evento) {
                     <option value="">Selecione o setor</option>
                 
                     {setores.map((s) => (
-                      
                       <option key={s.id} value={s.id}>{s.nome}</option>
                     ))}
                   </select>
