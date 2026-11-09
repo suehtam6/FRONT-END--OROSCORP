@@ -10,33 +10,33 @@ import style from "../style/modalGerenciador.module.css"
 
 export default function CadastrarFuncionario() {
 
-const [idSetor, setIdSetor] = useState("");
-const [setores, setSetores] = useState([]);
-const [idCargo ,setIdCargo] = useState("");
-const [cargos, setCargos] = useState([]);
+  const [idSetor, setIdSetor] = useState("");
+  const [setores, setSetores] = useState([]);
+  const [idCargo, setIdCargo] = useState("");
+  const [cargos, setCargos] = useState([]);
 
-const[status, setStatus] = useState([]);
-const[idstatus, setIdStatus] = useState("");
+  const [status, setStatus] = useState([]);
+  const [idstatus, setIdStatus] = useState("");
 
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
   const [carregando, setCarregando] = useState("");
 
-function mascaraCPF(valor) {
-  let v = valor.replace(/\D/g, "");
-  if (v.length > 11) v = v.substring(0, 11);
-  
-  if (v.length > 9) {
-    v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, "$1.$2.$3-$4");
-  } else if (v.length > 6) {
-    v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, "$1.$2.$3");
-  } else if (v.length > 3) {
-    v = v.replace(/(\d{3})(\d{1,3})/, "$1.$2");
-  }
-  return v;
-}
+  function mascaraCPF(valor) {
+    let v = valor.replace(/\D/g, "");
+    if (v.length > 11) v = v.substring(0, 11);
 
- const extrairLista = (resJson) => {
+    if (v.length > 9) {
+      v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, "$1.$2.$3-$4");
+    } else if (v.length > 6) {
+      v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, "$1.$2.$3");
+    } else if (v.length > 3) {
+      v = v.replace(/(\d{3})(\d{1,3})/, "$1.$2");
+    }
+    return v;
+  }
+
+  const extrairLista = (resJson) => {
     if (!resJson) return [];
     return (
       resJson.response?.dados ||
@@ -58,7 +58,7 @@ function mascaraCPF(valor) {
 
         if (resCrg.ok) setCargos(extrairLista(await resCrg.json()));
         if (resSetor.ok) setSetores(extrairLista(await resSetor.json()));
-       
+
         if (resStat.ok) {
           const listaStat = extrairLista(await resStat.json());
           setStatus(listaStat);
@@ -71,13 +71,13 @@ function mascaraCPF(valor) {
     carregarDependencias();
   }, []);
 
-function atualizar(evento) {
+  function atualizar(evento) {
     const { name, value } = evento.target;
     let novoValor = value;
 
     if (name === "cpf") {
       novoValor = mascaraCPF(value);
-    } 
+    }
 
     setDados({
       ...dados,
@@ -95,6 +95,7 @@ function atualizar(evento) {
   const [mensagem, setMensagem] = useState("");
   const [popupCargo, setPopupCargo] = useState(false);
   const [novoCargo, setNovoCargo] = useState("");
+  const [deletarCargo, setDeletarCargo] = useState("")
 
   const [dados, setDados] = useState({
     nome: "",
@@ -120,33 +121,6 @@ function atualizar(evento) {
   }, [foto]);
 
 
-
-  function adicionarCargo(evento) {
-    evento.preventDefault();
-
-    const nome = novoCargo.trim();
-    if (!nome) return;
-
-    const jaExiste = cargos.some(
-      (c) => c.nome.toLowerCase() === nome.toLowerCase()
-    );
-    if (jaExiste) return;
-
-    const id = cargos.length ? Math.max(...cargos.map((c) => c.id)) + 1 : 1;
-
-    setCargos([...cargos, { id, nome }]);
-    setNovoCargo("");
-  }
-
-  function excluirCargo(id) {
-    setCargos(cargos.filter((c) => c.id !== id));
-
-    // se o cargo apagado estava escolhido no select, limpa a escolha
-    if (Number(dados.id_cargo) === id) {
-      setDados({ ...dados, id_cargo: "" });
-    }
-  }
-
   async function cadastrar(evento) {
     evento.preventDefault();
 
@@ -161,12 +135,12 @@ function atualizar(evento) {
       data_nascimento: dados.nascimento,
       cpf: dados.cpf,
       email: dados.email,
-      foto: "URL da foto do funcionario", 
+      foto: foto,
       id_cargo: Number(dados.id_cargo),
       id_setor: Number(dados.id_setor),
       id_status_funcionario: Number(dados.id_status_funcionario),
     };
-      
+
     try {
       const res = await fetch("/api/funcionario", {
         method: "POST",
@@ -186,6 +160,54 @@ function atualizar(evento) {
     } finally {
       setCarregando(false);
     }
+
+  }
+
+  async function adicionarCargo(evento) {
+    evento.preventDefault();
+
+    const nome = novoCargo.trim();
+    if (!nome) return;
+
+    const jaExiste = cargos.some((c) => c.cargo === nome);
+    if (jaExiste) return;
+
+    try {
+      const res = await fetch("/api/funcionario/cargos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cargo: nome }),
+      });
+
+      const retorno = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        const novo = retorno.response;
+        setCargos([...cargos, { id: novo.id, cargo: novo.cargo }]);
+        setNovoCargo("");
+      } else {
+        setErro(retorno.message || "Erro ao registrar o cargo.");
+      }
+    } catch {
+      setErro("Erro de conexão com o servidor.");
+    }
+  }
+
+  async function removerCargo(evento) {
+    evento.preventDefault();
+
+    const id = deletarCargo.trim()
+    if(!id) return;
+
+    try {
+      const response = await fetch("/api/funcionario/cargos/[id]")
+
+
+
+    } catch (error) {
+      
+    }
+
 
   }
 
@@ -322,7 +344,7 @@ function atualizar(evento) {
                     ))}
                   </select>
                 </div>
-                  
+
                 <div className={styles.campo}>
                   <label htmlFor="id_setor">Setor <span>*</span></label>
                   <select
@@ -333,7 +355,7 @@ function atualizar(evento) {
                     required
                   >
                     <option value="">Selecione o setor</option>
-                
+
                     {setores.map((s) => (
                       <option key={s.id} value={s.id}>{s.nome}</option>
                     ))}
@@ -414,7 +436,7 @@ function atualizar(evento) {
               <ul className={styles.listaCargos}>
                 {cargos.map((c) => (
                   <li key={c.id}>
-                    <span>{c.nome}</span>
+                    <span>{c.cargo}</span>
                     <button
                       type="button"
                       className={styles.excluirCargo}
@@ -432,15 +454,15 @@ function atualizar(evento) {
         </div>
       )}
 
-              {/* POPUPS DE NOTIFICAÇÃO */}
-              <Popup mensagem={erro} tipo="erro" aoFechar={() => setErro("")} />
-              <Popup
-                mensagem={sucesso}
-                tipo="sucesso"
-                titulo="Funcionario Cadastrado!"
-                textoBotao="Ir para Inicio"
-                aoFechar={() => router.push("/funcionarios")}
-              />
+      {/* POPUPS DE NOTIFICAÇÃO */}
+      <Popup mensagem={erro} tipo="erro" aoFechar={() => setErro("")} />
+      <Popup
+        mensagem={sucesso}
+        tipo="sucesso"
+        titulo="Funcionario Cadastrado!"
+        textoBotao="Ir para Inicio"
+        aoFechar={() => router.push("/funcionarios")}
+      />
 
 
     </Shell>
