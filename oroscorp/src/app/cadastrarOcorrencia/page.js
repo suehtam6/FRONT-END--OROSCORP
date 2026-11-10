@@ -228,8 +228,8 @@ export default function RegistrarOcorrencia() {
         setNomeMotivoEditado("");
         await carregarMotivos();
       } else {
-        const err = await res.json().catch(() => ({}));
-        setErro(err.message || "Erro ao atualizar o motivo da ocorrência.");
+        const erro = await res.json().catch(() => ({}));
+        setErro(erro.message || "Erro ao atualizar o motivo da ocorrência.");
       }
     } catch {
       setErro("Erro de conexão ao atualizar o motivo da ocorrência.");
