@@ -4,23 +4,39 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Shell from "../components/Shell";
 import styles from "../style/cadastrarFuncionario.module.css";
-import post from "../api/funcionario/route.js";
 import Popup from "../components/Popup";
-import style from "../style/modalGerenciador.module.css"
+import modalStyles from "../style/modalGerenciador.module.css";
 
 export default function CadastrarFuncionario() {
+  const router = useRouter();
 
-  const [idSetor, setIdSetor] = useState("");
   const [setores, setSetores] = useState([]);
-  const [idCargo, setIdCargo] = useState("");
   const [cargos, setCargos] = useState([]);
-
   const [status, setStatus] = useState([]);
-  const [idstatus, setIdStatus] = useState("");
 
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
-  const [carregando, setCarregando] = useState("");
+  const [carregando, setCarregando] = useState(false);
+
+  const [foto, setFoto] = useState(null);
+  const [preview, setPreview] = useState("");
+
+  // Modal de cargos
+  const [modalCargoAberto, setModalCargoAberto] = useState(false);
+  const [novoCargo, setNovoCargo] = useState("");
+  const [cargoEditandoId, setCargoEditandoId] = useState(null);
+  const [nomeCargoEditado, setNomeCargoEditado] = useState("");
+
+  const [dados, setDados] = useState({
+    nome: "",
+    email: "",
+    confirmarEmail: "",
+    cpf: "",
+    nascimento: "",
+    id_cargo: "",
+    id_setor: "",
+    id_status_funcionario: "",
+  });
 
   function mascaraCPF(valor) {
     let v = valor.replace(/\D/g, "");
@@ -47,13 +63,14 @@ export default function CadastrarFuncionario() {
     );
   };
 
+  // Carrega cargos, setores e status
   useEffect(() => {
     async function carregarDependencias() {
       try {
         const [resCrg, resSetor, resStat] = await Promise.all([
           fetch("/api/funcionario/cargos"),
           fetch("/api/setor"),
-          fetch("/api/funcionario/status_funcionario")
+          fetch("/api/funcionario/status_funcionario"),
         ]);
 
         if (resCrg.ok) setCargos(extrairLista(await resCrg.json()));
@@ -62,106 +79,87 @@ export default function CadastrarFuncionario() {
         if (resStat.ok) {
           const listaStat = extrairLista(await resStat.json());
           setStatus(listaStat);
-          if (listaStat.length > 0) setIdStatus(listaStat[0].id || 1);
+
+          // CORREÇÃO: preenche o status dentro de "dados"
+          if (listaStat.length > 0) {
+            setDados((d) => ({
+              ...d,
+              id_status_funcionario: listaStat[0].id || 1,
+            }));
+          }
         }
-      } catch (erro) {
-        console.error("Erro ao carregar dependências da ocorrência:", erro);
+      } catch (e) {
+        console.error("Erro ao carregar dependências:", e);
       }
     }
     carregarDependencias();
   }, []);
 
-  function atualizar(evento) {
-    const { name, value } = evento.target;
-    let novoValor = value;
-
-    if (name === "cpf") {
-      novoValor = mascaraCPF(value);
-    }
-
-    setDados({
-      ...dados,
-      [name]: novoValor
-    });
-    setErro("");
-  }
-
-
-
-  const router = useRouter();
-
-  const [foto, setFoto] = useState(null);
-  const [preview, setPreview] = useState("");
-  const [mensagem, setMensagem] = useState("");
-  const [popupCargo, setPopupCargo] = useState(false);
-  const [novoCargo, setNovoCargo] = useState("");
-  const [deletarCargo, setDeletarCargo] = useState("")
-
-  const [dados, setDados] = useState({
-    nome: "",
-    email: "",
-    confirmarEmail: "",
-    cpf: "",
-    nascimento: "",
-    id_cargo: "",
-    id_setor: "",
-    id_status_funcionario: ""
-  });
-
+  // Preview da foto
   useEffect(() => {
     if (!foto) {
       setPreview("");
       return;
     }
-
     const url = URL.createObjectURL(foto);
     setPreview(url);
-
     return () => URL.revokeObjectURL(url);
   }, [foto]);
 
+  function atualizar(evento) {
+    const { name, value } = evento.target;
+    const novoValor = name === "cpf" ? mascaraCPF(value) : value;
+
+    setDados((d) => ({ ...d, [name]: novoValor }));
+    setErro("");
+  }
 
   async function cadastrar(evento) {
     evento.preventDefault();
 
+    if (carregando) return;
+
     if (dados.email !== dados.confirmarEmail) {
-      setMensagem("Os e-mails não são iguais.");
+      setErro("Os e-mails não são iguais.");
       return;
     }
 
-    // para verificar se o corpo está igual ao que a API aceita
+    setCarregando(true);
+
     const corpo = {
       nome: dados.nome,
       data_nascimento: dados.nascimento,
       cpf: dados.cpf,
       email: dados.email,
-      foto: foto,
       id_cargo: Number(dados.id_cargo),
       id_setor: Number(dados.id_setor),
       id_status_funcionario: Number(dados.id_status_funcionario),
+      // foto: não dá para mandar um File dentro de JSON.
+      // Quando você definir como a API recebe a foto, a gente ajusta.
     };
 
     try {
       const res = await fetch("/api/funcionario", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(corpo)
+        body: JSON.stringify(corpo),
       });
 
       const retorno = await res.json().catch(() => ({}));
-      console.log(res)
+
       if (res.ok) {
-        setSucesso("Funcionario registrado com sucesso!");
+        setSucesso("Funcionário registrado com sucesso!");
       } else {
-        setErro(retorno.message || "Erro ao registrar um funcionario.");
+        setErro(retorno.message || "Erro ao registrar o funcionário.");
       }
     } catch {
       setErro("Erro de conexão com o servidor.");
     } finally {
       setCarregando(false);
     }
-
   }
+
+  // ---------- CARGOS ----------
 
   async function adicionarCargo(evento) {
     evento.preventDefault();
@@ -169,8 +167,13 @@ export default function CadastrarFuncionario() {
     const nome = novoCargo.trim();
     if (!nome) return;
 
-    const jaExiste = cargos.some((c) => c.cargo === nome);
-    if (jaExiste) return;
+    const jaExiste = cargos.some(
+      (c) => c.cargo.toLowerCase() === nome.toLowerCase()
+    );
+    if (jaExiste) {
+      setErro("Esse cargo já existe.");
+      return;
+    }
 
     try {
       const res = await fetch("/api/funcionario/cargos", {
@@ -193,22 +196,46 @@ export default function CadastrarFuncionario() {
     }
   }
 
-  async function removerCargo(evento) {
-    evento.preventDefault();
-
-    const id = deletarCargo.trim()
-    if(!id) return;
+  async function salvarEdicaoCargo(id) {
+    const nome = nomeCargoEditado.trim();
+    if (!nome) return;
 
     try {
-      const response = await fetch("/api/funcionario/cargos/[id]")
+      // Confirme se sua API usa PUT nessa rota e o campo "cargo"
+      const res = await fetch(`/api/funcionario/cargos/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cargo: nome }),
+      });
 
-
-
-    } catch (error) {
-      
+      if (res.ok) {
+        setCargos(cargos.map((c) => (c.id === id ? { ...c, cargo: nome } : c)));
+        setCargoEditandoId(null);
+        setNomeCargoEditado("");
+      } else {
+        const retorno = await res.json().catch(() => ({}));
+        setErro(retorno.message || "Erro ao atualizar o cargo.");
+      }
+    } catch {
+      setErro("Erro de conexão com o servidor.");
     }
+  }
 
+  async function excluirCargo(id) {
+    try {
+      const res = await fetch(`/api/funcionario/cargos/${id}`, {
+        method: "DELETE",
+      });
 
+      if (res.ok) {
+        setCargos(cargos.filter((c) => c.id !== id));
+      } else {
+        const retorno = await res.json().catch(() => ({}));
+        setErro(retorno.message || "Erro ao excluir o cargo.");
+      }
+    } catch {
+      setErro("Erro de conexão com o servidor.");
+    }
   }
 
   return (
@@ -355,7 +382,6 @@ export default function CadastrarFuncionario() {
                     required
                   >
                     <option value="">Selecione o setor</option>
-
                     {setores.map((s) => (
                       <option key={s.id} value={s.id}>{s.nome}</option>
                     ))}
@@ -380,10 +406,6 @@ export default function CadastrarFuncionario() {
               </div>
             </div>
 
-            {mensagem && (
-              <p className={styles.mensagem} role="status">{mensagem}</p>
-            )}
-
             <div className={styles.botoes}>
               <button
                 type="button"
@@ -396,60 +418,125 @@ export default function CadastrarFuncionario() {
               <button
                 type="button"
                 className={styles.cadastrarCargo}
-                onClick={() => setPopupCargo(true)}
+                onClick={() => setModalCargoAberto(true)}
               >
                 + CADASTRAR NOVO CARGO
               </button>
 
-              <button type="submit" className={styles.cadastrar}>
-                CADASTRAR FUNCIONÁRIO
+              <button
+                type="submit"
+                className={styles.cadastrar}
+                disabled={carregando}
+              >
+                {carregando ? "CADASTRANDO..." : "CADASTRAR FUNCIONÁRIO"}
               </button>
             </div>
           </form>
         </section>
       </main>
 
-      {popupCargo && (
-        <div className={styles.popupFundo} onClick={() => setPopupCargo(false)}>
-          <div className={styles.popupCaixa} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.popupTopo}>
-              <h2>Cargos</h2>
+      {/* MODAL DE CARGOS */}
+      {modalCargoAberto && (
+        <div className={modalStyles.modalOverlay}>
+          <div className={modalStyles.modalContainer}>
+            <div className={modalStyles.modalCabecalho}>
+              <h3>Gerenciar Cargos</h3>
               <button
                 type="button"
-                className={styles.popupFechar}
-                onClick={() => setPopupCargo(false)}
+                className={modalStyles.modalFechar}
+                onClick={() => setModalCargoAberto(false)}
               >
                 ✕
               </button>
             </div>
 
-            <form className={styles.popupForm} onSubmit={adicionarCargo}>
+            <div className={modalStyles.modalFormulario}>
               <input
+                type="text"
+                placeholder="Novo cargo..."
                 value={novoCargo}
                 onChange={(e) => setNovoCargo(e.target.value)}
-                placeholder="Nome do novo cargo"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") adicionarCargo(e);
+                }}
+                className={modalStyles.modalInput}
               />
-              <button type="submit">CADASTRAR</button>
-            </form>
+              <button
+                type="button"
+                onClick={adicionarCargo}
+                className={modalStyles.modalBotaoAdicionar}
+              >
+                Adicionar
+              </button>
+            </div>
 
-            {cargos.length ? (
-              <ul className={styles.listaCargos}>
-                {cargos.map((c) => (
-                  <li key={c.id}>
-                    <span>{c.cargo}</span>
-                    <button
-                      type="button"
-                      className={styles.excluirCargo}
-                      onClick={() => excluirCargo(c.id)}
-                    >
-                      Excluir
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className={styles.vazioCargos}>Nenhum cargo cadastrado.</p>
-            )}
+            <div className={modalStyles.modalLista}>
+              {cargos.map((item) => (
+                <div key={item.id} className={modalStyles.modalItem}>
+                  {cargoEditandoId === item.id ? (
+                    <input
+                      type="text"
+                      value={nomeCargoEditado}
+                      onChange={(e) => setNomeCargoEditado(e.target.value)}
+                      className={modalStyles.modalInputEdicao}
+                    />
+                  ) : (
+                    <span className={modalStyles.modalItemTexto}>● {item.cargo}</span>
+                  )}
+
+                  <div className={modalStyles.modalAcoesItem}>
+                    {cargoEditandoId === item.id ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => salvarEdicaoCargo(item.id)}
+                          className={modalStyles.modalBotaoSalvar}
+                        >
+                          Salvar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setCargoEditandoId(null)}
+                          className={modalStyles.modalBotaoCancelarItem}
+                        >
+                          Cancelar
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCargoEditandoId(item.id);
+                            setNomeCargoEditado(item.cargo);
+                          }}
+                          className={modalStyles.modalBotaoEditar}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => excluirCargo(item.id)}
+                          className={modalStyles.modalBotaoExcluir}
+                        >
+                          Excluir
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className={modalStyles.modalRodape}>
+              <button
+                type="button"
+                onClick={() => setModalCargoAberto(false)}
+                className={modalStyles.modalBotaoConcluido}
+              >
+                Concluído
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -459,12 +546,10 @@ export default function CadastrarFuncionario() {
       <Popup
         mensagem={sucesso}
         tipo="sucesso"
-        titulo="Funcionario Cadastrado!"
-        textoBotao="Ir para Inicio"
+        titulo="Funcionário Cadastrado!"
+        textoBotao="Ir para Início"
         aoFechar={() => router.push("/funcionarios")}
       />
-
-
     </Shell>
   );
 }

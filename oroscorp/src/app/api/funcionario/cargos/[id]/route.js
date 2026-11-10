@@ -8,7 +8,7 @@ const API_URL = process.env.API_URL;
 const ROTA_CARGO = '/v1/oroscorp/cargo';
 
 
-export async function PUT(request) {
+export async function PUT(request, params) {
     try {
 
       const { id } = await params;
