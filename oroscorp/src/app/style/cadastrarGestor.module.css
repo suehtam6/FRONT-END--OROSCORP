@@ -1,88 +1,61 @@
-
 .container {
   min-height: calc(100vh - 70px);
   width: 100%;
-  padding: 30px 20px;
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: clamp(20px, 3vw, 40px) clamp(20px, 4vw, 60px);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   box-sizing: border-box;
   background: #343434;
   color: #fff;
   font-family: Arial, sans-serif;
 }
 
+.tituloPagina {
+  margin-bottom: clamp(20px, 2vw, 32px);
+}
+
+.tituloPagina h1 {
+  margin: 0 0 8px;
+  font-size: clamp(24px, 2.2vw, 34px);
+  font-weight: 700;
+  color: #fff;
+}
+
+.tituloPagina p {
+  margin: 0;
+  color: #929ba8;
+  font-size: clamp(13px, 1vw, 16px);
+  line-height: 1.5;
+}
 
 .cadastroBox {
   width: 100%;
-  max-width: 1050px;
-  padding: 30px;
+  padding: clamp(24px, 2.5vw, 42px);
   background: #0e1217;
   border: 1px solid #252c35;
   border-radius: 12px;
   box-sizing: border-box;
 }
 
-
-.titulo {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 15px;
-  margin-bottom: 30px;
-}
-
-.titulo h1 {
-  margin: 0 0 8px;
-  font-size: 23px;
-  font-weight: 700;
-  color: #fff;
-}
-
-.titulo p {
-  margin: 0;
-  color: #929ba8;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-
-.sair {
-  padding: 10px 22px;
-  background: transparent;
-  border: 1px solid #ff7900;
-  border-radius: 7px;
-  color: #ff7900;
-  font-size: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.sair:hover {
-  background: #ff7900;
-  color: #fff;
-}
-
-
 .formulario {
   display: flex;
   align-items: flex-start;
-  gap: 30px;
+  gap: clamp(24px, 3vw, 50px);
 }
 
-
 .fotoColuna {
-  width: 260px;
+  width: clamp(280px, 22vw, 380px);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .fotoArea {
   width: 100%;
-  height: 260px;
+  height: clamp(280px, 22vw, 380px);
   background: #151a1f;
   border: 2px dashed #343b44;
   border-radius: 10px;
@@ -101,19 +74,19 @@
 }
 
 .fotoTexto {
-  padding: 15px;
+  padding: 20px;
 }
 
 .fotoTexto strong {
   display: block;
-  font-size: 13px;
+  font-size: clamp(14px, 1.1vw, 17px);
   margin-bottom: 10px;
   color: #fff;
 }
 
 .fotoTexto p {
   color: #929ba8;
-  font-size: 11px;
+  font-size: clamp(12px, 0.9vw, 14px);
   line-height: 1.5;
   margin: 0;
 }
@@ -125,12 +98,12 @@
 }
 
 .removerFoto {
-  padding: 10px;
+  padding: clamp(10px, 0.8vw, 13px);
   background: #2d1919;
   border: 1px solid #743636;
   border-radius: 7px;
   color: #ff7777;
-  font-size: 11px;
+  font-size: clamp(11px, 0.85vw, 13px);
   cursor: pointer;
 }
 
@@ -138,13 +111,12 @@
   background: #402020;
 }
 
-
 .campos {
   flex: 1;
   min-width: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  gap: clamp(16px, 1.8vw, 26px);
 }
 
 .campo {
@@ -156,7 +128,7 @@
 
 .campo label {
   color: #c2cad4;
-  font-size: 12px;
+  font-size: clamp(13px, 0.95vw, 15px);
   font-weight: 500;
 }
 
@@ -166,15 +138,16 @@
 
 .campo input:not([type="checkbox"]) {
   width: 100%;
-  height: 43px;
-  padding: 0 12px;
+  height: clamp(44px, 3vw, 52px);
+  padding: 0 14px;
   background: #151a1f;
   border: 1px solid #303842;
   border-radius: 7px;
   box-sizing: border-box;
   color: #fff;
-  font-size: 12px;
+  font-size: clamp(13px, 0.95vw, 15px);
   outline: none;
+  transition: border-color 0.2s;
 }
 
 .campo input::placeholder {
@@ -189,98 +162,47 @@
   color-scheme: dark;
 }
 
-
 .campo select {
   width: 100%;
-  height: 43px;
-  padding: 0 12px;
+  height: clamp(44px, 3vw, 52px);
+  padding: 0 14px;
   background: #151a1f;
   border: 1px solid #303842;
   border-radius: 7px;
   box-sizing: border-box;
   color: #fff;
-  font-size: 12px;
+  font-size: clamp(13px, 0.95vw, 15px);
   outline: none;
   cursor: pointer;
+  transition: border-color 0.2s;
 }
 
 .campo select:focus {
   border-color: #ff7900;
 }
 
-.popupOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.popupBox {
-  background: #151a1f;
-  border: 1px solid #303842;
-  padding: 30px 40px;
-  border-radius: 10px;
-  text-align: center;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  min-width: 300px;
-}
-
-.popupBox p {
-  color: #fff;
-  font-size: 15px;
-  margin: 0;
-  font-weight: 500;
-}
-
-.popupBox button {
-  padding: 10px 25px;
-  background: #ff7900;
-  color: #fff;
-  border: none;
-  border-radius: 7px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.popupBox button:hover {
-  background: #ff951f;
-}
-
-
 .botoes {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
-  margin-top: 30px;
-  padding-top: 20px;
+  gap: 14px;
+  margin-top: clamp(24px, 2vw, 36px);
+  padding-top: clamp(18px, 1.5vw, 24px);
   border-top: 1px solid #292e34;
 }
 
 .botoes button {
-  padding: 12px 22px;
+  padding: clamp(12px, 1vw, 16px) clamp(22px, 2vw, 36px);
   border: none;
   border-radius: 7px;
-  font-size: 11px;
+  font-size: clamp(12px, 0.9vw, 14px);
   font-weight: bold;
   cursor: pointer;
   transition: 0.2s;
 }
 
-
 .btnNovoNivel {
-  margin-right: auto; 
+  margin-right: auto;
   background: transparent !important;
   border: 1px solid #303842 !important;
   color: #929ba8 !important;
@@ -309,8 +231,7 @@
   background: #ff951f;
 }
 
-/* RESPONSIVIDADE */
-@media (max-width: 800px) {
+@media (max-width: 1000px) {
   .formulario {
     flex-direction: column;
   }
@@ -320,7 +241,7 @@
   }
 
   .fotoArea {
-    height: 220px;
+    height: 240px;
   }
 
   .campos {
@@ -328,21 +249,13 @@
   }
 }
 
-@media (max-width: 550px) {
+@media (max-width: 600px) {
   .container {
-    padding: 20px 12px;
+    padding: 16px 12px;
   }
 
   .cadastroBox {
     padding: 18px;
-  }
-
-  .titulo {
-    flex-wrap: wrap;
-  }
-
-  .titulo h1 {
-    font-size: 20px;
   }
 
   .campos {
@@ -356,11 +269,12 @@
 
   .btnNovoNivel {
     margin-right: 0;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
 
   .botoes button {
-    flex: 1;
+    width: 100%;
     padding: 12px 8px;
   }
 }
+

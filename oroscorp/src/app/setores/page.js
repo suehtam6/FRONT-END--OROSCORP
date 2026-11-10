@@ -1,7 +1,17 @@
+/*
+Data: 9 de Outubro de 2026
+Objetivo: Estilização da página de setores
+Autor: João Pedro e Kaique Carvalho
+
+Autor do JS: Matheus Lucas
+Data: 05 de Novembro de 2026
+Objetivo: Tornar está tela dínamica
+*/
+
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation"; 
+import { useRouter } from "next/navigation";
 import Shell from "../components/Shell.js";
 import styles from "../style/setores.module.css";
 
@@ -44,9 +54,7 @@ function Indicador({ tipo, valor, legenda }) {
         <Icone tipo={tipo} />
       </span>
 
-      <strong
-        className={tipo === "alertas" ? styles.valorAlerta : ""}
-      >
+      <strong className={tipo === "alertas" ? styles.valorAlerta : ""}>
         {valor}
       </strong>
 
@@ -79,7 +87,7 @@ export default function Setores() {
         const res = await fetch("/api/setor/dados");
         if (res.ok) {
           const json = await res.json();
-          
+
           let dadosBrutos = [];
           if (Array.isArray(json)) {
             dadosBrutos = json;
@@ -92,10 +100,11 @@ export default function Setores() {
           }
 
           const dadosFormatados = dadosBrutos.map(mapearSetorBD);
-          
-          // Remove duplicados caso a API traga o mesmo setor repetido
-          const setoresUnicos = Array.from(new Map(dadosFormatados.map(item => [item.id, item])).values());
-          
+
+          const setoresUnicos = Array.from(
+            new Map(dadosFormatados.map((item) => [item.id, item])).values()
+          );
+
           setListaSetores(setoresUnicos);
         } else {
           setErro("Erro ao carregar setores.");
@@ -137,24 +146,17 @@ export default function Setores() {
         </div>
 
         {carregando ? (
-          <div style={{ color: "#fff", padding: "2rem", textAlign: "center" }}>
-            A carregar setores...
-          </div>
+          <div className={styles.estado}>A carregar setores...</div>
         ) : erro ? (
-          <div style={{ color: "#ff4d4d", padding: "2rem", textAlign: "center" }}>
-            {erro}
-          </div>
+          <div className={`${styles.estado} ${styles.estadoErro}`}>{erro}</div>
         ) : (
           <div className={styles.grade}>
             {listaSetores.length > 0 ? (
-              listaSetores.map((setor, index) => (
-                /* A chave agora usa o index para evitar o erro do Next.js */
+              listaSetores.map((setor) => (
                 <article className={styles.card} key={setor.id}>
                   <h2>{setor.nome}</h2>
 
-                  <p className={styles.descricao}>
-                    {setor.descricao}
-                  </p>
+                  <p className={styles.descricao}>{setor.descricao}</p>
 
                   <div className={styles.indicadores}>
                     <Indicador
@@ -176,7 +178,7 @@ export default function Setores() {
                     />
                   </div>
 
-                  <button 
+                  <button
                     className={styles.botaoVer}
                     onClick={() => verDetalhesSetor(setor.id)}
                   >
@@ -185,9 +187,7 @@ export default function Setores() {
                 </article>
               ))
             ) : (
-              <div style={{ color: "#aaa", padding: "2rem", gridColumn: "1 / -1", textAlign: "center" }}>
-                Nenhum setor cadastrado.
-              </div>
+              <div className={styles.estado}>Nenhum setor cadastrado.</div>
             )}
           </div>
         )}

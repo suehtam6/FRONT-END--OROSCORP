@@ -161,6 +161,7 @@ export default function RegistrarOcorrencia() {
 
   return (
     <Shell>
+      <div className={styles.pagina}>
       <section className={styles.conteudo}>
         <div className={styles.tituloPagina}>
           <h1>Registrar ocorrência</h1>
@@ -380,6 +381,7 @@ export default function RegistrarOcorrencia() {
           aoFechar={() => router.push("/ocorrencias")}
         />
       </section>
+      </div>
     </Shell>
   );
 }

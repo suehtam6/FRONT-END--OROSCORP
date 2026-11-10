@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Shell from "../components/Shell";
-import s from "../style/cameras.module.css"; // Usa o novo arquivo CSS exclusivo
+import s from "../style/cameras.module.css";
 
 function filtrarCameras(cameras, busca, setor) {
   const termo = busca.trim().toLowerCase();
@@ -80,8 +80,9 @@ function CameraCard({ camera, onClick }) {
             <h3 className={s.cameraNome}>{camera.nome}</h3>
             <p className={s.setorNome}>{nomeSetor}</p>
           </div>
+
           <span className={s.ipEndereco}>
-            {camera.ip || camera.endereco_ip || "192.168.10.11"}
+            {camera.ip || camera.endereco_stream}
           </span>
         </div>
       </div>
@@ -144,6 +145,7 @@ export default function Cameras() {
 
   return (
     <Shell>
+      <div className={s.pagina}>
       <h1 className={s.titulo}>Câmeras</h1>
       <p className={s.sub}>Monitoramento em tempo real dos setores.</p>
 
@@ -199,6 +201,7 @@ export default function Cameras() {
         ) : (
           <div className={s.painel}>Nenhuma câmera encontrada.</div>
         )}
+      </div>
       </div>
     </Shell>
   );

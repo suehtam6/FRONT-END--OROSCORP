@@ -229,7 +229,6 @@ export default function CadastroSetor() {
     carregarDados();
   }, []);
 
-  // --- AÇÕES DO MODAL DE STATUS DO SETOR ---
   async function criarStatusSetor(e) {
     e.preventDefault();
     if (!novoStatusNome.trim()) return;
@@ -246,7 +245,6 @@ export default function CadastroSetor() {
         setNovoStatusNome("");
         await carregarStatusSetor();
         
-        // Seleciona o recém-criado se retornar id
         const idNovo = criado.id || criado.id_status_setor || criado.response?.id;
         if (idNovo) setIdStatusSetor(idNovo);
       } else {
@@ -361,6 +359,7 @@ export default function CadastroSetor() {
 
   return (
     <Shell>
+      <div className={styles.pagina}>
       <section className={styles.conteudo}>
         <div className={styles.tituloPagina}>
           <h1>Cadastro de Setor</h1>
@@ -825,6 +824,7 @@ export default function CadastroSetor() {
           aoFechar={() => router.push("/setores")}
         />
       </section>
+      </div>
     </Shell>
   );
 }

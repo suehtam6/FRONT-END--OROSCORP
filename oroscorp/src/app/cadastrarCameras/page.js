@@ -286,52 +286,6 @@ export default function CadastrarCamera() {
                 </div>
               </div>
             </div>
-
-            <div className={styles.imagemArea}>
-              <h2>Imagem da câmera</h2>
-
-              <label className={styles.uploadImagem}>
-                {imagem ? (
-                  <img
-                    src={URL.createObjectURL(imagem)}
-                    alt="Foto do equipamento"
-                    className={styles.fotoCamera}
-                  />
-                ) : (
-                  <div className={styles.conteudoUpload}>
-                    <span className={styles.iconeUpload}>📷</span>
-                    <strong>Adicionar imagem da câmera</strong>
-                    <p>Clique para selecionar uma foto<br />do equipamento utilizado.</p>
-                    <small>PNG, JPG ou JPEG</small>
-                  </div>
-                )}
-
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg"
-                  hidden
-                  onChange={(e) => setImagem(e.target.files?.[0] || null)}
-                />
-              </label>
-
-              <p className={styles.legenda}>Fotografia da câmera instalada no setor.</p>
-
-              {imagem && (
-                <button
-                  type="button"
-                  className={styles.removerImagem}
-                  onClick={() => setImagem(null)}
-                >
-                  Remover imagem
-                </button>
-              )}
-
-              <div className={styles.informacoes}>
-                <h3>Informações</h3>
-                <p>A imagem será utilizada para identificar o equipamento cadastrado.</p>
-                <p>O monitoramento em tempo real será configurado separadamente.</p>
-              </div>
-            </div>
           </div>
 
           <div className={styles.acoes}>
@@ -354,7 +308,6 @@ export default function CadastrarCamera() {
           </div>
         </form>
 
-        {/* MODAL PADRONIZADO DE GERENCIAMENTO DE STATUS DA CÂMERA */}
         {modalStatusAberto && (
           <div className={modalStyles.modalOverlay}>
             <div className={modalStyles.modalContainer}>

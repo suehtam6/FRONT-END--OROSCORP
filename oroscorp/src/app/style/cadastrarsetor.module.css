@@ -1,10 +1,10 @@
-
 .pagina {
-  min-height: 100vh;
-  background: #343434;
-  color: white;
-  font-family: Arial, sans-serif;
+  width: min(100vw, 2200px);
+  margin-left: calc(50% - min(100vw, 2200px) / 2);
+  padding: 0 clamp(16px, 4vw, 96px);
+  box-sizing: border-box;
 }
+
 
 .cabecalho {
   height: 70px;
@@ -54,53 +54,45 @@
   letter-spacing: 2px;
 }
 
-/* CONTEÚDO */
-
 .conteudo {
   width: 100%;
-  max-width: 1500px;
-  margin: auto;
-  padding: 22px 32px 35px;
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: clamp(20px, 3vw, 40px) clamp(20px, 4vw, 50px);
   box-sizing: border-box;
 }
 
 .tituloPagina {
-  margin-bottom: 18px;
+  margin-bottom: clamp(18px, 2vw, 28px);
 }
 
 .tituloPagina h1 {
-  font-size: 22px;
-  margin: 0 0 7px;
+  font-size: clamp(22px, 2vw, 32px);
+  margin: 0 0 8px;
 }
 
 .tituloPagina p {
-  font-size: 12px;
-  color: #999;
+  font-size: clamp(12px, 1vw, 15px);
+  color: #ffffff;
   margin: 0;
 }
-
-/* PAINEL PRINCIPAL */
 
 .painel {
   background: #111519;
   border: 1px solid #292e34;
   border-radius: 12px;
-  padding: 24px;
+  padding: clamp(20px, 2.5vw, 36px);
 }
-
-/* PARTE SUPERIOR */
 
 .areaSuperior {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 20px;
-  margin-bottom: 20px;
+  grid-template-columns: clamp(280px, 22vw, 380px) 1fr;
+  gap: clamp(20px, 2vw, 32px);
+  margin-bottom: clamp(20px, 2vw, 32px);
 }
 
-/* UPLOAD */
-
 .uploadImagem {
-  height: 210px;
+  height: clamp(210px, 18vw, 280px);
   width: 100%;
   box-sizing: border-box;
   background: #151a1f;
@@ -113,6 +105,7 @@
   cursor: pointer;
   color: #999;
   overflow: hidden;
+  transition: border-color 0.2s ease;
 }
 
 .uploadImagem:hover {
@@ -120,8 +113,8 @@
 }
 
 .caixaImagem {
-  width: 55px;
-  height: 55px;
+  width: clamp(55px, 4vw, 70px);
+  height: clamp(55px, 4vw, 70px);
   background: #222a32;
   border-radius: 10px;
   display: flex;
@@ -132,16 +125,16 @@
 }
 
 .caixaImagem svg {
-  width: 26px;
-  height: 26px;
+  width: clamp(26px, 2vw, 34px);
+  height: clamp(26px, 2vw, 34px);
 }
 
 .seloUpload {
   position: absolute;
   right: -5px;
   bottom: -5px;
-  width: 20px;
-  height: 20px;
+  width: clamp(20px, 1.5vw, 26px);
+  height: clamp(20px, 1.5vw, 26px);
   background: #ff7900;
   color: white;
   border-radius: 50%;
@@ -151,12 +144,12 @@
 }
 
 .seloUpload svg {
-  width: 13px;
-  height: 13px;
+  width: clamp(13px, 1vw, 16px);
+  height: clamp(13px, 1vw, 16px);
 }
 
 .textoUpload {
-  font-size: 12px;
+  font-size: clamp(12px, 0.9vw, 14px);
   text-align: center;
   line-height: 1.5;
 }
@@ -167,12 +160,14 @@
   object-fit: cover;
 }
 
-/* INFORMAÇÕES DO SETOR */
 
 .resumo {
   border: 1px solid #292e34;
   border-radius: 10px;
-  padding: 18px;
+  padding: clamp(18px, 1.8vw, 28px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .resumoCabecalho {
@@ -184,29 +179,30 @@
 }
 
 .iconeEscudo {
-  width: 35px;
-  height: 35px;
+  width: clamp(35px, 2.5vw, 44px);
+  height: clamp(35px, 2.5vw, 44px);
   background: #2b1e16;
   color: #ff7900;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .iconeEscudo svg {
-  width: 20px;
-  height: 20px;
+  width: clamp(20px, 1.5vw, 26px);
+  height: clamp(20px, 1.5vw, 26px);
 }
 
 .resumoCabecalho h2 {
-  font-size: 13px;
+  font-size: clamp(13px, 1.1vw, 17px);
   margin: 0 0 7px;
 }
 
 .resumoCabecalho p {
-  font-size: 11px;
-  line-height: 1.4;
+  font-size: clamp(11px, 0.9vw, 14px);
+  line-height: 1.5;
   color: #aaa;
   margin: 0;
 }
@@ -215,8 +211,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 10px;
-  font-size: 12px;
+  margin-top: 12px;
+  font-size: clamp(12px, 0.95vw, 15px);
   color: #aaa;
 }
 
@@ -227,8 +223,8 @@
 }
 
 .resumoLinha svg {
-  width: 15px;
-  height: 15px;
+  width: clamp(15px, 1.1vw, 18px);
+  height: clamp(15px, 1.1vw, 18px);
 }
 
 .resumoLinha strong {
@@ -236,18 +232,17 @@
   font-weight: normal;
 }
 
-/* FORMULÁRIO */
 
 .formulario {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: clamp(20px, 2.5vw, 36px);
 }
 
 .coluna {
   display: flex;
   flex-direction: column;
-  gap: 17px;
+  gap: clamp(17px, 1.5vw, 24px);
 }
 
 .campo {
@@ -258,9 +253,9 @@
 }
 
 .campo label {
-  font-size: 11px;
+  font-size: clamp(11px, 0.85vw, 13px);
   font-weight: bold;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
   color: #c9ced5;
 }
 
@@ -277,19 +272,21 @@
   color: #ddd;
   border: 1px solid #2a3037;
   border-radius: 7px;
-  padding: 0 13px;
-  font: 12px Arial, sans-serif;
+  padding: 0 14px;
+  font-size: clamp(12px, 0.9vw, 15px);
+  font-family: Arial, sans-serif;
   outline: none;
+  transition: border-color 0.2s ease;
 }
 
 .campo input,
 .campo select {
-  height: 40px;
+  height: clamp(40px, 3vw, 48px);
 }
 
 .campo textarea {
-  height: 110px;
-  padding: 13px;
+  height: clamp(110px, 10vw, 160px);
+  padding: 13px 14px;
   resize: vertical;
 }
 
@@ -319,24 +316,26 @@
   padding-left: 38px !important;
 }
 
+
 .iconeCampo,
-.iconeCapacete {
+.iconeCapacete,
+.setaSelect {
   position: absolute;
-  left: 12px;
-  top: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 16px;
   height: 16px;
   pointer-events: none;
 }
 
+.iconeCampo,
+.iconeCapacete {
+  left: 12px;
+}
+
 .setaSelect {
-  position: absolute;
   right: 12px;
-  top: 12px;
-  width: 16px;
-  height: 16px;
   color: #89919a;
-  pointer-events: none;
 }
 
 .contador {
@@ -344,7 +343,7 @@
   right: 10px;
   bottom: 9px;
   color: #777;
-  font-size: 10px;
+  font-size: clamp(10px, 0.75vw, 12px);
 }
 
 .selecionados {
@@ -358,16 +357,14 @@
   border: 1px solid #414850;
   color: white;
   border-radius: 6px;
-  padding: 6px 9px;
-  font-size: 11px;
+  padding: 6px 10px;
+  font-size: clamp(11px, 0.85vw, 13px);
   cursor: pointer;
 }
 
-/* CONFIGURAÇÕES DE SEGURANÇA */
-
 .seguranca {
-  margin-top: 30px;
-  padding-top: 20px;
+  margin-top: clamp(24px, 2vw, 36px);
+  padding-top: clamp(18px, 1.5vw, 26px);
   border-top: 1px solid #292e34;
 }
 
@@ -378,18 +375,18 @@
 }
 
 .tituloSeguranca svg {
-  width: 19px;
-  height: 19px;
+  width: clamp(19px, 1.4vw, 24px);
+  height: clamp(19px, 1.4vw, 24px);
   color: #ff7900;
 }
 
 .tituloSeguranca h2 {
-  font-size: 13px;
+  font-size: clamp(13px, 1.1vw, 17px);
   margin: 0;
 }
 
 .seguranca p {
-  font-size: 11px;
+  font-size: clamp(11px, 0.85vw, 13px);
   color: #aaa;
   margin: 15px 0 8px;
 }
@@ -397,19 +394,21 @@
 .opcoesStatus {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .statusBotao {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 15px;
+  gap: 8px;
+  padding: clamp(8px, 0.8vw, 12px) clamp(15px, 1.2vw, 22px);
   background: #171b20;
   color: #aaa;
   border: 1px solid #2c3238;
   border-radius: 7px;
-  font-size: 11px;
+  font-size: clamp(11px, 0.9vw, 14px);
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .statusBotao span {
@@ -439,24 +438,23 @@
   background: #ff7777;
 }
 
-/* BOTÕES */
 
 .acoes {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 12px;
+  margin-top: clamp(16px, 1.5vw, 24px);
 }
-
 
 .botaoCancelar,
 .botaoCadastrar {
-  padding: 12px 20px;
+  padding: clamp(12px, 1vw, 16px) clamp(20px, 2vw, 32px);
   border: none;
   border-radius: 7px;
-  font-size: 11px;
+  font-size: clamp(11px, 0.9vw, 14px);
   font-weight: bold;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .botaoCancelar {
@@ -479,15 +477,16 @@
   margin-top: 12px;
 }
 
-/* RESPONSIVIDADE */
 
-@media (max-width: 800px) {
-  .areaSuperior {
-    grid-template-columns: 220px 1fr;
+@media (min-width: 1600px) {
+  .formulario {
+    gap: 40px;
   }
+}
 
-  .conteudo {
-    padding: 20px;
+@media (max-width: 900px) {
+  .areaSuperior {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -509,7 +508,11 @@
     height: 190px;
   }
 
+  .acoes {
+    flex-direction: column;
+  }
+
   .acoes button {
-    flex: 1;
+    width: 100%;
   }
 }

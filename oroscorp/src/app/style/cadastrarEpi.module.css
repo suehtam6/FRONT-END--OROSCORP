@@ -1,24 +1,24 @@
-
 .pagina {
   min-height: 100vh;
   background: #343434;
   color: white;
-  padding: 25px 35px;
+  padding: clamp(20px, 2.5vw, 40px) clamp(20px, 3vw, 60px);
   box-sizing: border-box;
   font-family: Arial, sans-serif;
 }
 
 .titulo {
-  margin-bottom: 25px;
+  margin-bottom: clamp(20px, 2vw, 32px);
 }
 
 .titulo h1 {
-  font-size: 23px;
+  font-size: clamp(24px, 2.2vw, 34px);
   margin: 0 0 8px;
+  font-weight: 700;
 }
 
 .titulo p {
-  font-size: 12px;
+  font-size: clamp(13px, 1vw, 16px);
   color: #aaa;
   margin: 0;
 }
@@ -27,27 +27,27 @@
   background: #111519;
   border: 1px solid #292e34;
   border-radius: 12px;
-  padding: 28px;
-  max-width: 1350px;
+  padding: clamp(24px, 2.5vw, 40px);
+  max-width: 1920px;
   margin: auto;
 }
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 350px;
-  gap: 35px;
+  grid-template-columns: minmax(0, 1fr) clamp(350px, 30vw, 520px);
+  gap: clamp(24px, 3vw, 50px);
 }
 
 .campos,
 .areaImagem {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: clamp(18px, 1.5vw, 24px);
 }
 
 .campos h2,
 .areaImagem h2 {
-  font-size: 15px;
+  font-size: clamp(15px, 1.2vw, 19px);
   margin: 0 0 5px;
   color: #eee;
 }
@@ -60,8 +60,10 @@
 }
 
 .campo label {
-  font-size: 12px;
+  font-size: clamp(13px, 0.95vw, 15px);
+  font-weight: 600;
   color: #ccc;
+  letter-spacing: 0.3px;
 }
 
 .campo label span {
@@ -75,16 +77,18 @@
   box-sizing: border-box;
   background: #151a1f;
   border: 1px solid #2a3037;
-  border-radius: 7px;
+  border-radius: 8px;
   color: #ddd;
-  font: 12px Arial, sans-serif;
-  padding: 12px;
+  font-size: clamp(13px, 0.95vw, 15px);
+  font-family: Arial, sans-serif;
+  padding: 0 14px;
   outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .campo input,
 .campo select {
-  height: 42px;
+  height: clamp(44px, 3vw, 52px);
 }
 
 .campo input[type="date"] {
@@ -93,7 +97,9 @@
 
 .campo textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: clamp(120px, 10vw, 170px);
+  padding: 14px;
+  line-height: 1.5;
 }
 
 .campo input::placeholder,
@@ -105,13 +111,13 @@
 .campo select:focus,
 .campo textarea:focus {
   border-color: #ff7900;
+  background: #192027;
 }
-
-/* STATUS */
 
 .status {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .status button {
@@ -119,9 +125,10 @@
   color: #aaa;
   border: 1px solid #30363d;
   border-radius: 7px;
-  padding: 10px 18px;
-  font-size: 11px;
+  padding: clamp(10px, 0.8vw, 13px) clamp(18px, 1.2vw, 24px);
+  font-size: clamp(12px, 0.9vw, 14px);
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .status .statusAtivo {
@@ -130,11 +137,9 @@
   color: #00d782;
 }
 
-/* IMAGEM DO EPI */
-
 .uploadImagem {
   width: 100%;
-  height: 350px;
+  height: clamp(350px, 24vw, 450px);
   background: #151a1f;
   border: 2px dashed #343b44;
   border-radius: 12px;
@@ -145,10 +150,12 @@
   cursor: pointer;
   overflow: hidden;
   box-sizing: border-box;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .uploadImagem:hover {
   border-color: #ff7900;
+  background: #192027;
 }
 
 .espacoImagem {
@@ -157,12 +164,12 @@
 }
 
 .espacoImagem p {
-  font-size: 13px;
+  font-size: clamp(13px, 1vw, 15px);
   margin-bottom: 8px;
 }
 
 .espacoImagem small {
-  font-size: 11px;
+  font-size: clamp(11px, 0.85vw, 13px);
   color: #777;
 }
 
@@ -174,7 +181,7 @@
 
 .legenda {
   text-align: center;
-  font-size: 11px;
+  font-size: clamp(11px, 0.85vw, 13px);
   color: #9299a3;
   margin: 0;
 }
@@ -184,17 +191,16 @@
   color: #ff7777;
   border: 1px solid #743636;
   border-radius: 7px;
-  padding: 10px;
+  padding: clamp(10px, 0.8vw, 13px);
   cursor: pointer;
-  font-size: 11px;
+  font-size: clamp(11px, 0.85vw, 13px);
+  transition: background 0.2s ease;
 }
 
 .removerImagem:hover {
   background: #402020;
 }
 
-
-/* Cabeçalho do Campo Categoria */
 .cabecalhoCampo {
   display: flex;
   justify-content: space-between;
@@ -206,11 +212,10 @@
   border: none;
   color: #ff6b00;
   cursor: pointer;
-  font-size: 13px;
+  font-size: clamp(13px, 0.95vw, 15px);
   font-weight: bold;
 }
 
-/* Modal Overlay & Container */
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -252,7 +257,6 @@
   font-size: 18px;
 }
 
-/* Modal Formulário e Lista */
 .modalFormulario {
   display: flex;
   gap: 8px;
@@ -313,7 +317,6 @@
   gap: 6px;
 }
 
-/* Botões do Modal */
 .modalBotaoSalvar {
   background: #28a745;
   border: none;
@@ -368,30 +371,38 @@
   cursor: pointer;
 }
 
-
-/* BOTÕES */
+.linha {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(14px, 1.5vw, 24px);
+}
 
 .acoes {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  margin-top: 30px;
-  padding-top: 20px;
+  gap: 14px;
+  margin-top: clamp(20px, 2vw, 30px);
+  padding-top: clamp(16px, 1.5vw, 24px);
   border-top: 1px solid #292e34;
 }
 
 .acoes button {
-  padding: 12px 20px;
+  padding: clamp(12px, 1vw, 16px) clamp(24px, 2.2vw, 40px);
   border: none;
-  border-radius: 7px;
-  font-size: 11px;
+  border-radius: 8px;
+  font-size: clamp(13px, 0.95vw, 15px);
   font-weight: bold;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .cancelar {
   background: #1a2026;
   color: #ddd;
+}
+
+.cancelar:hover {
+  background: #242c35;
 }
 
 .salvar {
@@ -403,12 +414,13 @@
   background: #ff951f;
 }
 
-/* RESPONSIVIDADE */
-
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   .layout {
-    grid-template-columns: minmax(0, 1fr) 280px;
-    gap: 20px;
+    grid-template-columns: 1fr;
+  }
+
+  .uploadImagem {
+    height: 240px;
   }
 }
 
@@ -421,33 +433,17 @@
     padding: 18px;
   }
 
-  .layout,
   .linha {
     grid-template-columns: 1fr;
   }
 
-  .uploadImagem {
-    height: 240px;
-  }
-
   .acoes {
+    flex-direction: column;
     gap: 10px;
   }
 
   .acoes button {
-    flex: 1;
+    width: 100%;
     padding: 12px 8px;
-  }
-}
-
-.linha {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 15px;
-}
-
-@media (max-width: 650px) {
-  .linha {
-    grid-template-columns: 1fr;
   }
 }

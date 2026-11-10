@@ -1,61 +1,50 @@
-
-/* PÁGINA */
-
 .pagina {
-  min-height: 100vh;
-  background: #343434;
-  color: white;
-  padding: 25px 35px;
+  width: min(100vw, 2200px);
+  margin-left: calc(50% - min(100vw, 2200px) / 2);
+  padding: 0 clamp(16px, 4vw, 96px);
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
 }
 
-/* TÍTULO */
-
 .titulo {
-  margin-bottom: 25px;
+  margin-bottom: clamp(20px, 2vw, 32px);
 }
 
 .titulo h1 {
-  font-size: 23px;
+  font-size: clamp(23px, 2vw, 32px);
   margin: 0 0 8px;
 }
 
 .titulo p {
-  font-size: 12px;
+  font-size: clamp(12px, 1vw, 15px);
   color: #aaa;
   margin: 0;
 }
-
-/* PAINEL */
 
 .painel {
   background: #111519;
   border: 1px solid #292e34;
   border-radius: 12px;
-  padding: 28px;
-  max-width: 1350px;
+  padding: clamp(20px, 2.5vw, 38px);
+  max-width: 2200px;
   margin: auto;
 }
 
 .layout {
   display: grid;
-  grid-template-columns: 1fr 350px;
-  gap: 35px;
+  grid-template-columns: 1fr;
+  gap: clamp(25px, 2.5vw, 42px);
 }
-
-/* FORMULÁRIO */
 
 .campos,
 .imagemArea {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: clamp(18px, 1.5vw, 24px);
 }
 
 .campos h2,
 .imagemArea h2 {
-  font-size: 15px;
+  font-size: clamp(15px, 1.2vw, 19px);
   margin: 0 0 5px;
   color: #eee;
 }
@@ -67,7 +56,7 @@
 }
 
 .campo label {
-  font-size: 12px;
+  font-size: clamp(12px, 0.9vw, 14px);
   color: #ccc;
 }
 
@@ -84,19 +73,22 @@
   border: 1px solid #2a3037;
   border-radius: 7px;
   color: #ddd;
-  font: 12px Arial, sans-serif;
-  padding: 12px;
+  font-size: clamp(12px, 0.9vw, 15px);
+  font-family: Arial, sans-serif;
+  padding: 0 14px;
   outline: none;
+  transition: border-color 0.2s ease;
 }
 
 .campo input,
 .campo select {
-  height: 42px;
+  height: clamp(42px, 3vw, 50px);
 }
 
 .campo textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: clamp(100px, 8vw, 150px);
+  padding: 12px 14px;
 }
 
 .campo input::placeholder,
@@ -110,11 +102,10 @@
   border-color: #ff7900;
 }
 
-/* STATUS */
-
 .status {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .status button {
@@ -122,9 +113,10 @@
   color: #aaa;
   border: 1px solid #30363d;
   border-radius: 7px;
-  padding: 10px 18px;
-  font-size: 11px;
+  padding: clamp(10px, 0.8vw, 13px) clamp(18px, 1.2vw, 24px);
+  font-size: clamp(11px, 0.85vw, 13px);
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .status .statusAtivo {
@@ -133,11 +125,9 @@
   color: #00d782;
 }
 
-/* UPLOAD DA IMAGEM */
-
 .uploadImagem {
   width: 100%;
-  height: 350px;
+  height: clamp(350px, 24vw, 450px);
   background: #151a1f;
   border: 2px dashed #343b44;
   border-radius: 12px;
@@ -148,6 +138,7 @@
   cursor: pointer;
   overflow: hidden;
   box-sizing: border-box;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .uploadImagem:hover {
@@ -164,23 +155,23 @@
 }
 
 .iconeUpload {
-  font-size: 45px;
+  font-size: clamp(45px, 3.5vw, 60px);
 }
 
 .conteudoUpload strong {
-  font-size: 14px;
+  font-size: clamp(14px, 1.1vw, 17px);
   color: #eee;
 }
 
 .conteudoUpload p {
-  font-size: 12px;
+  font-size: clamp(12px, 0.9vw, 14px);
   color: #9299a3;
   line-height: 1.6;
   margin: 0;
 }
 
 .conteudoUpload small {
-  font-size: 10px;
+  font-size: clamp(10px, 0.8vw, 12px);
   color: #777;
 }
 
@@ -192,7 +183,7 @@
 
 .legenda {
   text-align: center;
-  font-size: 11px;
+  font-size: clamp(11px, 0.85vw, 13px);
   color: #9299a3;
   margin: 0;
 }
@@ -202,55 +193,53 @@
   color: #ff7777;
   border: 1px solid #743636;
   border-radius: 7px;
-  padding: 10px;
-  font-size: 11px;
+  padding: clamp(10px, 0.8vw, 13px);
+  font-size: clamp(11px, 0.85vw, 13px);
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .removerImagem:hover {
   background: #402020;
 }
 
-/* INFORMAÇÕES */
-
 .informacoes {
   background: #171c21;
   border: 1px solid #292e34;
   border-radius: 9px;
-  padding: 18px;
+  padding: clamp(18px, 1.5vw, 24px);
 }
 
 .informacoes h3 {
   color: #ff7900;
-  font-size: 13px;
+  font-size: clamp(13px, 1vw, 16px);
   margin: 0 0 12px;
 }
 
 .informacoes p {
   color: #999;
-  font-size: 11px;
+  font-size: clamp(11px, 0.85vw, 13px);
   line-height: 1.6;
   margin: 8px 0;
 }
-
-/* BOTÕES */
 
 .acoes {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 30px;
-  padding-top: 20px;
+  margin-top: clamp(24px, 2vw, 36px);
+  padding-top: clamp(16px, 1.5vw, 24px);
   border-top: 1px solid #292e34;
 }
 
 .acoes button {
-  padding: 12px 20px;
+  padding: clamp(12px, 1vw, 16px) clamp(20px, 2vw, 32px);
   border-radius: 7px;
   border: none;
-  font-size: 11px;
+  font-size: clamp(11px, 0.9vw, 14px);
   font-weight: bold;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .cancelar {
@@ -267,15 +256,6 @@
   background: #ff951f;
 }
 
-/* RESPONSIVIDADE */
-
-@media (max-width: 900px) {
-  .layout {
-    grid-template-columns: 1fr 280px;
-    gap: 20px;
-  }
-}
-
 @media (max-width: 650px) {
   .pagina {
     padding: 20px 15px;
@@ -283,14 +263,6 @@
 
   .painel {
     padding: 18px;
-  }
-
-  .layout {
-    grid-template-columns: 1fr;
-  }
-
-  .uploadImagem {
-    height: 240px;
   }
 
   .acoes {
