@@ -244,6 +244,14 @@
   border-radius: 10px;
 }
 
+.linhaClicavel {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.linhaClicavel:hover {
+  background: #262a31;
+}
 
 @media (max-width: 1200px) {
   .filtros {
