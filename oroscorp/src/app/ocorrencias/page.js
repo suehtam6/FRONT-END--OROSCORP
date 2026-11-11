@@ -1,3 +1,9 @@
+/*
+  Autor: [seu nome]
+  Objetivo: Tela de listagem de ocorrências com filtros e acesso aos detalhes ao clicar na linha
+  Data: 10/11/2026
+*/
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -22,24 +28,22 @@ export default function Ocorrencias() {
     tipo: ""
   });
 
-  // Função auxiliar para formatar datas ISO 8601 em dia/mes/ano hora:minuto:segundo
   const formatarData = (dataStr) => {
     if (!dataStr) return "--/--/---- --:--:--";
 
     const data = new Date(dataStr);
     if (isNaN(data.getTime())) return dataStr;
 
-    const dia = String(data.getDate()).padStart(2, '0');
-    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const dia = String(data.getDate()).padStart(2, "0");
+    const mes = String(data.getMonth() + 1).padStart(2, "0");
     const ano = data.getFullYear();
-    const horas = String(data.getHours()).padStart(2, '0');
-    const minutos = String(data.getMinutes()).padStart(2, '0');
-    const segundos = String(data.getSeconds()).padStart(2, '0');
+    const horas = String(data.getHours()).padStart(2, "0");
+    const minutos = String(data.getMinutes()).padStart(2, "0");
+    const segundos = String(data.getSeconds()).padStart(2, "0");
 
     return `${dia}/${mes}/${ano} ${horas}:${minutos}:${segundos}`;
   };
 
-  // Mapeia o retorno direto da Stored Procedure
   const MapearProcedure = (item) => {
     return {
       id: item.ID_ocorrencia || item.id,
@@ -63,7 +67,6 @@ export default function Ocorrencias() {
         const res = await fetch("/api/ocorrencia/dados");
         if (res.ok) {
           const json = await res.json();
-          // Garante o mapeamento do array vindo da controller
           const listaBruta = json.response?.dados || json.dados || [];
           const listaFormatada = listaBruta.map(MapearProcedure);
           setOcorrencias(listaFormatada);
@@ -84,23 +87,25 @@ export default function Ocorrencias() {
     setFiltros({ ...filtros, [e.target.name]: e.target.value });
   }
 
-  // Opções dos selects extraídas dinamicamente
+  function abrirDetalhes(id) {
+    router.push(`ocorrencias/${id}`);
+  }
+
   const opcoesStatus = [...new Set(ocorrencias.map((o) => o.status))].filter(Boolean);
   const opcoesOrigem = [...new Set(ocorrencias.map((o) => o.origem))].filter(Boolean);
   const opcoesSetor = [...new Set(ocorrencias.map((o) => o.setor))].filter(Boolean);
   const opcoesPrioridade = [...new Set(ocorrencias.map((o) => o.prioridade))].filter(Boolean);
   const opcoesTipo = [...new Set(ocorrencias.map((o) => o.tipo))].filter(Boolean);
 
-  // Filtro completo na tabela
   const listaFiltrada = ocorrencias.filter((item) => {
     const texto = `${item.id} ${item.funcionario} ${item.tipo} ${item.setor} ${item.descricao}`.toLowerCase();
     const correspondeBusca = texto.includes(busca.toLowerCase());
 
-    const correspondeStatus = !filtros.status || item.status === filtros.status;
-    const correspondeOrigem = !filtros.origem || item.origem === filtros.origem;
-    const correspondeSetor = !filtros.setor || item.setor === filtros.setor;
+    const correspondeStatus     = !filtros.status || item.status === filtros.status;
+    const correspondeOrigem     = !filtros.origem || item.origem === filtros.origem;
+    const correspondeSetor      = !filtros.setor || item.setor === filtros.setor;
     const correspondePrioridade = !filtros.prioridade || item.prioridade === filtros.prioridade;
-    const correspondeTipo = !filtros.tipo || item.tipo === filtros.tipo;
+    const correspondeTipo       = !filtros.tipo || item.tipo === filtros.tipo;
 
     return (
       correspondeBusca &&
@@ -128,7 +133,6 @@ export default function Ocorrencias() {
           </button>
         </div>
 
-        {/* PAINEL DE FILTROS */}
         <div className={styles.painelFiltros}>
           <h3>⚑ Filtros</h3>
 
@@ -177,7 +181,6 @@ export default function Ocorrencias() {
           </div>
         </div>
 
-        {/* TABELA DE OCORRÊNCIAS */}
         <div className={styles.painelTabela}>
           <p className={styles.quantidade}>
             {carregando ? "Carregando..." : `${listaFiltrada.length} ocorrências`}
@@ -207,7 +210,11 @@ export default function Ocorrencias() {
                   </tr>
                 ) : listaFiltrada.length > 0 ? (
                   listaFiltrada.map((item) => (
-                    <tr key={item.id}>
+                    <tr
+                      key={item.id}
+                      className={styles.linhaClicavel}
+                      onClick={() => abrirDetalhes(item.id)}
+                    >
                       <td className={styles.id}>#{item.id}</td>
                       <td>{item.funcionario}</td>
                       <td>{item.tipo}</td>

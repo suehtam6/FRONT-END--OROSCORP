@@ -147,7 +147,6 @@ export default function CadastroEPI() {
     }
   }
 
-  // --- SUBMIT DO FORMULÁRIO DE EPI ---
   async function cadastrar(e) {
     e.preventDefault();
     setCarregando(true);

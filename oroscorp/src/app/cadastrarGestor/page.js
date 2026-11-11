@@ -11,7 +11,7 @@ import modalStyles from "../style/modalGerenciador.module.css";
 function mascaraCPF(valor) {
   let v = valor.replace(/\D/g, "");
   if (v.length > 11) v = v.substring(0, 11);
-  
+
   if (v.length > 9) {
     v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, "$1.$2.$3-$4");
   } else if (v.length > 6) {
@@ -23,7 +23,7 @@ function mascaraCPF(valor) {
 }
 
 function mascaraData(valor) {
-  let v = valor.replace(/\D/g, ""); 
+  let v = valor.replace(/\D/g, "");
   if (v.length === 0) return "";
 
   let dia = v.substring(0, 2);
@@ -49,12 +49,12 @@ export default function CadastrarGestor() {
   const [foto, setFoto] = useState(null);
   const [preview, setPreview] = useState("");
   const [carregando, setCarregando] = useState(false);
-  
-  
+
+
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
- 
+
   const [niveisAcesso, setNiveisAcesso] = useState([]);
   const [modalNivelAberto, setModalNivelAberto] = useState(false);
   const [novoNivelNome, setNovoNivelNome] = useState("");
@@ -76,7 +76,7 @@ export default function CadastrarGestor() {
     try {
       const res = await fetch("/api/nivel-acesso");
       const dadosAPI = await res.json().catch(() => ([]));
-      
+
       if (res.ok) {
         const listaNiveis = dadosAPI.response?.dados || dadosAPI.response || dadosAPI.dados || dadosAPI;
         if (Array.isArray(listaNiveis)) {
@@ -222,7 +222,7 @@ export default function CadastrarGestor() {
     setErro("");
     setSucesso("");
 
-    // Envia a foto apenas se for uma URL completa do Cloudinary/S3; caso contrário, envia string vazia
+
     const fotoParaEnvio = (foto && typeof foto === "string" && foto.startsWith("http")) ? foto : "";
 
     try {
@@ -232,8 +232,8 @@ export default function CadastrarGestor() {
         body: JSON.stringify({
           nome: dados.nome,
           email: dados.email,
-          cpf: dados.cpf, 
-          data_nascimento: dataFormatada, 
+          cpf: dados.cpf,
+          data_nascimento: dataFormatada,
           senha: dados.senha,
           id_nivel_acesso: Number(dados.id_nivel_acesso),
           foto: fotoParaEnvio
@@ -257,21 +257,14 @@ export default function CadastrarGestor() {
   return (
     <Shell voltar={false}>
       <main className={styles.container}>
-        <section className={styles.cadastroBox}>
-          <div className={styles.titulo}>
-            <div>
-              <h1>Cadastro do Gestor</h1>
-              <p>Preencha os dados para cadastrar um novo gestor no sistema.</p>
-            </div>
-            <button
-              type="button"
-              className={styles.sair}
-              onClick={() => router.push("/home")}
-            >
-              SAIR
-            </button>
-          </div>
+        {/* TÍTULO NO TOPO DA PÁGINA */}
+        <div className={styles.tituloPagina}>
+          <h1>Cadastro do Gestor</h1>
+          <p>Preencha os dados para cadastrar um novo gestor no sistema.</p>
+        </div>
 
+        {/* PAINEL PRINCIPAL */}
+        <section className={styles.cadastroBox}>
           <form onSubmit={cadastrar}>
             <div className={styles.formulario}>
               <div className={styles.fotoColuna}>
@@ -306,14 +299,14 @@ export default function CadastrarGestor() {
 
                 <div className={styles.campo}>
                   <label htmlFor="cpf">CPF <span>*</span></label>
-                  <input 
-                    id="cpf" 
-                    name="cpf" 
-                    value={dados.cpf} 
-                    onChange={atualizar} 
-                    placeholder="000.000.000-00" 
-                    required 
-                    maxLength="14" 
+                  <input
+                    id="cpf"
+                    name="cpf"
+                    value={dados.cpf}
+                    onChange={atualizar}
+                    placeholder="000.000.000-00"
+                    required
+                    maxLength={14}
                   />
                 </div>
 
@@ -324,15 +317,15 @@ export default function CadastrarGestor() {
 
                 <div className={styles.campo}>
                   <label htmlFor="nascimento">Data de nascimento <span>*</span></label>
-                  <input 
-                    id="nascimento" 
-                    name="nascimento" 
-                    type="text" 
-                    value={dados.nascimento} 
-                    onChange={atualizar} 
-                    placeholder="DD/MM/AAAA" 
-                    required 
-                    maxLength="10" 
+                  <input
+                    id="nascimento"
+                    name="nascimento"
+                    type="text"
+                    value={dados.nascimento}
+                    onChange={atualizar}
+                    placeholder="DD/MM/AAAA"
+                    required
+                    maxLength={10}
                   />
                 </div>
 
@@ -348,11 +341,11 @@ export default function CadastrarGestor() {
 
                 <div className={styles.campo}>
                   <label htmlFor="id_nivel_acesso">Nível de Acesso <span>*</span></label>
-                  <select 
-                    id="id_nivel_acesso" 
-                    name="id_nivel_acesso" 
-                    value={dados.id_nivel_acesso} 
-                    onChange={atualizar} 
+                  <select
+                    id="id_nivel_acesso"
+                    name="id_nivel_acesso"
+                    value={dados.id_nivel_acesso}
+                    onChange={atualizar}
                     required
                   >
                     <option value="" disabled>Selecione um nível</option>
@@ -372,9 +365,9 @@ export default function CadastrarGestor() {
             </div>
 
             <div className={styles.botoes}>
-              <button 
-                type="button" 
-                className={styles.btnNovoNivel} 
+              <button
+                type="button"
+                className={styles.btnNovoNivel}
                 onClick={() => setModalNivelAberto(true)}
               >
                 + GERENCIAR NÍVEIS DE ACESSO
@@ -390,7 +383,7 @@ export default function CadastrarGestor() {
           </form>
         </section>
 
-        {/* MODAL PADRONIZADO DE GERENCIAMENTO DE NÍVEL DE ACESSO */}
+
         {modalNivelAberto && (
           <div className={modalStyles.modalOverlay}>
             <div className={modalStyles.modalContainer}>
@@ -497,16 +490,6 @@ export default function CadastrarGestor() {
             </div>
           </div>
         )}
-
-        {/* POPUPS DE NOTIFICAÇÃO */}
-        <Popup mensagem={erro} tipo="erro" aoFechar={() => setErro("")} />
-        <Popup
-          mensagem={sucesso}
-          tipo="sucesso"
-          titulo="Gestor Cadastrado!"
-          textoBotao="Ir para Inicio"
-          aoFechar={() => router.push("/home")}
-        />
       </main>
     </Shell>
   );

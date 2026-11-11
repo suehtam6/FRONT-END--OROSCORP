@@ -1,71 +1,19 @@
-"use client"
-import Shell from "../components/Shell";
-
 /*
 Data: 9 de Outubro de 2026
-Objetivo: Página de setores
+Objetivo: Estilização da página de setores
 Autor: João Pedro e Kaique Carvalho
+
+Autor do JS: Matheus Lucas
+Data: 05 de Novembro de 2026
+Objetivo: Tornar está tela dínamica
 */
 
-import { useRouter } from "next/navigation"; 
-import styles from "../style/setores.module.css";
+"use client";
 
-const setores = [
-  {
-    id: 1,
-    nome: "Almoxarifado",
-    descricao:
-      "Armazenamento e controle de insumos, ferramentas e EPIs.",
-    funcionarios: 12,
-    cameras: 2,
-    abertas: 1,
-  },
-  {
-    id: 2,
-    nome: "Soldagem",
-    descricao:
-      "Área de solda e corte de metais com alto risco térmico.",
-    funcionarios: 9,
-    cameras: 1,
-    abertas: 4,
-  },
-  {
-    id: 3,
-    nome: "Maquinário",
-    descricao:
-      "Operação de máquinas pesadas, CNC e linha de produção.",
-    funcionarios: 15,
-    cameras: 3,
-    abertas: 2,
-  },
-  {
-    id: 4,
-    nome: "Manutenção",
-    descricao:
-      "Reparos elétricos e mecânicos em toda a planta industrial.",
-    funcionarios: 7,
-    cameras: 2,
-    abertas: 0,
-  },
-  {
-    id: 5,
-    nome: "Expedição",
-    descricao:
-      "Carga, descarga e movimentação de mercadorias.",
-    funcionarios: 10,
-    cameras: 2,
-    abertas: 1,
-  },
-  {
-    id: 6,
-    nome: "Químicos",
-    descricao:
-      "Armazenamento e manuseio de produtos químicos industriais.",
-    funcionarios: 6,
-    cameras: 2,
-    abertas: 3,
-  },
-];
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Shell from "../components/Shell.js";
+import styles from "../style/setores.module.css";
 
 function Icone({ tipo }) {
   if (tipo === "funcionarios") {
@@ -106,9 +54,7 @@ function Indicador({ tipo, valor, legenda }) {
         <Icone tipo={tipo} />
       </span>
 
-      <strong
-        className={tipo === "alertas" ? styles.valorAlerta : ""}
-      >
+      <strong className={tipo === "alertas" ? styles.valorAlerta : ""}>
         {valor}
       </strong>
 
@@ -118,14 +64,70 @@ function Indicador({ tipo, valor, legenda }) {
 }
 
 export default function Setores() {
-    const router = useRouter();
-  
-    const registrar = (e) => {
-      e.preventDefault();
-      router.push("/cadastrarSetor");
-    };
+  const router = useRouter();
 
-  
+  const [listaSetores, setListaSetores] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState("");
+
+  const mapearSetorBD = (item) => ({
+    id: item.ID_setor || item.id,
+    nome: item.Nome_setor || "Sem nome",
+    descricao: item.Descricao_setor || "Sem descrição disponível.",
+    funcionarios: item.Total_funcionarios ?? 0,
+    cameras: item.Total_cameras ?? 0,
+    abertas: item.Total_ocorrencias_abertas ?? 0,
+  });
+
+  useEffect(() => {
+    async function carregarSetores() {
+      setCarregando(true);
+      setErro("");
+      try {
+        const res = await fetch("/api/setor/dados");
+        if (res.ok) {
+          const json = await res.json();
+
+          let dadosBrutos = [];
+          if (Array.isArray(json)) {
+            dadosBrutos = json;
+          } else if (json.response?.ocorrencia) {
+            dadosBrutos = json.response.ocorrencia;
+          } else if (json.response?.dados) {
+            dadosBrutos = json.response.dados;
+          } else if (json.dados) {
+            dadosBrutos = json.dados;
+          }
+
+          const dadosFormatados = dadosBrutos.map(mapearSetorBD);
+
+          const setoresUnicos = Array.from(
+            new Map(dadosFormatados.map((item) => [item.id, item])).values()
+          );
+
+          setListaSetores(setoresUnicos);
+        } else {
+          setErro("Erro ao carregar setores.");
+        }
+      } catch (err) {
+        setErro("Erro na comunicação com a API de setores.");
+      } finally {
+        setCarregando(false);
+      }
+    }
+
+    carregarSetores();
+  }, []);
+
+  const registrar = (e) => {
+    e.preventDefault();
+    router.push("/cadastrarSetor");
+  };
+
+  const verDetalhesSetor = (id) => {
+    router.push(`/setores/${id}`);
+  };
+
   return (
     <Shell>
       <section className={styles.conteudo}>
@@ -143,44 +145,52 @@ export default function Setores() {
           </button>
         </div>
 
-        <div className={styles.grade}>
-          {setores.map((setor) => (
-            <article className={styles.card} key={setor.id}>
-              <h2>{setor.nome}</h2>
+        {carregando ? (
+          <div className={styles.estado}>A carregar setores...</div>
+        ) : erro ? (
+          <div className={`${styles.estado} ${styles.estadoErro}`}>{erro}</div>
+        ) : (
+          <div className={styles.grade}>
+            {listaSetores.length > 0 ? (
+              listaSetores.map((setor) => (
+                <article className={styles.card} key={setor.id}>
+                  <h2>{setor.nome}</h2>
 
-              <p className={styles.descricao}>
-                {setor.descricao}
-              </p>
+                  <p className={styles.descricao}>{setor.descricao}</p>
 
-              <div className={styles.indicadores}>
-                <Indicador
-                  tipo="funcionarios"
-                  valor={setor.funcionarios}
-                  legenda="Funcionários"
-                />
+                  <div className={styles.indicadores}>
+                    <Indicador
+                      tipo="funcionarios"
+                      valor={setor.funcionarios}
+                      legenda="Funcionários"
+                    />
 
-                <Indicador
-                  tipo="cameras"
-                  valor={setor.cameras}
-                  legenda="Câmeras"
-                />
+                    <Indicador
+                      tipo="cameras"
+                      valor={setor.cameras}
+                      legenda="Câmeras"
+                    />
 
-                <Indicador
-                  tipo="alertas"
-                  valor={setor.abertas}
-                  legenda="Abertas"
-                />
-              </div>
+                    <Indicador
+                      tipo="alertas"
+                      valor={setor.abertas}
+                      legenda="Abertas"
+                    />
+                  </div>
 
-              <button 
-              className={styles.botaoVer}
-              onClick={() => router.push("/perfilSetor")}
-              >
-                Ver setor <span>›</span>
-              </button>
-            </article>
-          ))}
-        </div>
+                  <button
+                    className={styles.botaoVer}
+                    onClick={() => verDetalhesSetor(setor.id)}
+                  >
+                    Ver setor <span>›</span>
+                  </button>
+                </article>
+              ))
+            ) : (
+              <div className={styles.estado}>Nenhum setor cadastrado.</div>
+            )}
+          </div>
+        )}
       </section>
     </Shell>
   );
