@@ -1,87 +1,76 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Shell from "../components/Shell";
 import s from "../style/novas.module.css";
+
+// Aceita vários formatos de resposta da API e sempre devolve um array
+const extrairLista = (resJson) => {
+  if (!resJson) return [];
+  const lista =
+    resJson.response?.dados ||
+    resJson.dados ||
+    resJson.response ||
+    resJson.content ||
+    resJson;
+  return Array.isArray(lista) ? lista : [];
+};
+
+const normalizar = (v) => String(v ?? "").toLowerCase();
 
 export default function Funcionarios() {
   const router = useRouter();
 
   const [busca, setBusca] = useState("");
-  const [setor, setSetor] = useState("");
-  const [situacao, setSituacao] = useState("");
+  const [setor, setSetor] = useState(""); // nome do setor selecionado
+  const [situacao, setSituacao] = useState(""); // nome do status selecionado
 
   const [setores, setSetores] = useState([]);
   const [status, setStatus] = useState([]);
-  const [funcionario, setFuncionario] = useState([]);
-
-  const [filtros, setFiltros] = useState({
-    status: "",
-    setor: ""
-  });
-
-  const extrairLista = (resJson) => {
-    if (!resJson) return [];
-    return (
-      resJson.response?.dados ||
-      resJson.dados ||
-      resJson.response ||
-      resJson.content ||
-      (Array.isArray(resJson) ? resJson : [])
-    );
-  };
-
-  // Filtro completo na tabela
-  const listaFiltrada = funcionario.filter((item) => {
-    const texto = `${item.id} ${item.nome} ${item.status} ${item.setor}`.toLowerCase();
-    const correspondeBusca = texto.includes(busca.toLowerCase());
-    const correspondeStatus = !filtros.status || item.status_funcionario === filtros.status;
-    const correspondeSetor = !filtros.setor || item.setor === filtros.status;
-  
-
-    return (
-      correspondeBusca &&
-      correspondeStatus &&
-      correspondeSetor
-
-    );
-  });
+  const [funcionarios, setFuncionarios] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState("");
 
   useEffect(() => {
-    async function carregarDependencias() {
+    async function carregar() {
       try {
-        const [resFuncionario, resSetor, resStat] = await Promise.all([
+        const [resFunc, resSetor, resStat] = await Promise.all([
           fetch("/api/funcionario/dados"),
           fetch("/api/setor"),
-          fetch("/api/funcionario/status_funcionario")
+          fetch("/api/funcionario/status_funcionario"),
         ]);
 
-        if (resFuncionario.ok) setFuncionario(extrairLista(await resFuncionario.json()));
+        if (resFunc.ok) {
+          setFuncionarios(extrairLista(await resFunc.json()));
+        } else {
+          const r = await resFunc.json().catch(() => ({}));
+          setErro(r.message || `Erro ${resFunc.status} ao buscar funcionários.`);
+        }
         if (resSetor.ok) setSetores(extrairLista(await resSetor.json()));
         if (resStat.ok) setStatus(extrairLista(await resStat.json()));
-
-
-      } catch (erro) {
-        console.error("Erro ao carregar dependências da ocorrência:", erro);
+      } catch (e) {
+        console.error("Erro ao carregar funcionários:", e);
+        setErro("Não foi possível conectar ao servidor.");
+      } finally {
+        setCarregando(false);
       }
     }
-    carregarDependencias();
+    carregar();
   }, []);
 
-
-
-
-  const lista = funcionario.filter((f) =>
-    (f.nome || "").toLowerCase().includes(busca.toLowerCase()) &&
-    (!setor || f.setor === setor) &&
-    (!situacao || f.situacao === situacao)
-  );
+  // Um único filtro (antes existiam dois, e o da tabela comparava o campo errado)
+  const lista = funcionarios.filter((f) => {
+    const texto = `${f.id} ${f.nome} ${f.cargo} ${f.setor} ${f.status_funcionario}`;
+    return (
+      normalizar(texto).includes(normalizar(busca)) &&
+      (!setor || f.setor === setor) &&
+      (!situacao || f.status_funcionario === situacao)
+    );
+  });
 
   return (
     <Shell>
-
-
       <h1 className={s.titulo}>▏FUNCIONÁRIOS</h1>
       <p className={s.sub}>
         Cadastro de colaboradores, conformidade de EPIs e histórico de ocorrências.
@@ -102,10 +91,9 @@ export default function Funcionarios() {
             value={setor}
             onChange={(e) => setSetor(e.target.value)}
           >
-
             <option value="">Todos os setores</option>
-            {setores.map((setor) => (
-              <option key={setor.id} value={setor.id}>{setor.nome}</option>
+            {setores.map((st) => (
+              <option key={st.id} value={st.nome}>{st.nome}</option>
             ))}
           </select>
           <select
@@ -115,8 +103,8 @@ export default function Funcionarios() {
             onChange={(e) => setSituacao(e.target.value)}
           >
             <option value="">Todas as situações</option>
-            {status.map((status) => (
-              <option key={status.id} value={status.id}>{status.status}</option>
+            {status.map((stt) => (
+              <option key={stt.id} value={stt.status}>{stt.status}</option>
             ))}
           </select>
         </div>
@@ -137,21 +125,14 @@ export default function Funcionarios() {
           <table className={s.tabela}>
             <thead>
               <tr>
-                {[
-                  "Funcionário",
-                  "Matrícula",
-                  "Cargo",
-                  "Setor",
-                  "Situação",
-                  "Ocorr. abertas",
-                ].map((x) => (
+                {["Funcionário", "Matrícula", "Cargo", "Setor", "Situação", "Ocorr. abertas"].map((x) => (
                   <th key={x}>{x}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {listaFiltrada.length ? (
-                listaFiltrada.map((f) => (
+              {lista.length ? (
+                lista.map((f) => (
                   <tr
                     key={f.id}
                     onClick={() => router.push(`/funcionarios/${f.id}`)}
@@ -167,8 +148,10 @@ export default function Funcionarios() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className={s.vazio}>
-                    Os funcionários aparecerão aqui.
+                  <td colSpan="6" className={s.vazio}>
+                    {carregando
+                      ? "Carregando funcionários..."
+                      : erro || "Nenhum funcionário encontrado."}
                   </td>
                 </tr>
               )}

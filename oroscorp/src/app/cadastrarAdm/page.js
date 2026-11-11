@@ -6,9 +6,7 @@ Objetivo : Tela de cadastro
 Autor : João Pedro e Kaique Carvalho
 
 Autor JS  : Matheus Lucas
-Data      : 2 de novembro de 2026 
-
-
+Data      : 2 de novembro de 2026
 */
 
 import { useEffect, useRef, useState } from "react";
@@ -21,7 +19,6 @@ const TIPOS_ACEITOS = ["image/jpeg", "image/png", "image/webp"];
 const TAMANHO_MAXIMO_MB = 2;
 
 const soDigitos = (valor) => valor.replace(/\D/g, "");
-
 
 const mascararCnpj = (valor) =>
   soDigitos(valor)
@@ -48,26 +45,28 @@ export default function Home() {
   const uploadRef = useRef({ arquivo: null, url: "" });
 
   const [form, setForm] = useState(FORM_INICIAL);
-  const [foto, setFoto] = useState(null); 
-  const [previewUrl, setPreviewUrl] = useState(""); 
+  const [foto, setFoto] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
   const [arrastando, setArrastando] = useState(false);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
   const [carregando, setCarregando] = useState(false);
 
- 
+  // Gera o preview e libera a memória quando a foto muda
   useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-    };
-  }, [previewUrl]);
-
+    if (!foto) {
+      setPreviewUrl("");
+      return;
+    }
+    const url = URL.createObjectURL(foto);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [foto]);
 
   const atualizar = (campo) => (e) => {
     const valor = campo === "cnpj" ? mascararCnpj(e.target.value) : e.target.value;
     setForm((atual) => ({ ...atual, [campo]: valor }));
   };
-
 
   const selecionarFoto = (arquivo) => {
     if (!arquivo) return;
@@ -82,15 +81,14 @@ export default function Home() {
     }
 
     setErro("");
-    setFoto(arquivo);
-    setPreviewUrl(URL.createObjectURL(arquivo));
+    setFoto(arquivo); // o useEffect acima gera o preview
   };
 
   const abrirSeletor = () => inputFotoRef.current?.click();
 
   const aoEscolherArquivo = (e) => {
     const arquivo = e.target.files?.[0];
-    e.target.value = ""; 
+    e.target.value = "";
     selecionarFoto(arquivo);
   };
 
@@ -100,14 +98,12 @@ export default function Home() {
     selecionarFoto(e.dataTransfer.files?.[0]);
   };
 
- 
   const cancelarCadastro = (e) => {
     e.preventDefault();
-    router.back();
+    router.push("/");
   };
 
-  
-const validar = () => {
+  const validar = () => {
     if (!form.nome.trim()) return "Informe o nome completo.";
     if (!form.email.trim()) return "Informe o e-mail.";
     if (form.email.trim().toLowerCase() !== form.confirmarEmail.trim().toLowerCase()) {
@@ -116,25 +112,24 @@ const validar = () => {
     if (soDigitos(form.cnpj).length !== 14) return "O CNPJ deve ter 14 dígitos.";
     if (!form.razaoSocial.trim()) return "Informe a razão social.";
     if (!form.dataNascimento) return "Informe a data de nascimento.";
-    
-    
+
     if (form.senha.length < 8 || form.senha.length > 72) {
       return "A senha deve ter entre 8 e 72 caracteres.";
     }
     if (!/[A-Z]/.test(form.senha)) {
       return "A senha deve conter pelo menos uma letra maiúscula.";
     }
-
-    if (!/[1-9]/.test(form.senha)) {
+    if (!/\d/.test(form.senha)) {
       return "A senha deve conter pelo menos um número.";
     }
-    
     if (form.senha !== form.confirmarSenha) return "As senhas não conferem.";
     return "";
   };
 
   const finalizarCadastro = async (e) => {
     e.preventDefault();
+    if (carregando) return;
+
     setErro("");
     setSucesso("");
 
@@ -147,7 +142,7 @@ const validar = () => {
     setCarregando(true);
 
     try {
-      
+      // Envia a foto (só reenvia se o arquivo mudou)
       let fotoUrl = "";
       if (foto) {
         if (uploadRef.current.arquivo !== foto) {
@@ -156,14 +151,13 @@ const validar = () => {
             url = await uploadParaCloudinary(foto);
           } catch {
             setErro("Não foi possível enviar a foto. Tente novamente.");
-            return;
+            return; // o finally ainda roda
           }
           uploadRef.current = { arquivo: foto, url };
         }
         fotoUrl = uploadRef.current.url;
       }
 
-   
       const response = await fetch("/api/adm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -171,10 +165,10 @@ const validar = () => {
           nome: form.nome.trim(),
           email: form.email.trim(),
           senha: form.senha,
-          data_nascimento: form.dataNascimento, 
-          cnpj: form.cnpj,
+          data_nascimento: form.dataNascimento,
+          cnpj: form.cnpj, // se a API quiser só números: soDigitos(form.cnpj)
           razao_social: form.razaoSocial.trim(),
-          foto: fotoUrl, 
+          foto: fotoUrl, // se a API não aceitar string vazia: fotoUrl || null
         }),
       });
 
@@ -193,10 +187,8 @@ const validar = () => {
     }
   };
 
-
   return (
     <main className={styles.container}>
-
       <header className={styles.header}>
         <img
           src="/logo-oroscorp.png"
@@ -206,14 +198,12 @@ const validar = () => {
       </header>
 
       <section className={styles.cadastroBox}>
-
         <div className={styles.titulo}>
           <h1>Cadastro do Administrador</h1>
           <p>Preencha os dados para cadastrar um novo adm no sistema.</p>
         </div>
 
         <div className={styles.formulario}>
-
           <div
             className={`${styles.fotoArea} ${arrastando ? styles.fotoAreaArrastando : ""}`}
             role="button"
@@ -233,7 +223,6 @@ const validar = () => {
             onDragLeave={() => setArrastando(false)}
             onDrop={soltarFoto}
           >
-
             <input
               ref={inputFotoRef}
               type="file"
@@ -271,12 +260,10 @@ const validar = () => {
           </div>
 
           <div className={styles.campos}>
-
             <div className={styles.campo}>
               <label htmlFor="nome">
                 Nome completo <span>*</span>
               </label>
-
               <input
                 id="nome"
                 type="text"
@@ -291,7 +278,6 @@ const validar = () => {
               <label htmlFor="dataNascimento">
                 Data de nascimento <span>*</span>
               </label>
-
               <input
                 id="dataNascimento"
                 type="date"
@@ -304,7 +290,6 @@ const validar = () => {
               <label htmlFor="email">
                 E-mail <span>*</span>
               </label>
-
               <input
                 id="email"
                 type="email"
@@ -319,7 +304,6 @@ const validar = () => {
               <label htmlFor="confirmarEmail">
                 Confirmar e-mail <span>*</span>
               </label>
-
               <input
                 id="confirmarEmail"
                 type="email"
@@ -334,7 +318,6 @@ const validar = () => {
               <label htmlFor="cnpj">
                 CNPJ <span>*</span>
               </label>
-
               <input
                 id="cnpj"
                 type="text"
@@ -349,7 +332,6 @@ const validar = () => {
               <label htmlFor="razaoSocial">
                 Razão social <span>*</span>
               </label>
-
               <input
                 id="razaoSocial"
                 type="text"
@@ -364,7 +346,6 @@ const validar = () => {
               <label htmlFor="senha">
                 Senha <span>*</span>
               </label>
-
               <input
                 id="senha"
                 type="password"
@@ -379,7 +360,6 @@ const validar = () => {
               <label htmlFor="confirmarSenha">
                 Confirmar senha <span>*</span>
               </label>
-
               <input
                 id="confirmarSenha"
                 type="password"
@@ -389,13 +369,10 @@ const validar = () => {
                 onChange={atualizar("confirmarSenha")}
               />
             </div>
-
           </div>
-
         </div>
 
         <div className={styles.botoes}>
-
           <button
             type="button"
             className={styles.cancelar}
@@ -413,11 +390,8 @@ const validar = () => {
           >
             {carregando ? "CADASTRANDO..." : "CADASTRAR"}
           </button>
-
         </div>
-
       </section>
-
 
       <Popup mensagem={erro} tipo="erro" aoFechar={() => setErro("")} />
 

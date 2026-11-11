@@ -6,6 +6,10 @@ import Shell from "../components/Shell";
 import styles from "../style/cadastrarFuncionario.module.css";
 import Popup from "../components/Popup";
 import modalStyles from "../style/modalGerenciador.module.css";
+import { uploadParaCloudinary } from "@/API/cloudinary";
+
+const TIPOS_ACEITOS = ["image/jpeg", "image/png", "image/webp"];
+const TAMANHO_MAXIMO_MB = 2;
 
 export default function CadastrarFuncionario() {
   const router = useRouter();
@@ -38,6 +42,37 @@ export default function CadastrarFuncionario() {
     id_status_funcionario: "",
   });
 
+  // ---------- FOTO ----------
+
+  const selecionarFoto = (arquivo) => {
+    if (!arquivo) return;
+
+    if (!TIPOS_ACEITOS.includes(arquivo.type)) {
+      setErro("A foto deve ser JPG, PNG ou WebP.");
+      return;
+    }
+    if (arquivo.size > TAMANHO_MAXIMO_MB * 1024 * 1024) {
+      setErro(`A foto deve ter no máximo ${TAMANHO_MAXIMO_MB} MB.`);
+      return;
+    }
+
+    setErro("");
+    setFoto(arquivo); // o useEffect abaixo gera o preview
+  };
+
+  // Preview da foto
+  useEffect(() => {
+    if (!foto) {
+      setPreview("");
+      return;
+    }
+    const url = URL.createObjectURL(foto);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [foto]);
+
+  // ---------- UTILS ----------
+
   function mascaraCPF(valor) {
     let v = valor.replace(/\D/g, "");
     if (v.length > 11) v = v.substring(0, 11);
@@ -54,13 +89,13 @@ export default function CadastrarFuncionario() {
 
   const extrairLista = (resJson) => {
     if (!resJson) return [];
-    return (
+    const lista =
       resJson.response?.dados ||
       resJson.dados ||
       resJson.response ||
       resJson.content ||
-      (Array.isArray(resJson) ? resJson : [])
-    );
+      resJson;
+    return Array.isArray(lista) ? lista : [];
   };
 
   // Carrega cargos, setores e status
@@ -80,7 +115,6 @@ export default function CadastrarFuncionario() {
           const listaStat = extrairLista(await resStat.json());
           setStatus(listaStat);
 
-          // CORREÇÃO: preenche o status dentro de "dados"
           if (listaStat.length > 0) {
             setDados((d) => ({
               ...d,
@@ -95,17 +129,6 @@ export default function CadastrarFuncionario() {
     carregarDependencias();
   }, []);
 
-  // Preview da foto
-  useEffect(() => {
-    if (!foto) {
-      setPreview("");
-      return;
-    }
-    const url = URL.createObjectURL(foto);
-    setPreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [foto]);
-
   function atualizar(evento) {
     const { name, value } = evento.target;
     const novoValor = name === "cpf" ? mascaraCPF(value) : value;
@@ -114,31 +137,63 @@ export default function CadastrarFuncionario() {
     setErro("");
   }
 
+  // ---------- CADASTRO ----------
+
   async function cadastrar(evento) {
     evento.preventDefault();
 
     if (carregando) return;
 
-    if (dados.email !== dados.confirmarEmail) {
+    setErro("");
+    setSucesso("");
+
+    if (
+      dados.email.trim().toLowerCase() !==
+      dados.confirmarEmail.trim().toLowerCase()
+    ) {
       setErro("Os e-mails não são iguais.");
+      return;
+    }
+
+    if (dados.cpf.replace(/\D/g, "").length !== 11) {
+      setErro("O CPF deve ter 11 dígitos.");
+      return;
+    }
+
+    const idCargo = Number(dados.id_cargo);
+    const idSetor = Number(dados.id_setor);
+    const idStatus = Number(dados.id_status_funcionario);
+
+    if (!idCargo || !idSetor || !idStatus) {
+      setErro("Selecione cargo, setor e status.");
       return;
     }
 
     setCarregando(true);
 
-    const corpo = {
-      nome: dados.nome,
-      data_nascimento: dados.nascimento,
-      cpf: dados.cpf,
-      email: dados.email,
-      id_cargo: Number(dados.id_cargo),
-      id_setor: Number(dados.id_setor),
-      id_status_funcionario: Number(dados.id_status_funcionario),
-      // foto: não dá para mandar um File dentro de JSON.
-      // Quando você definir como a API recebe a foto, a gente ajusta.
-    };
-
     try {
+      // Envia a foto para o Cloudinary (se houver)
+      let fotoUrl = "";
+      if (foto) {
+        try {
+          fotoUrl = await uploadParaCloudinary(foto);
+        } catch {
+          setErro("Não foi possível enviar a foto. Tente novamente.");
+          return; // o finally ainda roda
+        }
+      }
+
+      const corpo = {
+        nome: dados.nome.trim(),
+        data_nascimento: dados.nascimento,
+        cpf: dados.cpf, // se a API quiser só números: dados.cpf.replace(/\D/g, "")
+        email: dados.email.trim(),
+        id_cargo: idCargo,
+        id_setor: idSetor,
+        id_status_funcionario: idStatus,
+        foto: fotoUrl,
+      };
+
       const res = await fetch("/api/funcionario", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -276,9 +331,13 @@ export default function CadastrarFuncionario() {
 
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/png,image/jpeg,image/webp"
                     hidden
-                    onChange={(e) => setFoto(e.target.files?.[0] || null)}
+                    onChange={(e) => {
+                      const arquivo = e.target.files?.[0];
+                      e.target.value = "";
+                      selecionarFoto(arquivo);
+                    }}
                   />
                 </label>
 
@@ -426,7 +485,7 @@ export default function CadastrarFuncionario() {
               <button
                 type="submit"
                 className={styles.cadastrar}
-                disabled={carregando}
+                disabled={carregando || Boolean(sucesso)}
               >
                 {carregando ? "CADASTRANDO..." : "CADASTRAR FUNCIONÁRIO"}
               </button>
