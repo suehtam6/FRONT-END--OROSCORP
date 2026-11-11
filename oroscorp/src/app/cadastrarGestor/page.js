@@ -39,7 +39,7 @@ function mascaraData(valor) {
   let resultado = dia;
   if (v.length >= 3) resultado += "/" + mes;
   if (v.length >= 5) resultado += "/" + ano;
-
+ 
   return resultado;
 }
 
@@ -59,7 +59,7 @@ export default function CadastrarGestor() {
   const [modalNivelAberto, setModalNivelAberto] = useState(false);
   const [novoNivelNome, setNovoNivelNome] = useState("");
   const [nivelEditandoId, setNivelEditandoId] = useState(null);
-  const [nomeNivelEditado, setNomeNivelEditado] = useState("");
+  const [nomeNivelEditado, setNomeNivelEditado] = useState(""); 
 
   const [dados, setDados] = useState({
     nome: "",

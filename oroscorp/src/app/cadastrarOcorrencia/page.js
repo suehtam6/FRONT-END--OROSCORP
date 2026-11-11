@@ -43,6 +43,7 @@ export default function RegistrarOcorrencia() {
   const [nomeMotivoEditado, setNomeMotivoEditado] = useState("");
 
   const extrairLista = (resJson) => {
+
     if (!resJson) return [];
     const lista =
       resJson.response?.dados ||
