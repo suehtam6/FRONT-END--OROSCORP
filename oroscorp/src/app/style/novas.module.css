@@ -1,27 +1,41 @@
+.pagina,
+.conteudo {
+    width: 100%;
+    max-width: 1920px;
+    margin: 0 auto;
+    padding: clamp(20px, 2.5vw, 40px) clamp(20px, 3vw, 60px);
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
 .titulo {
-    font-size: 28px;
-    margin: 0 0 7px;
+    font-size: clamp(26px, 2.4vw, 38px);
+    margin: 0 0 8px;
     color: #ffffff;
 }
 
 .sub {
     color: #aaa;
-    margin: 0 0 25px;
-    font-size: 14px;
+    margin: 0 0 clamp(24px, 2.2vw, 34px);
+    font-size: clamp(14px, 1.1vw, 17px);
 }
 
 .painel {
+    width: 100%;
+    max-width: 1920px;
+    margin: 0 auto clamp(18px, 1.8vw, 26px);
     background: #151719;
     border: 1px solid #282b2f;
     border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 18px;
+    padding: clamp(22px, 2.2vw, 36px);
+    box-sizing: border-box;
 }
 
 .painelTopo {
     position: relative;
     overflow: hidden;
 }
+
 .painelTopo::before {
     content: '';
     position: absolute;
@@ -34,7 +48,7 @@
 
 .linha {
     display: flex;
-    gap: 14px;
+    gap: clamp(14px, 1.5vw, 22px);
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
@@ -43,41 +57,65 @@
 .grade {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    gap: 18px;
+    gap: clamp(18px, 1.8vw, 28px);
 }
 
 .cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    margin-top: 22px;
+    gap: clamp(16px, 1.6vw, 24px);
+    margin-top: clamp(20px, 2vw, 30px);
 }
 
 .card {
     background: #0f1113;
     border: 1px solid #272a2d;
     border-radius: 9px;
-    padding: 18px;
+    padding: clamp(18px, 1.8vw, 26px);
 }
 
-.busca{
-    height: 30px;
-    font-size: 15px;
+.busca,
+.painel input,
+.painel select {
+    height: clamp(42px, 2.8vw, 50px);
+    font-size: clamp(13px, 0.95vw, 16px);
     color: white;
     background-color: #0f1113;
-    padding: 5px;
+    border: 1px solid #282b2f;
+    border-radius: 7px;
+    padding: 0 14px;
+    box-sizing: border-box;
+    outline: none;
 }
 
-.busca::placeholder{
-    color: white;
+.busca::placeholder,
+.painel input::placeholder {
+    color: #999;
 }
 
-.botao{
-    height: 30px;
-    width: 150px;
-    font-size: 15px;
+.busca:focus,
+.painel input:focus,
+.painel select:focus {
+    border-color: #ff7900;
+}
+
+.botao {
+    height: clamp(42px, 2.8vw, 50px);
+    padding: 0 clamp(18px, 1.6vw, 28px);
+    width: auto;
+    min-width: 170px;
+    font-size: clamp(13px, 0.95vw, 15px);
+    font-weight: bold;
     color: white;
     background-color: #ff7900;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.botao:hover {
+    background-color: #ff951f;
 }
 
 .cardCabecalho {
@@ -85,11 +123,11 @@
     align-items: center;
     gap: 8px;
     color: #999;
-    font-size: 12px;
+    font-size: clamp(12px, 0.9vw, 14px);
 }
 
 .card h2 {
-    font-size: 28px;
+    font-size: clamp(26px, 2.2vw, 36px);
     margin: 12px 0 0;
     color: #fff;
 }
@@ -99,36 +137,37 @@
 }
 
 .secao {
-    font-size: 12px;
+    font-size: clamp(12px, 0.95vw, 15px);
     letter-spacing: 1px;
     color: #ff8900;
     margin: 0 0 18px;
     font-weight: 700;
 }
 
-
 .tabela {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
-    font-size: 13px;
+    font-size: clamp(13px, 0.95vw, 16px);
 }
 
 .tabela th {
     color: #888;
-    font-size: 10px;
+    font-size: clamp(11px, 0.85vw, 13px);
     text-transform: uppercase;
     font-weight: 600;
-    padding-bottom: 12px;
+    padding: 0 14px 16px;
 }
 
 .tabela td {
-    padding: 14px 12px;
+    padding: clamp(16px, 1.3vw, 22px) 14px;
     border-bottom: 1px solid #212428;
     vertical-align: middle;
-    color: #ccc;
+    color: #ddd;
 }
-.tabela td:first-child, .tabela th:first-child {
+
+.tabela td:first-child,
+.tabela th:first-child {
     padding-left: 0;
 }
 
@@ -140,27 +179,27 @@
     text-align: center;
     color: #858585;
     padding: 60px 10px !important;
+    font-size: clamp(14px, 1vw, 16px);
 }
-
 
 .perfilRow {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     color: #fff;
     font-weight: 600;
 }
 
 .avatar {
-    width: 32px;
-    height: 32px;
+    width: clamp(34px, 2.4vw, 42px);
+    height: clamp(34px, 2.4vw, 42px);
     border-radius: 50%;
     background: #4a2529;
     color: #ff8b8b;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: clamp(12px, 0.9vw, 14px);
     font-weight: bold;
 }
 
@@ -168,16 +207,16 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: 20px;
-    font-size: 10px;
+    font-size: clamp(11px, 0.8vw, 13px);
     font-weight: 700;
     text-transform: uppercase;
 }
 
 .dot {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: currentColor;
 }
@@ -195,15 +234,15 @@
 .badgeCinza {
     background: #1a1d21;
     color: #888;
-    padding: 4px 8px;
+    padding: 5px 10px;
 }
 
 .badgePequeno {
     background: #1a1d21;
     color: #aaa;
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: 12px;
-    font-size: 11px;
+    font-size: clamp(11px, 0.85vw, 13px);
 }
 
 .listaCameras {
@@ -212,14 +251,14 @@
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
 .itemCamera {
     background: #0f1113;
     border: 1px solid #212428;
     border-radius: 8px;
-    padding: 16px;
+    padding: clamp(16px, 1.4vw, 22px);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -230,20 +269,20 @@
     align-items: center;
     gap: 10px;
     color: #ddd;
-    font-size: 13px;
+    font-size: clamp(13px, 0.95vw, 16px);
 }
 
 .gradeOcorrencias {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    gap: clamp(16px, 1.6vw, 24px);
 }
 
 .cardOcorrencia {
     background: #0f1113;
     border: 1px solid #212428;
     border-radius: 8px;
-    padding: 18px;
+    padding: clamp(18px, 1.6vw, 24px);
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -259,13 +298,13 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 12px;
+    font-size: clamp(12px, 0.9vw, 14px);
     color: #777;
 }
 
 .ocoTitulo {
     color: #fff;
-    font-size: 16px;
+    font-size: clamp(16px, 1.2vw, 20px);
     font-weight: 600;
     margin: 0;
 }
@@ -274,7 +313,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 11px;
+    font-size: clamp(11px, 0.85vw, 13px);
     color: #777;
     margin-top: 4px;
 }
@@ -286,16 +325,28 @@
 }
 
 @media(max-width:900px) {
-    .grade, .gradeOcorrencias {
+    .grade,
+    .gradeOcorrencias {
         grid-template-columns: 1fr;
     }
 }
 
 @media(max-width:600px) {
+    .pagina,
+    .conteudo {
+        padding: 16px 12px;
+    }
+
     .cards {
         grid-template-columns: 1fr;
     }
+
     .tabela {
         min-width: 500px;
     }
 }
+
+
+
+
+

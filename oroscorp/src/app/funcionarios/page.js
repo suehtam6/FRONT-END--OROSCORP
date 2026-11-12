@@ -3,42 +3,41 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Shell from "../components/Shell";
-import s from "../style/novas.module.css";
+import Popup from "../components/Popup";
+import styles from "../style/funcionario.module.css";
 
-// Aceita vários formatos de resposta da API e sempre devolve um array
-const extrairLista = (resJson) => {
-  if (!resJson) return [];
-  const lista =
-    resJson.response?.dados ||
-    resJson.dados ||
-    resJson.response ||
-    resJson.content ||
-    resJson;
-  return Array.isArray(lista) ? lista : [];
-};
+function extrairLista(json) {
+  if (!json) return [];
+  if (Array.isArray(json)) return json;
+  if (Array.isArray(json?.response?.dados)) return json.response.dados;
+  if (Array.isArray(json?.response)) return json.response;
+  if (Array.isArray(json?.dados)) return json.dados;
+  if (Array.isArray(json?.data)) return json.data;
+  return [];
+}
 
-const normalizar = (v) => String(v ?? "").toLowerCase();
-
-export default function Funcionarios() {
+export default function FuncionariosPage() {
   const router = useRouter();
 
-  const [busca, setBusca] = useState("");
-  const [setor, setSetor] = useState(""); // nome do setor selecionado
-  const [situacao, setSituacao] = useState(""); // nome do status selecionado
-
-  const [setores, setSetores] = useState([]);
-  const [status, setStatus] = useState([]);
   const [funcionarios, setFuncionarios] = useState([]);
+  const [setores, setSetores] = useState([]);
+  const [statusFuncionarioLista, setStatusFuncionarioLista] = useState([]);
+  const [busca, setBusca] = useState("");
+  const [setorFiltro, setSetorFiltro] = useState("");
+  const [situacaoFiltro, setSituacaoFiltro] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
 
   useEffect(() => {
     async function carregar() {
       try {
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
         const [resFunc, resSetor, resStat] = await Promise.all([
-          fetch("/api/funcionario/dados"),
-          fetch("/api/setor"),
-          fetch("/api/funcionario/status_funcionario"),
+          fetch("/api/funcionario/dados", { headers }),
+          fetch("/api/setor", { headers }),
+          fetch("/api/funcionario/status_funcionario", { headers }),
         ]);
 
         if (resFunc.ok) {
@@ -47,8 +46,9 @@ export default function Funcionarios() {
           const r = await resFunc.json().catch(() => ({}));
           setErro(r.message || `Erro ${resFunc.status} ao buscar funcionários.`);
         }
+
         if (resSetor.ok) setSetores(extrairLista(await resSetor.json()));
-        if (resStat.ok) setStatus(extrairLista(await resStat.json()));
+        if (resStat.ok) setStatusFuncionarioLista(extrairLista(await resStat.json()));
       } catch (e) {
         console.error("Erro ao carregar funcionários:", e);
         setErro("Não foi possível conectar ao servidor.");
@@ -59,106 +59,260 @@ export default function Funcionarios() {
     carregar();
   }, []);
 
-  // Um único filtro (antes existiam dois, e o da tabela comparava o campo errado)
-  const lista = funcionarios.filter((f) => {
-    const texto = `${f.id} ${f.nome} ${f.cargo} ${f.setor} ${f.status_funcionario}`;
-    return (
-      normalizar(texto).includes(normalizar(busca)) &&
-      (!setor || f.setor === setor) &&
-      (!situacao || f.status_funcionario === situacao)
+  const obterIniciais = (nome) => {
+    if (!nome) return "?";
+    const partes = nome.trim().split(" ");
+    if (partes.length === 1) return partes[0][0].toUpperCase();
+    return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
+  };
+
+  const obterNomeCargo = (func) => {
+    if (Array.isArray(func.cargo) && func.cargo.length > 0) {
+      return func.cargo[0].cargo || func.cargo[0].nome || "Não informado";
+    }
+    if (typeof func.cargo === "string" && func.cargo.trim() !== "") return func.cargo;
+    return func.funcao || "Não informado";
+  };
+
+  const obterNomeSetor = (func) => {
+    if (Array.isArray(func.setor) && func.setor.length > 0) {
+      return func.setor[0].nome || "Sem setor";
+    }
+    if (func.setor?.nome) return func.setor.nome;
+    if (typeof func.setor === "string" && func.setor.trim() !== "") return func.setor;
+
+    const setorEncontrado = setores.find(
+      (s) => Number(s.id || s.id_setor) === Number(func.id_setor)
     );
+    return setorEncontrado?.nome || setorEncontrado?.descricao || "Sem setor";
+  };
+
+  const obterStatusFuncionario = (func) => {
+    let texto = "";
+    let statusId = func.id_status_funcionario ?? null;
+
+    if (Array.isArray(func.status_funcionario) && func.status_funcionario.length > 0) {
+      const st = func.status_funcionario[0];
+      texto = st.status || st.nome || "";
+      statusId = st.id ?? statusId;
+    } else if (func.status_funcionario && typeof func.status_funcionario === "object") {
+      texto = func.status_funcionario.status || func.status_funcionario.nome || "";
+      statusId = func.status_funcionario.id ?? statusId;
+    } else if (typeof func.status_funcionario === "string") {
+      texto = func.status_funcionario;
+    }
+
+    if (!texto && statusId !== null) {
+      const encontrado = statusFuncionarioLista.find(
+        (s) => Number(s.id || s.id_status_funcionario) === Number(statusId)
+      );
+      texto = encontrado?.status || encontrado?.nome || "";
+    }
+
+    const textoFinal = String(texto || "Inativo").trim();
+    const ativo =
+      textoFinal.toLowerCase() === "ativo" || Number(statusId) === 1;
+
+    return {
+      texto: textoFinal,
+      ativo,
+    };
+  };
+
+  const opcoesSetores =
+    setores.length > 0
+      ? setores.map((s) => s.nome || s.descricao).filter(Boolean)
+      : [...new Set(funcionarios.map((f) => obterNomeSetor(f)).filter((n) => n !== "Sem setor"))];
+
+  const opcoesSituacoes =
+    statusFuncionarioLista.length > 0
+      ? statusFuncionarioLista.map((st) => st.status || st.nome).filter(Boolean)
+      : ["Ativo", "Inativo"];
+
+  const funcionariosFiltrados = funcionarios.filter((func) => {
+    const termo = busca.trim().toLowerCase();
+    const nome = (func.nome || "").toLowerCase();
+    const matricula = String(func.matricula || func.id || func.id_funcionario || "").toLowerCase();
+    const cargo = obterNomeCargo(func).toLowerCase();
+
+    const bateBusca =
+      !termo ||
+      nome.includes(termo) ||
+      matricula.includes(termo) ||
+      cargo.includes(termo);
+
+    const nomeSetor = obterNomeSetor(func);
+    const bateSetor =
+      !setorFiltro ||
+      nomeSetor.trim().toLowerCase() === setorFiltro.trim().toLowerCase();
+
+    const statusFunc = obterStatusFuncionario(func);
+    const bateSituacao =
+      !situacaoFiltro ||
+      statusFunc.texto.trim().toLowerCase() === situacaoFiltro.trim().toLowerCase();
+
+    return bateBusca && bateSetor && bateSituacao;
   });
 
   return (
     <Shell>
-      <h1 className={s.titulo}>▏FUNCIONÁRIOS</h1>
-      <p className={s.sub}>
-        Cadastro de colaboradores, conformidade de EPIs e histórico de ocorrências.
-      </p>
+      <main className={styles.conteudo}>
+        <h1 className={styles.titulo}>| FUNCIONÁRIOS</h1>
+        <p className={styles.sub}>
+          Cadastro de colaboradores, conformidade de EPIs e histórico de ocorrências.
+        </p>
 
-      <div className={s.painel}>
-        <div className={s.linha}>
-          <input
-            className={s.busca}
-            style={{ flex: 2 }}
-            placeholder="⌕ Buscar por nome, matrícula ou cargo..."
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-          />
-          <select
-            className={s.busca}
-            style={{ flex: 1 }}
-            value={setor}
-            onChange={(e) => setSetor(e.target.value)}
-          >
-            <option value="">Todos os setores</option>
-            {setores.map((st) => (
-              <option key={st.id} value={st.nome}>{st.nome}</option>
-            ))}
-          </select>
-          <select
-            className={s.busca}
-            style={{ flex: 1 }}
-            value={situacao}
-            onChange={(e) => setSituacao(e.target.value)}
-          >
-            <option value="">Todas as situações</option>
-            {status.map((stt) => (
-              <option key={stt.id} value={stt.status}>{stt.status}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+        <div className={`${styles.painel} ${styles.painelTopo}`}>
+          <div className={styles.barraFiltros}>
+            <input
+              type="text"
+              className={styles.busca}
+              placeholder="Buscar por nome, matrícula ou cargo..."
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
 
-      <div className={s.painel}>
-        <div className={s.linha}>
-          <small>{lista.length} FUNCIONÁRIOS ENCONTRADOS</small>
-          <button
-            className={s.botao}
-            onClick={() => router.push("/cadastrarFuncionario")}
-          >
-            cadastrar funcionario
-          </button>
+            <select
+              className={styles.filtroSelect}
+              value={setorFiltro}
+              onChange={(e) => setSetorFiltro(e.target.value)}
+            >
+              <option value="">Todos os setores</option>
+              {opcoesSetores.map((nomeSetor, idx) => (
+                <option key={idx} value={nomeSetor}>
+                  {nomeSetor}
+                </option>
+              ))}
+            </select>
+
+            <select
+              className={styles.filtroSelect}
+              value={situacaoFiltro}
+              onChange={(e) => setSituacaoFiltro(e.target.value)}
+            >
+              <option value="">Todas as situações</option>
+              {opcoesSituacoes.map((nomeSituacao, idx) => (
+                <option key={idx} value={nomeSituacao}>
+                  {nomeSituacao}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        <div className={s.rolagem}>
-          <table className={s.tabela}>
-            <thead>
-              <tr>
-                {["Funcionário", "Matrícula", "Cargo", "Setor", "Situação", "Ocorr. abertas"].map((x) => (
-                  <th key={x}>{x}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {lista.length ? (
-                lista.map((f) => (
-                  <tr
-                    key={f.id}
-                    onClick={() => router.push(`/funcionarios/${f.id}`)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <td>{f.nome}</td>
-                    <td>{f.id}</td>
-                    <td>{f.cargo}</td>
-                    <td>{f.setor}</td>
-                    <td>{f.status_funcionario}</td>
-                    <td>{f.total_ocorrencia_aberta}</td>
-                  </tr>
-                ))
-              ) : (
+        <div className={styles.painel}>
+          <div className={styles.cabecalhoTabela}>
+            <span className={styles.contadorResultados}>
+              {funcionariosFiltrados.length}{" "}
+              {funcionariosFiltrados.length === 1
+                ? "FUNCIONÁRIO ENCONTRADO"
+                : "FUNCIONÁRIOS ENCONTRADOS"}
+            </span>
+
+            <button
+              type="button"
+              className={styles.botao}
+              onClick={() => router.push("/cadastrarFuncionario")}
+            >
+              + Cadastrar funcionário
+            </button>
+          </div>
+
+          <div className={styles.rolagem}>
+            <table className={styles.tabela}>
+              <thead>
                 <tr>
-                  <td colSpan="6" className={s.vazio}>
-                    {carregando
-                      ? "Carregando funcionários..."
-                      : erro || "Nenhum funcionário encontrado."}
-                  </td>
+                  <th>Funcionário</th>
+                  <th>Matrícula</th>
+                  <th>Cargo</th>
+                  <th>Setor</th>
+                  <th>Situação</th>
+                  <th>Ocorr. Abertas</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {carregando ? (
+                  <tr>
+                    <td colSpan={6} className={styles.vazio}>
+                      Carregando funcionários...
+                    </td>
+                  </tr>
+                ) : funcionariosFiltrados.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className={styles.vazio}>
+                      Nenhum funcionário encontrado com os filtros selecionados.
+                    </td>
+                  </tr>
+                ) : (
+                  funcionariosFiltrados.map((func) => {
+                    const id = func.id || func.id_funcionario;
+                    const cargoNome = obterNomeCargo(func);
+                    const setorNome = obterNomeSetor(func);
+                    const statusFunc = obterStatusFuncionario(func);
+                    const ocorrenciasAbertas =
+                      func.ocorrencias_abertas ?? func.total_ocorrencias ?? func.ocorrencias ?? 0;
+
+                    return (
+                      <tr
+                        key={id}
+                        onClick={() => router.push(`/funcionarios/${id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <td>
+                          <div className={styles.perfilRow}>
+                            {func.foto ? (
+                              <img
+                                src={func.foto}
+                                alt={func.nome}
+                                className={styles.avatar}
+                                style={{ objectFit: "cover" }}
+                              />
+                            ) : (
+                              <span className={styles.avatar}>
+                                {obterIniciais(func.nome)}
+                              </span>
+                            )}
+                            <span>{func.nome}</span>
+                          </div>
+                        </td>
+                        <td>{func.matricula || id}</td>
+                        <td>{cargoNome}</td>
+                        <td>
+                          <span className={styles.badgePequeno}>{setorNome}</span>
+                        </td>
+                        <td>
+                          <span
+                            className={`${styles.badgeContainer} ${
+                              statusFunc.ativo ? styles.badgeVerde : styles.badgeVermelho
+                            }`}
+                          >
+                            <span className={styles.dot} />
+                            {statusFunc.texto}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            className={
+                              Number(ocorrenciasAbertas) > 0
+                                ? styles.laranja
+                                : undefined
+                            }
+                            style={{ fontWeight: "bold" }}
+                          >
+                            {ocorrenciasAbertas}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+
+        <Popup mensagem={erro} tipo="erro" aoFechar={() => setErro("")} />
+      </main>
     </Shell>
   );
 }
