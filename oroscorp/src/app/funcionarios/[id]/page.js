@@ -5,27 +5,21 @@ import { useParams, useRouter } from "next/navigation";
 import Shell from "../../components/Shell";
 import Popup from "../../components/Popup";
 import styles from "../../style/detalheFuncionario.module.css";
-
 function extrairLista(json) {
   if (!json) return [];
   if (Array.isArray(json)) return json;
-  if (Array.isArray(json?.response?.dados)) return json.response.dados;
-  if (Array.isArray(json?.response)) return json.response;
-  if (Array.isArray(json?.dados)) return json.dados;
-  if (Array.isArray(json?.data)) return json.data;
-  return [];
-}
 
-function extrairObjeto(json) {
-  if (!json) return null;
-  if (Array.isArray(json?.response?.dados)) return json.response.dados[0] || null;
-  if (json?.response?.dados && typeof json.response.dados === "object") {
-    return json.response.dados;
+  const alvo = json.response && typeof json.response === "object" ? json.response : json;
+  if (Array.isArray(alvo)) return alvo;
+
+  if (typeof alvo === "object") {
+    for (const chave of Object.keys(alvo)) {
+      if (Array.isArray(alvo[chave])) {
+        return alvo[chave];
+      }
+    }
   }
-  if (Array.isArray(json?.dados)) return json.dados[0] || null;
-  if (json?.dados && typeof json.dados === "object") return json.dados;
-  if (Array.isArray(json)) return json[0] || null;
-  return json;
+  return [];
 }
 
 export default function DetalheFuncionarioPage() {
@@ -34,6 +28,7 @@ export default function DetalheFuncionarioPage() {
   const funcionarioId = params?.id;
 
   const [funcionario, setFuncionario] = useState(null);
+  const [setorCompleto, setSetorCompleto] = useState(null);
   const [ocorrencias, setOcorrencias] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erroFoto, setErroFoto] = useState(false);
@@ -50,19 +45,15 @@ export default function DetalheFuncionarioPage() {
         const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-        const [resDetalhe, resTodosFunc, resOcorrencias] = await Promise.all([
-          fetch(`/api/funcionario/${funcionarioId}`, { headers }).catch(() => null),
-          fetch("/api/funcionario/dados", { headers }).catch(() => null),
-          fetch("/api/ocorrencia", { headers }).catch(() => null),
+        const [resTodosFunc, resOcorrencias, resSetores] = await Promise.all([
+          fetch("/api/funcionario/dados", { headers }),
+          fetch("/api/ocorrencia/dados", { headers }),
+          fetch("/api/setor", { headers }).catch(() => null),
         ]);
 
         let dadosFunc = null;
 
-        if (resDetalhe && resDetalhe.ok) {
-          dadosFunc = extrairObjeto(await resDetalhe.json());
-        }
-
-        if (!dadosFunc && resTodosFunc && resTodosFunc.ok) {
+        if (resTodosFunc.ok) {
           const lista = extrairLista(await resTodosFunc.json());
           dadosFunc =
             lista.find((f) => String(f.id || f.id_funcionario) === String(funcionarioId)) || null;
@@ -70,21 +61,54 @@ export default function DetalheFuncionarioPage() {
 
         if (dadosFunc) {
           setFuncionario(dadosFunc);
+
+          // Completa dados do setor (descrição e local) via /api/setor
+          const setorDoFunc = Array.isArray(dadosFunc.setor)
+            ? dadosFunc.setor[0]
+            : typeof dadosFunc.setor === "object"
+            ? dadosFunc.setor
+            : null;
+
+          if (resSetores && resSetores.ok) {
+            const listaSetores = extrairLista(await resSetores.json());
+            const encontrado = listaSetores.find(
+              (s) =>
+                (setorDoFunc?.id && Number(s.id) === Number(setorDoFunc.id)) ||
+                (setorDoFunc?.nome &&
+                  String(s.nome).toLowerCase() === String(setorDoFunc.nome).toLowerCase()) ||
+                (typeof dadosFunc.setor === "string" &&
+                  String(s.nome).toLowerCase() === dadosFunc.setor.toLowerCase())
+            );
+            setSetorCompleto(encontrado || setorDoFunc);
+          } else {
+            setSetorCompleto(setorDoFunc);
+          }
         } else {
           setErro("Funcionário não encontrado.");
         }
 
-        if (Array.isArray(dadosFunc?.ocorrencias)) {
-          setOcorrencias(dadosFunc.ocorrencias);
-        } else if (resOcorrencias && resOcorrencias.ok) {
-          const todasOcorrencias = extrairLista(await resOcorrencias.json());
+        if (resOcorrencias.ok) {
+          const jsonOc = await resOcorrencias.json();
+          const todasOcorrencias = extrairLista(jsonOc);
+
           const filtradas = todasOcorrencias.filter((oc) => {
             const idFuncOc =
+              oc.ID_funcionario ??
               oc.id_funcionario ??
               oc.funcionario?.id ??
               (Array.isArray(oc.funcionario) ? oc.funcionario[0]?.id : null);
-            return String(idFuncOc) === String(funcionarioId);
+
+            const nomeFuncOc = oc.Nome_funcionario ?? oc.funcionario?.nome;
+
+            return (
+              String(idFuncOc) === String(funcionarioId) ||
+              (dadosFunc?.nome &&
+                nomeFuncOc &&
+                String(nomeFuncOc).trim().toLowerCase() ===
+                  String(dadosFunc.nome).trim().toLowerCase())
+            );
           });
+
           setOcorrencias(filtradas);
         }
       } catch (e) {
@@ -116,7 +140,13 @@ export default function DetalheFuncionarioPage() {
     if (!dataIso) return "—";
     const data = new Date(dataIso);
     if (isNaN(data.getTime())) return String(dataIso);
-    return data.toLocaleString("pt-BR");
+    return data.toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   const calcularIdade = (dataIso) => {
@@ -179,15 +209,19 @@ export default function DetalheFuncionarioPage() {
   }
 
   const cargoNome = Array.isArray(funcionario.cargo)
-  console.log(funcionario)
     ? funcionario.cargo[0]?.cargo || "Não informado"
     : funcionario.cargo?.cargo || funcionario.cargo || "Não informado";
 
-  const setorObj = Array.isArray(funcionario.setor)
+  const setorBasico = Array.isArray(funcionario.setor)
     ? funcionario.setor[0]
     : typeof funcionario.setor === "object"
     ? funcionario.setor
     : { nome: funcionario.setor || "Sem setor" };
+
+  const setorObj = {
+    ...setorBasico,
+    ...setorCompleto,
+  };
 
   const statusSetorTexto = Array.isArray(setorObj?.status_setor)
     ? setorObj.status_setor[0]?.status || "Ativo"
@@ -209,9 +243,11 @@ export default function DetalheFuncionarioPage() {
   const idade = calcularIdade(funcionario.data_nascimento);
 
   const ocorrenciasAbertas = ocorrencias.filter((oc) => {
-    const st = Array.isArray(oc.status_ocorrencia)
-      ? oc.status_ocorrencia[0]?.status
-      : oc.status_ocorrencia?.status || oc.status_ocorrencia || oc.status || "";
+    const st =
+      oc.Status_ocorrencia ??
+      (Array.isArray(oc.status_ocorrencia)
+        ? oc.status_ocorrencia[0]?.status
+        : oc.status_ocorrencia?.status || oc.status_ocorrencia || oc.status || "");
     return String(st).toLowerCase().includes("abert");
   }).length;
 
@@ -339,13 +375,13 @@ export default function DetalheFuncionarioPage() {
               <div>
                 <h3 className={styles.tituloSetor}>{setorObj?.nome || "Sem setor"}</h3>
                 <p className={styles.descricaoSetor}>
-                  {setorObj?.descricao_setor || "Nenhuma descrição cadastrada para este setor."}
+                  {setorObj?.descricao || "Nenhuma descrição cadastrada para este setor."}
                 </p>
               </div>
 
               <div className={styles.rodapeSetor}>
                 <span>
-                  <strong>Local:</strong> {setorObj?.local_setor || "Não especificado"}
+                  <strong>Local:</strong> {setorObj?.local || "Não especificado"}
                 </span>
                 <span
                   className={`${styles.badgeContainer} ${obterClasseStatus(statusSetorTexto)}`}
@@ -367,8 +403,9 @@ export default function DetalheFuncionarioPage() {
               <thead>
                 <tr>
                   <th>Protocolo</th>
-                  <th>Infração / EPI</th>
-                  <th>Setor / Câmera</th>
+                  <th>EPI / Descrição</th>
+                  <th>Motivo</th>
+                  <th>Setor</th>
                   <th>Data e Hora</th>
                   <th>Status</th>
                 </tr>
@@ -376,38 +413,48 @@ export default function DetalheFuncionarioPage() {
               <tbody>
                 {ocorrencias.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className={styles.vazio}>
+                    <td colSpan={6} className={styles.vazio}>
                       Este funcionário não possui ocorrências registradas.
                     </td>
                   </tr>
                 ) : (
                   ocorrencias.map((oc) => {
-                    const tituloOc =
-                      oc.titulo ||
-                      oc.descricao ||
+                    const idOc = oc.ID_ocorrencia ?? oc.id;
+                    const epiNome =
+                      oc.Nome_EPI ||
                       (Array.isArray(oc.epi) ? oc.epi[0]?.nome : oc.epi?.nome) ||
-                      "Infração de EPI detectada";
-
-                    const localOc =
+                      "EPI não especificado";
+                    const descricaoOc = oc.Descricao_Ocorrencia || oc.descricao || "";
+                    const motivoOc = oc.Motivo_ocorrencia || oc.motivo || "—";
+                    const setorOc =
+                      oc.Nome_setor ||
                       (Array.isArray(oc.setor) ? oc.setor[0]?.nome : oc.setor?.nome) ||
-                      (Array.isArray(oc.camera) ? oc.camera[0]?.nome : oc.camera?.nome) ||
                       setorObj?.nome ||
                       "—";
-
-                    const stTexto = Array.isArray(oc.status_ocorrencia)
-                      ? oc.status_ocorrencia[0]?.status || "Aberta"
-                      : oc.status_ocorrencia?.status ||
-                        oc.status_ocorrencia ||
-                        oc.status ||
-                        "Aberta";
+                    const stTexto =
+                      oc.Status_ocorrencia ||
+                      (Array.isArray(oc.status_ocorrencia)
+                        ? oc.status_ocorrencia[0]?.status
+                        : oc.status_ocorrencia?.status || oc.status) ||
+                      "Aberta";
 
                     const isAberta = String(stTexto).toLowerCase().includes("abert");
 
                     return (
-                      <tr key={oc.id}>
-                        <td>#{oc.id}</td>
-                        <td style={{ fontWeight: 600, color: "#fff" }}>{tituloOc}</td>
-                        <td>{localOc}</td>
+                      <tr key={idOc}>
+                        <td>#{idOc}</td>
+                        <td>
+                          <div style={{ fontWeight: 600, color: "#fff" }}>{epiNome}</div>
+                          {descricaoOc && (
+                            <div style={{ fontSize: "12px", color: "#8e96a0", marginTop: "4px" }}>
+                              {descricaoOc}
+                            </div>
+                          )}
+                        </td>
+                        <td>{motivoOc}</td>
+                        <td>
+                          <span className={styles.badgePequeno}>{setorOc}</span>
+                        </td>
                         <td>{formatarDataHora(oc.data_hora || oc.data || oc.created_at)}</td>
                         <td>
                           <span
