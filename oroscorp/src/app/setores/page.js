@@ -1,3 +1,5 @@
+"use client";
+
 /*
 Data: 9 de Outubro de 2026
 Objetivo: Estilização da página de setores
@@ -5,10 +7,8 @@ Autor: João Pedro e Kaique Carvalho
 
 Autor do JS: Matheus Lucas
 Data: 05 de Novembro de 2026
-Objetivo: Tornar está tela dínamica
+Objetivo: Tornar esta tela dinâmica e exibir a foto de cada setor no card
 */
-
-"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -63,6 +63,73 @@ function Indicador({ tipo, valor, legenda }) {
   );
 }
 
+function ImagemSetor({ foto, nome }) {
+  const [falhou, setFalhou] = useState(false);
+
+  const srcValido =
+    foto && !falhou
+      ? foto.startsWith("http") || foto.startsWith("/") || foto.startsWith("data:")
+        ? foto
+        : `/${foto}`
+      : null;
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "150px",
+        borderRadius: "10px",
+        overflow: "hidden",
+        backgroundColor: "#14171a",
+        border: "1px solid #23272d",
+        marginBottom: "14px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {srcValido ? (
+        <img
+          src={srcValido}
+          alt={`Setor ${nome}`}
+          onError={() => setFalhou(true)}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "6px",
+            color: "#6e7681",
+            fontSize: "12px",
+          }}
+        >
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
+          </svg>
+          <span>Sem imagem do setor</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Setores() {
   const router = useRouter();
 
@@ -74,6 +141,7 @@ export default function Setores() {
     id: item.ID_setor || item.id,
     nome: item.Nome_setor || "Sem nome",
     descricao: item.Descricao_setor || "Sem descrição disponível.",
+    foto: item.Foto_setor || item.foto || null,
     funcionarios: item.Total_funcionarios ?? 0,
     cameras: item.Total_cameras ?? 0,
     abertas: item.Total_ocorrencias_abertas ?? 0,
@@ -109,7 +177,7 @@ export default function Setores() {
         } else {
           setErro("Nenhum setor cadastrado até o momento.");
         }
-      } catch (err) {
+      } catch {
         setErro("Erro na comunicação com a API de setores.");
       } finally {
         setCarregando(false);
@@ -135,8 +203,8 @@ export default function Setores() {
           <div>
             <h1>Setores</h1>
             <p>
-              Áreas monitoradas da planta industrial e seus
-              indicadores de segurança.
+              Áreas monitoradas da planta industrial e seus indicadores de
+              segurança.
             </p>
           </div>
 
@@ -154,6 +222,8 @@ export default function Setores() {
             {listaSetores.length > 0 ? (
               listaSetores.map((setor) => (
                 <article className={styles.card} key={setor.id}>
+                  <ImagemSetor foto={setor.foto} nome={setor.nome} />
+
                   <h2>{setor.nome}</h2>
 
                   <p className={styles.descricao}>{setor.descricao}</p>
