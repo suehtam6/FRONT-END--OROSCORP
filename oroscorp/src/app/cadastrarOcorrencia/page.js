@@ -2,14 +2,19 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { uploadParaCloudinary } from "@/API/cloudinary";
 import Shell from "../components/Shell";
 import Popup from "../components/Popup";
 import styles from "../style/cadastrarOcorrencia.module.css";
 import modalStyles from "../style/modalGerenciador.module.css";
 
+const TIPOS_ACEITOS = ["image/jpeg", "image/png", "image/webp"];
+const TAMANHO_MAXIMO_MB = 5;
+
 export default function RegistrarOcorrencia() {
   const router = useRouter();
   const inputImagemRef = useRef(null);
+  const uploadRef = useRef({ arquivo: null, url: "" });
 
   // Estados do Formulário
   const [idFuncionario, setIdFuncionario] = useState("");
@@ -21,6 +26,7 @@ export default function RegistrarOcorrencia() {
   const [idStatusOcorrencia, setIdStatusOcorrencia] = useState("");
   const [descricao, setDescricao] = useState("");
   const [imagem, setImagem] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
   const [IdMotivoOcorrencia, setIdMotivoOcorrencia] = useState("");
 
   // Listas vindas da API
@@ -43,7 +49,6 @@ export default function RegistrarOcorrencia() {
   const [nomeMotivoEditado, setNomeMotivoEditado] = useState("");
 
   const extrairLista = (resJson) => {
-
     if (!resJson) return [];
     const lista =
       resJson.response?.dados ||
@@ -80,6 +85,39 @@ export default function RegistrarOcorrencia() {
     );
   };
 
+  // Gera o preview e libera a memória quando a imagem muda
+  useEffect(() => {
+    if (!imagem) {
+      setPreviewUrl("");
+      return;
+    }
+    const url = URL.createObjectURL(imagem);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [imagem]);
+
+  const selecionarImagem = (arquivo) => {
+    if (!arquivo) return;
+
+    if (!TIPOS_ACEITOS.includes(arquivo.type)) {
+      setErro("A foto deve ser JPG, PNG ou WebP.");
+      return;
+    }
+    if (arquivo.size > TAMANHO_MAXIMO_MB * 1024 * 1024) {
+      setErro(`A foto deve ter no máximo ${TAMANHO_MAXIMO_MB} MB.`);
+      return;
+    }
+
+    setErro("");
+    setImagem(arquivo);
+  };
+
+  const aoEscolherArquivo = (e) => {
+    const arquivo = e.target.files?.[0];
+    e.target.value = "";
+    selecionarImagem(arquivo);
+  };
+
   useEffect(() => {
     async function carregarDependencias() {
       try {
@@ -89,7 +127,7 @@ export default function RegistrarOcorrencia() {
           fetch("/api/camera"),
           fetch("/api/ocorrencia/prioridade"),
           fetch("/api/ocorrencia/status-ocorrencia"),
-          fetch("/api/ocorrencia/motivo_ocorrencia")
+          fetch("/api/ocorrencia/motivo_ocorrencia"),
         ]);
 
         if (resFunc.ok) setFuncionarios(extrairLista(await resFunc.json()));
@@ -123,39 +161,67 @@ export default function RegistrarOcorrencia() {
 
   async function registrar(e) {
     e.preventDefault();
+    if (carregando) return;
+
     setCarregando(true);
     setErro("");
     setSucesso("");
 
-    const dataHoraStr = data && hora
-      ? `${data} ${hora}:00`
-      : new Date().toISOString().replace('T', ' ').substring(0, 19);
-
-    const payload = {
-      descricao: descricao,
-      id_setor: Number(idSetor),
-      id_funcionario: Number(idFuncionario) || null,
-      id_motivo_ocorrencia: Number(IdMotivoOcorrencia),
-      id_status_ocorrencia: Number(idStatusOcorrencia),
-      id_usuario_registro: 1,
-      id_origem: 1,
-      id_prioridade: Number(idPrioridade),
-      id_epi: [{ id: 1 }],
-      cameras: idCamera ? [
-        {
-          id_camera: Number(idCamera),
-          foto: imagem ? imagem.name : "sem-foto.png",
-          confianca_ia: 95,
-          data_hora: dataHoraStr
-        }
-      ] : []
-    };
-
     try {
+      // Envia a foto para o Cloudinary (só reenvia se o arquivo mudou)
+      let fotoUrl = "";
+      if (imagem) {
+        if (uploadRef.current.arquivo !== imagem) {
+          let url;
+          try {
+            url = await uploadParaCloudinary(imagem);
+          } catch {
+            setErro("Não foi possível enviar a foto. Tente novamente.");
+            return;
+          }
+          uploadRef.current = { arquivo: imagem, url };
+        }
+        fotoUrl = uploadRef.current.url;
+      }
+
+      const dataHoraStr =
+        data && hora
+          ? `${data} ${hora}:00`
+          : new Date().toISOString().replace("T", " ").substring(0, 19);
+
+      // Se houver foto anexada mas nenhuma câmera escolhida, vincula à primeira câmera do setor
+      const cameraAlvoId =
+        idCamera ||
+        (fotoUrl
+          ? camerasDoSetor[0]?.id || camerasDoSetor[0]?.id_camera || cameras[0]?.id || 1
+          : null);
+
+      const payload = {
+        descricao: descricao,
+        id_setor: Number(idSetor),
+        id_funcionario: Number(idFuncionario) || null,
+        id_motivo_ocorrencia: Number(IdMotivoOcorrencia),
+        id_status_ocorrencia: Number(idStatusOcorrencia),
+        id_usuario_registro: 1,
+        id_origem: 1,
+        id_prioridade: Number(idPrioridade),
+        id_epi: [{ id: 1 }],
+        cameras: cameraAlvoId
+          ? [
+              {
+                id_camera: Number(cameraAlvoId),
+                foto: fotoUrl || "sem-foto.png",
+                confianca_ia: 95,
+                data_hora: dataHoraStr,
+              },
+            ]
+          : [],
+      };
+
       const res = await fetch("/api/ocorrencia", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       const retorno = await res.json().catch(() => ({}));
@@ -193,7 +259,7 @@ export default function RegistrarOcorrencia() {
       const res = await fetch("/api/ocorrencia/motivo_ocorrencia", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome: novoMotivoOcorrencia.trim() })
+        body: JSON.stringify({ nome: novoMotivoOcorrencia.trim() }),
       });
 
       if (res.ok) {
@@ -221,7 +287,7 @@ export default function RegistrarOcorrencia() {
       const res = await fetch(`/api/ocorrencia/motivo_ocorrencia/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome: nomeMotivoEditado.trim() })
+        body: JSON.stringify({ nome: nomeMotivoEditado.trim() }),
       });
 
       if (res.ok) {
@@ -242,7 +308,7 @@ export default function RegistrarOcorrencia() {
 
     try {
       const res = await fetch(`/api/ocorrencia/motivo_ocorrencia/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
       });
 
       if (res.ok) {
@@ -271,9 +337,10 @@ export default function RegistrarOcorrencia() {
           <form onSubmit={registrar}>
             <div className={styles.painel}>
               <div className={styles.colunaEsquerda}>
-
                 <div className={styles.campo}>
-                  <label>Funcionário <span>*</span></label>
+                  <label>
+                    Funcionário <span>*</span>
+                  </label>
                   <select
                     value={idFuncionario}
                     onChange={(e) => setIdFuncionario(e.target.value)}
@@ -293,12 +360,14 @@ export default function RegistrarOcorrencia() {
 
                 <div className={styles.linhaDupla}>
                   <div className={styles.campo}>
-                    <label>Setor <span>*</span></label>
+                    <label>
+                      Setor <span>*</span>
+                    </label>
                     <select
                       value={idSetor}
                       onChange={(e) => {
                         setIdSetor(e.target.value);
-                        setIdCamera(""); // Limpa a câmera ao mudar de setor
+                        setIdCamera("");
                       }}
                       required
                     >
@@ -345,7 +414,9 @@ export default function RegistrarOcorrencia() {
                 {/* DATA E HORA */}
                 <div className={styles.linhaDupla}>
                   <div className={styles.campo}>
-                    <label>Data <span>*</span></label>
+                    <label>
+                      Data <span>*</span>
+                    </label>
                     <input
                       type="date"
                       value={data}
@@ -355,7 +426,9 @@ export default function RegistrarOcorrencia() {
                   </div>
 
                   <div className={styles.campo}>
-                    <label>Hora <span>*</span></label>
+                    <label>
+                      Hora <span>*</span>
+                    </label>
                     <input
                       type="time"
                       value={hora}
@@ -376,7 +449,9 @@ export default function RegistrarOcorrencia() {
                           <button
                             key={pId}
                             type="button"
-                            className={`${styles.btnPrioridade} ${Number(idPrioridade) === Number(pId) ? styles.prioAtiva : ''}`}
+                            className={`${styles.btnPrioridade} ${
+                              Number(idPrioridade) === Number(pId) ? styles.prioAtiva : ""
+                            }`}
                             onClick={() => setIdPrioridade(pId)}
                           >
                             {pNome}
@@ -396,7 +471,9 @@ export default function RegistrarOcorrencia() {
                         const stId = st.id || st.id_status_ocorrencia;
                         const stNome = st.status || st.nome || `Status #${stId}`;
                         return (
-                          <option key={stId} value={stId}>{stNome}</option>
+                          <option key={stId} value={stId}>
+                            {stNome}
+                          </option>
                         );
                       })}
                     </select>
@@ -404,7 +481,9 @@ export default function RegistrarOcorrencia() {
                 </div>
 
                 <div className={styles.campo}>
-                  <label>Motivo Ocorrência <span>*</span></label>
+                  <label>
+                    Motivo Ocorrência <span>*</span>
+                  </label>
                   <div className={styles.linhaMotivo}>
                     <select
                       value={IdMotivoOcorrencia}
@@ -415,7 +494,9 @@ export default function RegistrarOcorrencia() {
                       {listaMotivoOcorrencia.map((motivo) => {
                         const motivoId = idDoMotivo(motivo);
                         return (
-                          <option key={motivoId} value={motivoId}>{motivo.nome}</option>
+                          <option key={motivoId} value={motivoId}>
+                            {motivo.nome}
+                          </option>
                         );
                       })}
                     </select>
@@ -439,17 +520,21 @@ export default function RegistrarOcorrencia() {
                     rows={4}
                   />
                 </div>
-
               </div>
 
               <div className={styles.colunaDireita}>
                 <div
                   className={styles.uploadBox}
                   onClick={() => inputImagemRef.current?.click()}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    selecionarImagem(e.dataTransfer.files?.[0]);
+                  }}
                 >
-                  {imagem ? (
+                  {previewUrl ? (
                     <img
-                      src={URL.createObjectURL(imagem)}
+                      src={previewUrl}
                       alt="Print da Ocorrência"
                       className={styles.previewPrint}
                     />
@@ -463,9 +548,9 @@ export default function RegistrarOcorrencia() {
                   <input
                     ref={inputImagemRef}
                     type="file"
-                    accept="image/*"
+                    accept="image/png,image/jpeg,image/webp"
                     hidden
-                    onChange={(e) => setImagem(e.target.files?.[0] || null)}
+                    onChange={aoEscolherArquivo}
                   />
                 </div>
 
@@ -491,7 +576,7 @@ export default function RegistrarOcorrencia() {
               <button
                 type="submit"
                 className={styles.btnRegistrar}
-                disabled={carregando}
+                disabled={carregando || Boolean(sucesso)}
               >
                 {carregando ? "Registrando..." : "Registrar ocorrência"}
               </button>

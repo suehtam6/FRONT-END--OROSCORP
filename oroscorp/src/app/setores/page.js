@@ -107,7 +107,7 @@ export default function Setores() {
 
           setListaSetores(setoresUnicos);
         } else {
-          setErro("Erro ao carregar setores.");
+          setErro("Nenhum setor cadastrado até o momento.");
         }
       } catch (err) {
         setErro("Erro na comunicação com a API de setores.");

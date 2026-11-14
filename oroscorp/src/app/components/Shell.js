@@ -5,9 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import styles from "../style/shell.module.css";
 import Menu from "./menu";
 
-// Você pode apagar as constantes 'links' e 'cadastros' deste arquivo 
-// se elas já estiverem sendo renderizadas por dentro do componente "./menu"
-
 export default function Shell({ children, voltar = true }) {
   const [aberto, setAberto] = useState(false);
   const router = useRouter();
@@ -16,7 +13,7 @@ export default function Shell({ children, voltar = true }) {
 
   const path = usePathname();
   
-  // Usaremos apenas este estado para controlar o Menu
+
   const [menuAberto, setMenuAberto] = useState(false);
 
   return (
