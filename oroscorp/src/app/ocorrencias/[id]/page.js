@@ -1,7 +1,7 @@
 /*
   Autor: Matheus Lucas
-  Objetivo: Tela de detalhes da ocorrência, com vínculo de funcionário, responsável e evidência
-  Data: 13/11/2026
+  Objetivo: Tela de detalhes da ocorrência, com vínculo de funcionário, responsável, evidência e confiança da IA
+  Data: 14/11/2026
 */
 
 "use client";
@@ -194,7 +194,6 @@ export default function DetalhesOcorrencia() {
         return achado?.id ?? fallback;
       };
 
-      // Descobre o ID do responsável atual
       let idRespAtual =
         regBruto.id_usuario_registro ??
         ocorrencia.ID_usuario_registro ??
@@ -220,7 +219,6 @@ export default function DetalhesOcorrencia() {
       );
       const idCamera = regBruto.id_camera ?? camEncontrada?.id ?? camerasLista[0]?.id ?? 1;
 
-      // Formata id_epi como [{"id": 1}]
       let listaEpi = [];
       if (Array.isArray(regBruto.id_epi)) {
         listaEpi = regBruto.id_epi;
@@ -230,13 +228,16 @@ export default function DetalhesOcorrencia() {
         listaEpi = [{ id: Number(ocorrencia.ID_EPI) }];
       }
 
-      // Formata cameras conforme o PUT do backend
+      const confiancaAtual = Number(
+        regBruto.confianca_ia ?? ocorrencia.confianca_ia ?? 95.0
+      );
+
       const listaCameras =
         Array.isArray(regBruto.cameras) && regBruto.cameras.length > 0
           ? regBruto.cameras.map((c) => ({
               id_camera: Number(c.id_camera ?? c.id ?? idCamera),
               foto: c.foto ?? ocorrencia.foto_ocorrencia ?? "evidencia.png",
-              confianca_ia: Number(c.confianca_ia ?? 95.0),
+              confianca_ia: Number(c.confianca_ia ?? confiancaAtual),
               data_hora: formatarDataSQL(c.data_hora ?? ocorrencia.data_hora),
             }))
           : [
@@ -246,7 +247,7 @@ export default function DetalhesOcorrencia() {
                   ocorrencia.foto_ocorrencia ??
                   ocorrencia.Foto_ocorrencia ??
                   "evidencia.png",
-                confianca_ia: 95.0,
+                confianca_ia: confiancaAtual,
                 data_hora: formatarDataSQL(ocorrencia.data_hora),
               },
             ];
@@ -377,6 +378,13 @@ export default function DetalhesOcorrencia() {
   const fechada = (o.Status_ocorrencia || "").toLowerCase().includes("fech");
   const idFormatado = String(o.ID_ocorrencia).padStart(5, "0");
 
+  // Verifica se a ocorrência veio da IA e calcula a porcentagem de confiança
+  const isOrigemIA = String(o.origem_ocorrencia || "").trim().toUpperCase() === "IA";
+  const confiancaNum = Number(o.confianca_ia);
+  const porcentagemIA = !isNaN(confiancaNum)
+    ? Math.min(100, Math.max(0, Math.round(confiancaNum)))
+    : null;
+
   const fotoBruta = o.foto_ocorrencia || o.Foto_ocorrencia;
   const urlEvidencia = fotoBruta
     ? fotoBruta.startsWith("http") || fotoBruta.startsWith("/")
@@ -449,6 +457,8 @@ export default function DetalhesOcorrencia() {
                         ]
                           .filter(Boolean)
                           .join(" · ")
+                      : isOrigemIA
+                      ? "Detecção automática pela IA"
                       : "Aguardando identificação"}
                   </span>
                 </div>
@@ -484,7 +494,9 @@ export default function DetalhesOcorrencia() {
               ) : (
                 <>
                   <p className={styles.textoApoio}>
-                    Não foi possível identificar automaticamente o funcionário desta ocorrência.
+                    {isOrigemIA
+                      ? "A inteligência artificial detectou uma possível irregularidade, mas não foi possível identificar automaticamente o funcionário."
+                      : "Não foi possível identificar automaticamente o funcionário desta ocorrência."}
                   </p>
 
                   {!editandoFunc ? (
@@ -547,6 +559,89 @@ export default function DetalhesOcorrencia() {
                 </>
               )}
             </div>
+
+            {/* CARD DETECÇÃO DA IA (EXIBIDO APENAS QUANDO ORIGEM FOR IA) */}
+            {isOrigemIA && porcentagemIA !== null && (
+              <div className={styles.card}>
+                <h4
+                  className={styles.cardTitulo}
+                  style={{ display: "flex", alignItems: "center", gap: "6px" }}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#f36f16"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+                    <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+                    <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+                    <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                  DETECÇÃO DA IA
+                </h4>
+
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: "12px",
+                    color: "#8e96a0",
+                    marginTop: "6px",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Confiança da análise
+                </span>
+
+                <div
+                  style={{
+                    fontSize: "34px",
+                    fontWeight: 800,
+                    color: "#f36f16",
+                    lineHeight: 1.1,
+                    marginBottom: "12px",
+                  }}
+                >
+                  {porcentagemIA}%
+                </div>
+
+                {/* Barra de progresso laranja */}
+                <div
+                  style={{
+                    width: "100%",
+                    height: "7px",
+                    backgroundColor: "#262a30",
+                    borderRadius: "999px",
+                    overflow: "hidden",
+                    marginBottom: "14px",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${porcentagemIA}%`,
+                      height: "100%",
+                      backgroundColor: "#f36f16",
+                      borderRadius: "999px",
+                      transition: "width 0.4s ease",
+                    }}
+                  />
+                </div>
+
+                <div style={{ fontSize: "13px", color: "#8e96a0" }}>
+                  Detecção:{" "}
+                  <strong style={{ color: "#e6edf3", fontWeight: 600 }}>
+                    {o.Nome_EPI
+                      ? `Ausência de ${o.Nome_EPI.toLowerCase()}`
+                      : o.Motivo_ocorrencia || "Não conformidade de EPI"}
+                  </strong>
+                </div>
+              </div>
+            )}
 
             {/* CARD INFORMAÇÕES */}
             <div className={styles.card}>
