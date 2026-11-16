@@ -1,352 +1,554 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Shell from "../../components/Shell.js";
-import s from "../../style/novas.module.css";
+import styles from "../../style/detalheSetor.module.css";
 
-
-const IconUsers = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-    <circle cx="9" cy="7" r="4"></circle>
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-  </svg>
-);
-
-const IconCamera = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="23 7 16 12 23 17 23 7"></polygon>
-    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-  </svg>
-);
-
-const IconAlert = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"></circle>
-    <line x1="12" y1="8" x2="12" y2="12"></line>
-    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-  </svg>
-);
-
-const IconChevron = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#777" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="9 18 15 12 9 6"></polyline>
-  </svg>
-);
-
-
-const getIniciais = (nome) => {
-  if (!nome) return "??";
-  const partes = nome.trim().split(" ").filter(Boolean);
-  if (partes.length === 1) return partes[0].substring(0, 2).toUpperCase();
-  return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
-};
-
-function AvatarFuncionario({ foto, nome }) {
-  const [erroImg, setErroImg] = useState(false);
-
-  const srcValido =
-    foto && !erroImg
-      ? foto.startsWith("http") || foto.startsWith("/") || foto.startsWith("data:")
-        ? foto
-        : `/${foto}`
-      : null;
-
-  if (srcValido) {
-    return (
-      <img
-        src={srcValido}
-        alt={nome}
-        className={s.avatar}
-        onError={() => setErroImg(true)}
-        style={{ objectFit: "cover" }}
-      />
-    );
-  }
-
-  return <div className={s.avatar}>{getIniciais(nome)}</div>;
-}
-
-const StatusBadge = ({ status }) => {
-  const st = String(status || "").toUpperCase();
-  let classeCor = s.badgeCinza;
-
-  if (st === "ATIVO" || st === "ONLINE" || st === "ABERTA") classeCor = s.badgeVerde;
-  if (st === "INATIVO" || st === "OFFLINE" || st === "FECHADA" || st === "CANCELADA" || st === "AFASTADO") {
-    classeCor = s.badgeVermelho;
-  }
-
-  return (
-    <div className={`${s.badgeContainer} ${classeCor}`}>
-      <div className={s.dot}></div>
-      {st}
-    </div>
-  );
-};
-
-function extrairLista(json) {
-  if (!json) return [];
-  if (Array.isArray(json)) return json;
-  if (Array.isArray(json.response?.dados)) return json.response.dados;
-  if (Array.isArray(json.dados)) return json.dados;
-  return [];
-}
-
-export default function SetorDetalhe() {
-  const { id } = useParams();
+export default function DetalhesSetor() {
+  const params = useParams();
+  const id = params?.id || Object.values(params || {})[0];
   const router = useRouter();
 
   const [setor, setSetor] = useState(null);
-  const [funcionarios, setFuncionarios] = useState([]);
-  const [cameras, setCameras] = useState([]);
-  const [ocorrencias, setOcorrencias] = useState([]);
+  const [catalogoEpis, setCatalogoEpis] = useState([]);
+  const [epiSelecionado, setEpiSelecionado] = useState("");
   const [carregando, setCarregando] = useState(true);
+  const [salvandoEpi, setSalvandoEpi] = useState(false);
+  const [erro, setErro] = useState("");
 
-  useEffect(() => {
-    async function carregarDetalhes() {
-      try {
-        const [resSetor, resFuncs] = await Promise.all([
-          fetch(`/api/setor/dados/${id}`),
-          fetch("/api/funcionario").catch(() => null),
-        ]);
-
-
-        const listaTodosFuncs = resFuncs?.ok ? extrairLista(await resFuncs.json()) : [];
-        const mapaFuncPorId = new Map();
-        const mapaFuncPorNome = new Map();
-
-        listaTodosFuncs.forEach((f) => {
-          const fId = f.id ?? f.ID_funcionario ?? f.id_funcionario;
-          const fNome = String(f.nome || f.Nome_funcionario || "").trim().toLowerCase();
-          const fFoto = f.foto || f.Foto_funcionario || null;
-          if (fId) mapaFuncPorId.set(Number(fId), { id: fId, foto: fFoto });
-          if (fNome) mapaFuncPorNome.set(fNome, { id: fId, foto: fFoto });
-        });
-
-        if (resSetor.ok) {
-          const json = await resSetor.json();
-          const dadosCompletos = json.response?.ocorrencia;
-
-          if (dadosCompletos) {
-            setSetor({
-              nome: dadosCompletos.nome,
-              descricao: dadosCompletos.descricao,
-              totalFuncionarios: dadosCompletos.Total_funcionarios || 0,
-              totalCameras: dadosCompletos.Total_cameras || 0,
-              totalAbertas: dadosCompletos.Total_ocorrencias_abertas || 0,
-            });
-
-            const funcsEnriquecidos = (dadosCompletos.funcionarios || []).map((func) => {
-              const idEncontrado =
-                func.id ??
-                func.ID_funcionario ??
-                func.id_funcionario ??
-                mapaFuncPorNome.get(String(func.nome || "").trim().toLowerCase())?.id ??
-                null;
-
-              const infoExtra =
-                (idEncontrado && mapaFuncPorId.get(Number(idEncontrado))) ||
-                mapaFuncPorNome.get(String(func.nome || "").trim().toLowerCase());
-
-              return {
-                ...func,
-                id: idEncontrado,
-                foto: func.foto || func.Foto_funcionario || infoExtra?.foto || null,
-              };
-            });
-
-            setFuncionarios(funcsEnriquecidos);
-            setCameras(dadosCompletos.cameras || []);
-            setOcorrencias(dadosCompletos.ocorrencias || []);
-          }
-        }
-      } catch (error) {
-        console.error("Erro ao procurar detalhes do setor:", error);
-      } finally {
-        setCarregando(false);
-      }
+  const carregarSetor = useCallback(async () => {
+    if (!id) {
+      setErro("ID do setor não encontrado na URL.");
+      setCarregando(false);
+      return;
     }
 
-    if (id) {
-      carregarDetalhes();
+    setCarregando(true);
+    setErro("");
+
+    try {
+      const res = await fetch(`/api/setor/dados/${id}`, {
+        cache: "no-store",
+      });
+
+      const json = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(
+          json?.message ||
+            json?.erro ||
+            `Erro ${res.status} na rota /api/setor/dados/${id}`
+        );
+      }
+
+      const dadosSetor =
+        json?.response?.setor ||
+        json?.setor ||
+        json?.response?.dados ||
+        json?.dados ||
+        (json?.id ? json : null);
+
+      if (!dadosSetor || typeof dadosSetor !== "object") {
+        throw new Error("A API respondeu, mas não retornou o objeto 'setor'.");
+      }
+
+      setSetor({
+        id: dadosSetor.id ?? id,
+        nome: dadosSetor.nome || `Setor ${id}`,
+        descricao: dadosSetor.descricao || "Nenhuma descrição disponível.",
+        foto: dadosSetor.foto || "",
+        local: dadosSetor.local || "",
+        id_status_setor: dadosSetor.id_status_setor ?? 1,
+        totalFuncionarios:
+          dadosSetor.Total_funcionarios ??
+          (Array.isArray(dadosSetor.funcionarios)
+            ? dadosSetor.funcionarios.length
+            : 0),
+        totalCameras:
+          dadosSetor.Total_cameras ??
+          (Array.isArray(dadosSetor.cameras) ? dadosSetor.cameras.length : 0),
+        totalOcorrenciasAbertas:
+          dadosSetor.Total_ocorrencias_abertas ??
+          (Array.isArray(dadosSetor.ocorrencias)
+            ? dadosSetor.ocorrencias.filter(
+                (o) => o.status?.toLowerCase() === "aberta"
+              ).length
+            : 0),
+        funcionarios: Array.isArray(dadosSetor.funcionarios)
+          ? dadosSetor.funcionarios
+          : [],
+        cameras: Array.isArray(dadosSetor.cameras) ? dadosSetor.cameras : [],
+        ocorrencias: Array.isArray(dadosSetor.ocorrencias)
+          ? dadosSetor.ocorrencias
+          : [],
+        epis: Array.isArray(dadosSetor.epi) ? dadosSetor.epi : [],
+        responsaveis: Array.isArray(dadosSetor.responsavel)
+          ? dadosSetor.responsavel
+          : [],
+      });
+    } catch (err) {
+      setErro(err.message || "Falha ao carregar informações do setor.");
+    } finally {
+      setCarregando(false);
     }
   }, [id]);
 
-  const abrirPerfilFuncionario = (func) => {
-    const fId = func.id ?? func.ID_funcionario ?? func.id_funcionario;
-    if (fId) {
-      router.push(`/funcionarios/${fId}`);
+  const carregarCatalogoEpis = useCallback(async () => {
+    try {
+      const res = await fetch("/api/epi", { cache: "no-store" });
+      if (res.ok) {
+        const json = await res.json();
+        const lista = Array.isArray(json)
+          ? json
+          : json?.response?.epi ||
+            json?.response?.dados ||
+            json?.dados ||
+            json?.epi ||
+            [];
+        setCatalogoEpis(lista);
+      }
+    } catch {
+      // Silencia falha secundária no catálogo
+    }
+  }, []);
+
+  useEffect(() => {
+    carregarSetor();
+    carregarCatalogoEpis();
+  }, [carregarSetor, carregarCatalogoEpis]);
+
+  // Função auxiliar que monta o payload completo exigido pelo PUT /api/setor/[id]
+  const atualizarSetorComEpis = async (novaListaIdsEpi) => {
+    setSalvandoEpi(true);
+    try {
+      const payload = {
+        nome: setor.nome,
+        foto: setor.foto,
+        descricao: setor.descricao,
+        local: setor.local,
+        id_status_setor: Number(setor.id_status_setor) || 1,
+        id_epi: novaListaIdsEpi.map((epiId) => ({ id: Number(epiId) })),
+        id_responsavel: setor.responsaveis.map((resp) => ({
+          id: Number(resp.ID_RESPONSAVEL ?? resp.id),
+        })),
+      };
+
+      const res = await fetch(`/api/setor/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(
+          data?.message ||
+            data?.erro ||
+            "Não foi possível atualizar os EPIs do setor."
+        );
+      }
+
+      setEpiSelecionado("");
+      await carregarSetor();
+    } catch (err) {
+      alert(err.message || "Erro ao salvar alterações no setor.");
+    } finally {
+      setSalvandoEpi(false);
     }
   };
 
-  const abrirDetalhesOcorrencia = (oco) => {
-    const oId = oco.id ?? oco.ID_ocorrencia ?? oco.id_ocorrencia;
-    if (oId) {
-      router.push(`/ocorrencias/${oId}`);
+  // Adiciona um novo EPI mantendo todos os dados atuais do setor
+  const handleAdicionarEpi = async (e) => {
+    e.preventDefault();
+    if (!epiSelecionado || !setor) return;
+
+    const idNovoEpi = Number(epiSelecionado);
+    const jaVinculado = setor.epis.some((item) => Number(item.id) === idNovoEpi);
+
+    if (jaVinculado) {
+      alert("Este EPI já está cadastrado neste setor.");
+      return;
     }
+
+    const idsAtualizados = [
+      ...setor.epis.map((item) => Number(item.id)),
+      idNovoEpi,
+    ];
+
+    await atualizarSetorComEpis(idsAtualizados);
   };
+
+  // Remove um EPI específico reenviando todos os demais dados do setor
+  const handleRemoverEpi = async (idEpiRemover) => {
+    if (!setor || salvandoEpi) return;
+
+    const idsAtualizados = setor.epis
+      .filter((item) => Number(item.id) !== Number(idEpiRemover))
+      .map((item) => Number(item.id));
+
+    await atualizarSetorComEpis(idsAtualizados);
+  };
+
+  if (carregando) {
+    return (
+      <Shell>
+        <div className={styles.conteudo}>
+          <div className={styles.estado}>Carregando dados do setor...</div>
+        </div>
+      </Shell>
+    );
+  }
+
+  if (erro || !setor) {
+    return (
+      <Shell>
+        <div className={styles.conteudo}>
+          <div className={`${styles.estado} ${styles.estadoErro}`}>
+            {erro || "Setor não encontrado."}
+          </div>
+          <button
+            className={styles.botaoVoltar}
+            onClick={() => router.push("/setores")}
+          >
+            ← Voltar para setores
+          </button>
+        </div>
+      </Shell>
+    );
+  }
+
+  // Filtra o catálogo para exibir no dropdown apenas EPIs que ainda não estão no setor
+  const episDisponiveis = catalogoEpis.filter((item) => {
+    const itemId = Number(item.id ?? item.ID_epi);
+    return !setor.epis.some((vinculado) => Number(vinculado.id) === itemId);
+  });
 
   return (
     <Shell>
-      {carregando ? (
-        <div style={{ color: "#fff", padding: "2rem", textAlign: "center" }}>
-          A carregar informações do setor...
-        </div>
-      ) : (
-        <>
-
-          <section className={`${s.painel} ${s.painelTopo}`}>
-            <h1 className={s.titulo}>{setor?.nome || `Setor ${id}`}</h1>
-            <p className={s.sub}>
-              {setor?.descricao || "Nenhuma descrição disponível."}
-            </p>
-
-            <div className={s.cards}>
-              <div className={s.card}>
-                <div className={s.cardCabecalho}>
-                  <IconUsers /> Funcionários
-                </div>
-                <h2>{setor?.totalFuncionarios || 0}</h2>
-              </div>
-              <div className={s.card}>
-                <div className={s.cardCabecalho}>
-                  <IconCamera /> Câmeras
-                </div>
-                <h2>{setor?.totalCameras || 0}</h2>
-              </div>
-              <div className={s.card}>
-                <div className={s.cardCabecalho}>
-                  <IconAlert /> Ocorrências abertas
-                </div>
-                <h2 className={s.laranja}>{setor?.totalAbertas || 0}</h2>
-              </div>
+      <section className={styles.conteudo}>
+        {/* Cabeçalho e Indicadores do Setor */}
+        <div className={styles.cardPrincipal}>
+          <div className={styles.topoCardPrincipal}>
+            <div>
+              <h1>{setor.nome}</h1>
+              <p className={styles.descricaoSetor}>{setor.descricao}</p>
+              {setor.local && (
+                <span className={styles.localBadge}>{setor.local}</span>
+              )}
             </div>
-          </section>
 
-          <div className={s.grade}>
-            <section className={s.painel}>
-              <h3 className={s.secao}>FUNCIONÁRIOS DO SETOR</h3>
-              <div className={s.rolagem}>
-                <table className={s.tabela}>
+            <button
+              type="button"
+              className={styles.botaoVoltar}
+              onClick={() => router.push("/setores")}
+            >
+              ← Voltar
+            </button>
+          </div>
+
+          <div className={styles.gradeIndicadores}>
+            <div className={styles.boxIndicador}>
+              <div className={styles.cabecalhoIndicador}>
+                <svg viewBox="0 0 24 24">
+                  <circle cx="9" cy="7" r="3" />
+                  <path d="M3 19v-2a6 6 0 0 1 12 0v2H3Z" />
+                </svg>
+                <span>Funcionários</span>
+              </div>
+              <strong className={styles.valorIndicador}>
+                {setor.totalFuncionarios}
+              </strong>
+            </div>
+
+            <div className={styles.boxIndicador}>
+              <div className={styles.cabecalhoIndicador}>
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="6" width="13" height="12" rx="2" />
+                  <path d="m16 10 5-3v10l-5-3" />
+                </svg>
+                <span>Câmeras</span>
+              </div>
+              <strong className={styles.valorIndicador}>
+                {setor.totalCameras}
+              </strong>
+            </div>
+
+            <div className={styles.boxIndicador}>
+              <div className={styles.cabecalhoIndicador}>
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 8v4m0 4h.01" />
+                </svg>
+                <span>Ocorrências abertas</span>
+              </div>
+              <strong
+                className={`${styles.valorIndicador} ${styles.valorAlerta}`}
+              >
+                {setor.totalOcorrenciasAbertas}
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        {/* Responsáveis pelo Setor */}
+        <div className={styles.cardSecao}>
+          <h2 className={styles.tituloSecao}>
+            Responsáveis pelo Setor ({setor.responsaveis.length})
+          </h2>
+
+          {setor.responsaveis.length > 0 ? (
+            <div className={styles.tabelaWrapper}>
+              <table className={styles.tabela}>
+                <thead>
+                  <tr>
+                    <th>Responsável</th>
+                    <th>E-mail</th>
+                    <th>CPF</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {setor.responsaveis.map((resp) => {
+                    const respId = resp.ID_RESPONSAVEL ?? resp.id;
+                    const respNome = resp.Nome_responsavel ?? resp.nome;
+                    const respFoto = resp.Foto_responsavel ?? resp.foto;
+                    const respEmail = resp.Email_responsavel ?? resp.email;
+                    const respCpf = resp.CPF_RESPONSAVEL ?? resp.cpf;
+
+                    return (
+                      <tr key={respId}>
+                        <td>
+                          <div className={styles.infoFuncionario}>
+                            {respFoto && (
+                              <img
+                                src={respFoto}
+                                alt={respNome}
+                                className={styles.avatarFuncionario}
+                              />
+                            )}
+                            <span>{respNome}</span>
+                          </div>
+                        </td>
+                        <td>{respEmail || "-"}</td>
+                        <td>{respCpf || "-"}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className={styles.vazio}>
+              Nenhum responsável vinculado a este setor.
+            </p>
+          )}
+        </div>
+
+        {/* Funcionários e Câmeras */}
+        <div className={styles.gradeDupla}>
+          <div className={styles.cardSecao}>
+            <h2 className={styles.tituloSecao}>Funcionários do Setor</h2>
+
+            {setor.funcionarios.length > 0 ? (
+              <div className={styles.tabelaWrapper}>
+                <table className={styles.tabela}>
                   <thead>
                     <tr>
-                      <th>NOME</th>
-                      <th>CARGO</th>
-                      <th>STATUS</th>
-                      <th>OCORRÊNCIAS</th>
+                      <th>Nome</th>
+                      <th>Cargo</th>
+                      <th>Status</th>
+                      <th>Ocorrências</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {funcionarios.length > 0 ? (
-                      funcionarios.map((func, i) => (
-                        <tr
-                          key={func.id || i}
-                          onClick={() => abrirPerfilFuncionario(func)}
-                          style={{ cursor: func.id ? "pointer" : "default" }}
-                          title={func.id ? `Ver perfil de ${func.nome}` : undefined}
-                        >
-                          <td>
-                            <div className={s.perfilRow}>
-                              <AvatarFuncionario foto={func.foto} nome={func.nome} />
-                              <span>{func.nome}</span>
-                            </div>
-                          </td>
-                          <td>{func.cargo}</td>
-                          <td>
-                            <StatusBadge status={func.status} />
-                          </td>
-                          <td>
-                            <span className={s.badgePequeno}>{func.ocorrencias}</span>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td className={s.vazio} colSpan="4">
-                          Nenhum funcionário encontrado neste setor.
+                    {setor.funcionarios.map((func) => (
+                      <tr key={func.id}>
+                        <td>
+                          <div className={styles.infoFuncionario}>
+                            {func.foto && (
+                              <img
+                                src={func.foto}
+                                alt={func.nome}
+                                className={styles.avatarFuncionario}
+                              />
+                            )}
+                            <span>{func.nome}</span>
+                          </div>
                         </td>
+                        <td>{func.cargo}</td>
+                        <td>
+                          <span
+                            className={`${styles.badgeStatus} ${
+                              func.status?.toLowerCase() === "ativo"
+                                ? styles.statusAtivo
+                                : styles.statusInativo
+                            }`}
+                          >
+                            {func.status}
+                          </span>
+                        </td>
+                        <td>{func.ocorrencias ?? 0}</td>
                       </tr>
-                    )}
+                    ))}
                   </tbody>
                 </table>
               </div>
-            </section>
-
-            <section className={s.painel}>
-              <h3 className={s.secao}>CÂMERAS DO SETOR</h3>
-              {cameras.length > 0 ? (
-                <ul className={s.listaCameras}>
-                  {cameras.map((cam, i) => (
-                    <li className={s.itemCamera} key={cam.id || i}>
-                      <div className={s.cameraNome}>
-                        <IconCamera /> {cam.nome}
-                      </div>
-                      <StatusBadge status={cam.status} />
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className={s.sub}>Nenhuma câmara vinculada.</p>
-              )}
-            </section>
+            ) : (
+              <p className={styles.vazio}>
+                Nenhum funcionário encontrado neste setor.
+              </p>
+            )}
           </div>
 
-          <section className={s.painel}>
-            <h3 className={s.secao}>OCORRÊNCIAS RECENTES</h3>
-            {ocorrencias.length > 0 ? (
-              <div className={s.gradeOcorrencias}>
-                {ocorrencias.map((oco, i) => {
-                  const ocoId = oco.id ?? oco.ID_ocorrencia ?? oco.id_ocorrencia;
-                  return (
-                    <div
-                      className={s.cardOcorrencia}
-                      key={ocoId || i}
-                      onClick={() => abrirDetalhesOcorrencia(oco)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          abrirDetalhesOcorrencia(oco);
-                        }
-                      }}
-                      style={{ cursor: ocoId ? "pointer" : "default" }}
-                      title={ocoId ? `Ver detalhes da ocorrência #${ocoId}` : undefined}
+          <div className={styles.cardSecao}>
+            <h2 className={styles.tituloSecao}>Câmeras do Setor</h2>
+
+            {setor.cameras.length > 0 ? (
+              <div className={styles.listaCameras}>
+                {setor.cameras.map((cam) => (
+                  <div key={cam.id} className={styles.itemCamera}>
+                    <span>{cam.nome}</span>
+                    <span
+                      className={
+                        cam.status?.toUpperCase() === "ONLINE"
+                          ? styles.statusOnline
+                          : styles.statusOffline
+                      }
                     >
-                      <div className={s.ocoCabecalho}>
-                        <span>#{String(ocoId || i + 1).padStart(4, "0")}</span>
-                        <span className={`${s.badgeContainer} ${s.badgeCinza}`}>
-                          {oco.origem || "SISTEMA"}
-                        </span>
-                      </div>
-
-                      <h4 className={s.ocoTitulo}>{oco.descricao}</h4>
-
-                      <div className={s.ocoRodape}>
-                        <span>
-                          {oco.autor || "Sistema"} ·{" "}
-                          {oco.data_hora
-                            ? new Date(oco.data_hora).toLocaleDateString("pt-BR")
-                            : ""}
-                        </span>
-
-                        <div className={s.ocoBadgeSeta}>
-                          <StatusBadge status={oco.status} />
-                          <IconChevron />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                      {cam.status}
+                    </span>
+                  </div>
+                ))}
               </div>
             ) : (
-              <p className={s.sub}>Nenhuma ocorrência registada.</p>
+              <p className={styles.vazio}>Nenhuma câmera vinculada.</p>
             )}
-          </section>
-        </>
-      )}
+          </div>
+        </div>
+
+        {/* EPIs do Setor e Cadastro de Novos EPIs */}
+        <div className={styles.cardSecao}>
+          <div className={styles.topoSecaoEpi}>
+            <div>
+              <h2 className={styles.tituloSecao}>
+                EPIs do Setor ({setor.epis.length})
+              </h2>
+              <p className={styles.subtituloSecao}>
+                Equipamentos de proteção individual obrigatórios nesta área.
+              </p>
+            </div>
+
+            <form
+              className={styles.formAdicionarEpi}
+              onSubmit={handleAdicionarEpi}
+            >
+              <select
+                className={styles.selectEpi}
+                value={epiSelecionado}
+                onChange={(e) => setEpiSelecionado(e.target.value)}
+                disabled={salvandoEpi}
+              >
+                <option value="">
+                  {episDisponiveis.length > 0
+                    ? "Selecione um EPI para adicionar..."
+                    : "Todos os EPIs já foram adicionados"}
+                </option>
+                {episDisponiveis.map((item) => {
+                  const epiId = item.id ?? item.ID_epi;
+                  const epiNome = item.nome ?? item.Nome_epi;
+                  return (
+                    <option key={epiId} value={epiId}>
+                      {epiNome}
+                    </option>
+                  );
+                })}
+              </select>
+
+              <button
+                type="submit"
+                className={styles.botaoAdicionarEpi}
+                disabled={salvandoEpi || !epiSelecionado}
+              >
+                {salvandoEpi ? "Salvando..." : "+ Adicionar EPI"}
+              </button>
+            </form>
+          </div>
+
+          {setor.epis.length > 0 ? (
+            <div className={styles.gradeEpis}>
+              {setor.epis.map((epi) => (
+                <div key={epi.id} className={styles.cardEpi}>
+                  {epi.foto ? (
+                    <img
+                      src={epi.foto}
+                      alt={epi.nome}
+                      className={styles.fotoEpi}
+                    />
+                  ) : (
+                    <div className={styles.placeholderEpi}>EPI</div>
+                  )}
+
+                  <div className={styles.infoEpi}>
+                    <strong>{epi.nome}</strong>
+                    {epi.cor && (
+                      <span className={styles.corEpi}>Cor: {epi.cor}</span>
+                    )}
+                    <p className={styles.descEpi}>{epi.descricao}</p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleRemoverEpi(epi.id)}
+                    disabled={salvandoEpi}
+                    title="Remover EPI do setor"
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "#ef4444",
+                      cursor: "pointer",
+                      fontSize: "0.85rem",
+                      marginLeft: "auto",
+                      alignSelf: "flex-start",
+                    }}
+                  >
+                    Remover
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.vazio}>Nenhum EPI vinculado a este setor.</p>
+          )}
+        </div>
+
+        {/* Ocorrências Recentes */}
+        <div className={styles.cardSecao}>
+          <h2 className={styles.tituloSecao}>Ocorrências Recentes</h2>
+
+          {setor.ocorrencias.length > 0 ? (
+            <div className={styles.listaOcorrencias}>
+              {setor.ocorrencias.map((oc) => (
+                <div key={oc.id} className={styles.itemOcorrencia}>
+                  <div>
+                    <p className={styles.textoOcorrencia}>{oc.descricao}</p>
+                    {oc.data_hora && (
+                      <span className={styles.dataOcorrencia}>
+                        {new Date(oc.data_hora).toLocaleString("pt-BR")}
+                      </span>
+                    )}
+                  </div>
+                  <span className={styles.badgeOcorrencia}>{oc.status}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.vazio}>Nenhuma ocorrência registrada.</p>
+          )}
+        </div>
+      </section>
     </Shell>
   );
 }
