@@ -1,0 +1,292 @@
+.conteudo {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: clamp(24px, 3vw, 40px) clamp(16px, 3.5vw, 48px) 60px;
+  box-sizing: border-box;
+  color: #f5f5f5;
+  font-family: 'DM Sans', Arial, Helvetica, sans-serif;
+}
+
+/* ESTADOS DE CARREGAMENTO E ERRO */
+.estadoWrapper {
+  max-width: 600px;
+  margin: 60px auto;
+  padding: 36px 24px;
+  background: #111416;
+  border: 1px solid #22262b;
+  border-radius: 14px;
+  text-align: center;
+  color: #a4a6ad;
+  font-size: 15px;
+}
+
+.mensagemErro {
+  color: #ff5c5c;
+  margin: 0 0 20px;
+  font-weight: 600;
+}
+
+/* CABEÇALHO DA PÁGINA */
+.topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+
+.linhaTitulo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.titulo {
+  margin: 0;
+  font-size: clamp(24px, 2.2vw, 32px);
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.badgeStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.statusOnline {
+  background: rgba(54, 209, 138, 0.14);
+  color: #36d18a;
+  border: 1px solid rgba(54, 209, 138, 0.35);
+}
+
+.statusOffline {
+  background: rgba(255, 69, 69, 0.14);
+  color: #ff5c5c;
+  border: 1px solid rgba(255, 69, 69, 0.35);
+}
+
+.pontoStatus {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.subtitulo {
+  margin: 8px 0 0;
+  color: #a4a6ad;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.codigoStream {
+  background: #14171b;
+  border: 1px solid #252a30;
+  color: #ff9500;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12.5px;
+}
+
+/* BOTÕES DO TOPO */
+.acoesTopo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.botaoPrimario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 18px;
+  background: #ff9500;
+  color: #111111;
+  border: none;
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.15s;
+}
+
+.botaoPrimario:hover {
+  background: #ffa726;
+  transform: translateY(-1px);
+}
+
+.botaoVoltar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 42px;
+  padding: 0 16px;
+  background: #15181c;
+  color: #f5f5f5;
+  border: 1px solid #292e35;
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.botaoVoltar:hover {
+  border-color: #ff9500;
+  background: #1b1f24;
+}
+
+/* CONTAINER GRANDE DO PLAYER */
+.playerContainer {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 76vh;
+  background: #08090b;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #22272d;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.48);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badgeAoVivo {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 5;
+  background: rgba(10, 12, 14, 0.82);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 149, 0, 0.45);
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.pontoAoVivo {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ff9500;
+  box-shadow: 0 0 8px #ff9500;
+}
+
+.videoGrande {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000000;
+  display: block;
+}
+
+/* SINAL AUSENTE DENTRO DO PLAYER */
+.semSinalBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #8f949d;
+  padding: 32px 24px;
+  max-width: 500px;
+}
+
+.iconeSemSinal {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 14px;
+  opacity: 0.55;
+  color: #6c7078;
+}
+
+.tituloSemSinal {
+  font-size: 18px;
+  font-weight: 700;
+  color: #e5e7eb;
+  margin: 0 0 8px;
+}
+
+.descricaoSemSinal {
+  font-size: 13.5px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* CARTÃO DE INFORMAÇÕES TÉCNICAS ABAIXO DO VÍDEO */
+.painelDetalhes {
+  margin-top: 20px;
+  background: #111416;
+  border: 1px solid #22262b;
+  border-radius: 14px;
+  padding: 20px 24px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.itemInfo span {
+  font-size: 12px;
+  color: #8f949d;
+}
+
+.itemInfo strong {
+  font-size: 14.5px;
+  color: #f3f4f6;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .painelDetalhes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .conteudo {
+    padding: 20px 14px 40px;
+  }
+
+  .painelDetalhes {
+    grid-template-columns: 1fr;
+  }
+
+  .acoesTopo {
+    width: 100%;
+  }
+
+  .botaoPrimario,
+  .botaoVoltar {
+    flex: 1;
+  }
+}

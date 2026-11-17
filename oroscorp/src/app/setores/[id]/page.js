@@ -1,21 +1,53 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { uploadParaCloudinary } from "@/API/cloudinary";
 import Shell from "../../components/Shell.js";
 import styles from "../../style/detalheSetor.module.css";
+
+const TIPOS_ACEITOS = ["image/jpeg", "image/png", "image/webp"];
+const TAMANHO_MAXIMO_MB = 2;
 
 export default function DetalhesSetor() {
   const params = useParams();
   const id = params?.id || Object.values(params || {})[0];
   const router = useRouter();
 
+  const inputFotoRef = useRef(null);
+  const uploadRef = useRef({ arquivo: null, url: "" });
+
   const [setor, setSetor] = useState(null);
   const [catalogoEpis, setCatalogoEpis] = useState([]);
   const [epiSelecionado, setEpiSelecionado] = useState("");
   const [carregando, setCarregando] = useState(true);
-  const [salvandoEpi, setSalvandoEpi] = useState(false);
+  const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
+
+  // Estados para edição dos dados gerais e foto do setor
+  const [editandoSetor, setEditandoSetor] = useState(false);
+  const [fotoArquivo, setFotoArquivo] = useState(null);
+  const [previewFoto, setPreviewFoto] = useState("");
+  const [arrastandoFoto, setArrastandoFoto] = useState(false);
+  const [erroFoto, setErroFoto] = useState("");
+  const [formSetor, setFormSetor] = useState({
+    nome: "",
+    descricao: "",
+    local: "",
+    foto: "",
+    id_status_setor: 1,
+  });
+
+  // Gera preview local da nova imagem escolhida e limpa a memória depois
+  useEffect(() => {
+    if (!fotoArquivo) {
+      setPreviewFoto("");
+      return;
+    }
+    const url = URL.createObjectURL(fotoArquivo);
+    setPreviewFoto(url);
+    return () => URL.revokeObjectURL(url);
+  }, [fotoArquivo]);
 
   const carregarSetor = useCallback(async () => {
     if (!id) {
@@ -53,7 +85,65 @@ export default function DetalhesSetor() {
         throw new Error("A API respondeu, mas não retornou o objeto 'setor'.");
       }
 
-      setSetor({
+      const episUnicos = Array.isArray(dadosSetor.epi)
+        ? Array.from(
+            new Map(
+              dadosSetor.epi
+                .filter((item) => item && (item.id || item.ID_epi))
+                .map((item) => [Number(item.id ?? item.ID_epi), item])
+            ).values()
+          )
+        : [];
+
+      const responsaveisUnicos = Array.isArray(dadosSetor.responsavel)
+        ? Array.from(
+            new Map(
+              dadosSetor.responsavel
+                .filter((resp) => {
+                  const rId =
+                    resp?.ID_RESPONSAVEL ?? resp?.id_responsavel ?? resp?.id;
+                  return (
+                    rId !== undefined &&
+                    rId !== null &&
+                    !Number.isNaN(Number(rId))
+                  );
+                })
+                .map((resp) => {
+                  const rId = Number(
+                    resp.ID_RESPONSAVEL ?? resp.id_responsavel ?? resp.id
+                  );
+                  return [
+                    rId,
+                    {
+                      id: rId,
+                      nome:
+                        resp.Nome_responsavel ??
+                        resp.nome_responsavel ??
+                        resp.nome ??
+                        "Sem nome",
+                      email:
+                        resp.Email_responsavel ??
+                        resp.email_responsavel ??
+                        resp.email ??
+                        "-",
+                      cpf:
+                        resp.CPF_RESPONSAVEL ??
+                        resp.cpf_responsavel ??
+                        resp.cpf ??
+                        "-",
+                      foto:
+                        resp.Foto_responsavel ??
+                        resp.foto_responsavel ??
+                        resp.foto ??
+                        "",
+                    },
+                  ];
+                })
+            ).values()
+          )
+        : [];
+
+      const setorNormalizado = {
         id: dadosSetor.id ?? id,
         nome: dadosSetor.nome || `Setor ${id}`,
         descricao: dadosSetor.descricao || "Nenhuma descrição disponível.",
@@ -82,10 +172,17 @@ export default function DetalhesSetor() {
         ocorrencias: Array.isArray(dadosSetor.ocorrencias)
           ? dadosSetor.ocorrencias
           : [],
-        epis: Array.isArray(dadosSetor.epi) ? dadosSetor.epi : [],
-        responsaveis: Array.isArray(dadosSetor.responsavel)
-          ? dadosSetor.responsavel
-          : [],
+        epis: episUnicos,
+        responsaveis: responsaveisUnicos,
+      };
+
+      setSetor(setorNormalizado);
+      setFormSetor({
+        nome: setorNormalizado.nome,
+        descricao: setorNormalizado.descricao,
+        local: setorNormalizado.local,
+        foto: setorNormalizado.foto,
+        id_status_setor: setorNormalizado.id_status_setor,
       });
     } catch (err) {
       setErro(err.message || "Falha ao carregar informações do setor.");
@@ -118,20 +215,58 @@ export default function DetalhesSetor() {
     carregarCatalogoEpis();
   }, [carregarSetor, carregarCatalogoEpis]);
 
-  // Função auxiliar que monta o payload completo exigido pelo PUT /api/setor/[id]
-  const atualizarSetorComEpis = async (novaListaIdsEpi) => {
-    setSalvandoEpi(true);
+  // Handlers de seleção de foto (clique ou drag & drop)
+  const selecionarFoto = (arquivo) => {
+    if (!arquivo) return;
+
+    if (!TIPOS_ACEITOS.includes(arquivo.type)) {
+      setErroFoto("A foto deve ser JPG, PNG ou WebP.");
+      return;
+    }
+    if (arquivo.size > TAMANHO_MAXIMO_MB * 1024 * 1024) {
+      setErroFoto(`A foto deve ter no máximo ${TAMANHO_MAXIMO_MB} MB.`);
+      return;
+    }
+
+    setErroFoto("");
+    setFotoArquivo(arquivo);
+  };
+
+  const abrirSeletorFoto = () => inputFotoRef.current?.click();
+
+  const aoEscolherArquivo = (e) => {
+    const arquivo = e.target.files?.[0];
+    e.target.value = "";
+    selecionarFoto(arquivo);
+  };
+
+  const soltarFoto = (e) => {
+    e.preventDefault();
+    setArrastandoFoto(false);
+    selecionarFoto(e.dataTransfer.files?.[0]);
+  };
+
+  // Envia o PUT completo do setor para /api/setor/[id]
+  const enviarPutSetor = async ({
+    dadosGerais = setor,
+    listaIdsEpi = setor.epis.map((item) => Number(item.id)),
+  }) => {
+    setSalvando(true);
     try {
       const payload = {
-        nome: setor.nome,
-        foto: setor.foto,
-        descricao: setor.descricao,
-        local: setor.local,
-        id_status_setor: Number(setor.id_status_setor) || 1,
-        id_epi: novaListaIdsEpi.map((epiId) => ({ id: Number(epiId) })),
-        id_responsavel: setor.responsaveis.map((resp) => ({
-          id: Number(resp.ID_RESPONSAVEL ?? resp.id),
-        })),
+        nome: dadosGerais.nome,
+        foto: dadosGerais.foto,
+        descricao: dadosGerais.descricao,
+        local: dadosGerais.local,
+        id_status_setor: Number(dadosGerais.id_status_setor) || 1,
+        id_epi: listaIdsEpi
+          .map((epiId) => Number(epiId))
+          .filter((n) => !Number.isNaN(n))
+          .map((n) => ({ id: n })),
+        id_responsavel: setor.responsaveis
+          .map((resp) => Number(resp.id))
+          .filter((n) => !Number.isNaN(n))
+          .map((n) => ({ id: n })),
       };
 
       const res = await fetch(`/api/setor/${id}`, {
@@ -146,22 +281,73 @@ export default function DetalhesSetor() {
 
       if (!res.ok) {
         throw new Error(
-          data?.message ||
-            data?.erro ||
-            "Não foi possível atualizar os EPIs do setor."
+          data?.message || data?.erro || "Não foi possível atualizar o setor."
         );
       }
 
       setEpiSelecionado("");
+      setEditandoSetor(false);
+      setFotoArquivo(null);
+      setErroFoto("");
       await carregarSetor();
     } catch (err) {
       alert(err.message || "Erro ao salvar alterações no setor.");
     } finally {
-      setSalvandoEpi(false);
+      setSalvando(false);
     }
   };
 
-  // Adiciona um novo EPI mantendo todos os dados atuais do setor
+  // Faz upload para o Cloudinary se uma nova foto foi escolhida e salva o setor
+  const handleSalvarDadosSetor = async (e) => {
+    e.preventDefault();
+    if (!formSetor.nome.trim()) {
+      alert("O nome do setor não pode ficar vazio.");
+      return;
+    }
+
+    setSalvando(true);
+    try {
+      let fotoUrlFinal = formSetor.foto;
+
+      if (fotoArquivo) {
+        if (uploadRef.current.arquivo !== fotoArquivo) {
+          let urlRetornada;
+          try {
+            urlRetornada = await uploadParaCloudinary(fotoArquivo);
+          } catch {
+            setErroFoto("Não foi possível enviar a foto para o Cloudinary.");
+            setSalvando(false);
+            return;
+          }
+          uploadRef.current = { arquivo: fotoArquivo, url: urlRetornada };
+        }
+        fotoUrlFinal = uploadRef.current.url;
+      }
+
+      await enviarPutSetor({
+        dadosGerais: {
+          ...formSetor,
+          foto: fotoUrlFinal,
+        },
+      });
+    } catch {
+      setSalvando(false);
+    }
+  };
+
+  const handleCancelarEdicao = () => {
+    setFormSetor({
+      nome: setor.nome,
+      descricao: setor.descricao,
+      local: setor.local,
+      foto: setor.foto,
+      id_status_setor: setor.id_status_setor,
+    });
+    setFotoArquivo(null);
+    setErroFoto("");
+    setEditandoSetor(false);
+  };
+
   const handleAdicionarEpi = async (e) => {
     e.preventDefault();
     if (!epiSelecionado || !setor) return;
@@ -174,23 +360,24 @@ export default function DetalhesSetor() {
       return;
     }
 
-    const idsAtualizados = [
-      ...setor.epis.map((item) => Number(item.id)),
-      idNovoEpi,
-    ];
-
-    await atualizarSetorComEpis(idsAtualizados);
+    await enviarPutSetor({
+      listaIdsEpi: [
+        ...setor.epis.map((item) => Number(item.id)),
+        idNovoEpi,
+      ],
+    });
   };
 
-  // Remove um EPI específico reenviando todos os demais dados do setor
   const handleRemoverEpi = async (idEpiRemover) => {
-    if (!setor || salvandoEpi) return;
+    if (!setor || salvando) return;
 
     const idsAtualizados = setor.epis
       .filter((item) => Number(item.id) !== Number(idEpiRemover))
       .map((item) => Number(item.id));
 
-    await atualizarSetorComEpis(idsAtualizados);
+    await enviarPutSetor({
+      listaIdsEpi: idsAtualizados,
+    });
   };
 
   if (carregando) {
@@ -221,34 +408,189 @@ export default function DetalhesSetor() {
     );
   }
 
-  // Filtra o catálogo para exibir no dropdown apenas EPIs que ainda não estão no setor
   const episDisponiveis = catalogoEpis.filter((item) => {
     const itemId = Number(item.id ?? item.ID_epi);
     return !setor.epis.some((vinculado) => Number(vinculado.id) === itemId);
   });
+
+  const imagemExibidaNaEdicao = previewFoto || formSetor.foto;
 
   return (
     <Shell>
       <section className={styles.conteudo}>
         {/* Cabeçalho e Indicadores do Setor */}
         <div className={styles.cardPrincipal}>
-          <div className={styles.topoCardPrincipal}>
-            <div>
-              <h1>{setor.nome}</h1>
-              <p className={styles.descricaoSetor}>{setor.descricao}</p>
-              {setor.local && (
-                <span className={styles.localBadge}>{setor.local}</span>
-              )}
-            </div>
+          {!editandoSetor ? (
+            <div className={styles.topoCardPrincipal}>
+              <div>
+                <h1>{setor.nome}</h1>
+                <p className={styles.descricaoSetor}>{setor.descricao}</p>
+                {setor.local && (
+                  <span className={styles.localBadge}>{setor.local}</span>
+                )}
+              </div>
 
-            <button
-              type="button"
-              className={styles.botaoVoltar}
-              onClick={() => router.push("/setores")}
+              <div className={styles.acoesTopo}>
+                <button
+                  type="button"
+                  className={styles.botaoEditar}
+                  onClick={() => setEditandoSetor(true)}
+                >
+                  Editar Setor
+                </button>
+                <button
+                  type="button"
+                  className={styles.botaoVoltar}
+                  onClick={() => router.push("/setores")}
+                >
+                  ← Voltar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <form
+              className={styles.formEditarSetor}
+              onSubmit={handleSalvarDadosSetor}
             >
-              ← Voltar
-            </button>
-          </div>
+              <div className={styles.topoFormEdicao}>
+                <h2 className={styles.tituloSecao}>Editar Dados do Setor</h2>
+                <div className={styles.acoesTopo}>
+                  <button
+                    type="button"
+                    className={styles.botaoVoltar}
+                    onClick={handleCancelarEdicao}
+                    disabled={salvando}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className={styles.botaoAdicionarEpi}
+                    disabled={salvando}
+                  >
+                    {salvando ? "Enviando e salvando..." : "Salvar Alterações"}
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.gradeFormEdicao}>
+                {/* Área de Upload de Foto para Cloudinary */}
+                <div className={`${styles.campoGrupo} ${styles.campoLargo}`}>
+                  <label className={styles.labelCampo}>Foto do Setor</label>
+
+                  <div
+                    className={`${styles.areaUploadFoto} ${
+                      arrastandoFoto ? styles.areaUploadArrastando : ""
+                    }`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={abrirSeletorFoto}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        abrirSeletorFoto();
+                      }
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setArrastandoFoto(true);
+                    }}
+                    onDragLeave={() => setArrastandoFoto(false)}
+                    onDrop={soltarFoto}
+                  >
+                    <input
+                      ref={inputFotoRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={aoEscolherArquivo}
+                      onClick={(e) => e.stopPropagation()}
+                      hidden
+                    />
+
+                    {imagemExibidaNaEdicao ? (
+                      <img
+                        src={imagemExibidaNaEdicao}
+                        alt="Prévia do setor"
+                        className={styles.previewImagemSetor}
+                      />
+                    ) : (
+                      <div className={styles.placeholderUpload}>📷</div>
+                    )}
+
+                    <div className={styles.textoUpload}>
+                      <strong>
+                        {fotoArquivo
+                          ? `Novo arquivo: ${fotoArquivo.name}`
+                          : "Clique para selecionar ou arraste uma nova foto"}
+                      </strong>
+                      <span>JPG, PNG ou WebP (máx. {TAMANHO_MAXIMO_MB} MB)</span>
+                    </div>
+                  </div>
+
+                  {erroFoto && (
+                    <span className={styles.erroUpload}>{erroFoto}</span>
+                  )}
+                </div>
+
+                <div className={styles.campoGrupo}>
+                  <label className={styles.labelCampo}>Nome do Setor</label>
+                  <input
+                    type="text"
+                    className={styles.inputCampo}
+                    value={formSetor.nome}
+                    onChange={(e) =>
+                      setFormSetor({ ...formSetor, nome: e.target.value })
+                    }
+                    placeholder="Ex: Soldagem Estrutural"
+                    required
+                  />
+                </div>
+
+                <div className={styles.campoGrupo}>
+                  <label className={styles.labelCampo}>Localização</label>
+                  <input
+                    type="text"
+                    className={styles.inputCampo}
+                    value={formSetor.local}
+                    onChange={(e) =>
+                      setFormSetor({ ...formSetor, local: e.target.value })
+                    }
+                    placeholder="Ex: Galpão A, piso 1"
+                  />
+                </div>
+
+                <div className={styles.campoGrupo}>
+                  <label className={styles.labelCampo}>Status do Setor</label>
+                  <select
+                    className={styles.inputCampo}
+                    value={formSetor.id_status_setor}
+                    onChange={(e) =>
+                      setFormSetor({
+                        ...formSetor,
+                        id_status_setor: Number(e.target.value),
+                      })
+                    }
+                  >
+                    <option value={1}>Ativo</option>
+                    <option value={2}>Inativo</option>
+                  </select>
+                </div>
+
+                <div className={`${styles.campoGrupo} ${styles.campoLargo}`}>
+                  <label className={styles.labelCampo}>Descrição</label>
+                  <textarea
+                    rows={3}
+                    className={styles.textareaCampo}
+                    value={formSetor.descricao}
+                    onChange={(e) =>
+                      setFormSetor({ ...formSetor, descricao: e.target.value })
+                    }
+                    placeholder="Descreva as atividades e riscos deste setor..."
+                  />
+                </div>
+              </div>
+            </form>
+          )}
 
           <div className={styles.gradeIndicadores}>
             <div className={styles.boxIndicador}>
@@ -311,32 +653,24 @@ export default function DetalhesSetor() {
                   </tr>
                 </thead>
                 <tbody>
-                  {setor.responsaveis.map((resp) => {
-                    const respId = resp.ID_RESPONSAVEL ?? resp.id;
-                    const respNome = resp.Nome_responsavel ?? resp.nome;
-                    const respFoto = resp.Foto_responsavel ?? resp.foto;
-                    const respEmail = resp.Email_responsavel ?? resp.email;
-                    const respCpf = resp.CPF_RESPONSAVEL ?? resp.cpf;
-
-                    return (
-                      <tr key={respId}>
-                        <td>
-                          <div className={styles.infoFuncionario}>
-                            {respFoto && (
-                              <img
-                                src={respFoto}
-                                alt={respNome}
-                                className={styles.avatarFuncionario}
-                              />
-                            )}
-                            <span>{respNome}</span>
-                          </div>
-                        </td>
-                        <td>{respEmail || "-"}</td>
-                        <td>{respCpf || "-"}</td>
-                      </tr>
-                    );
-                  })}
+                  {setor.responsaveis.map((resp, idx) => (
+                    <tr key={`resp-${resp.id}-${idx}`}>
+                      <td>
+                        <div className={styles.infoFuncionario}>
+                          {resp.foto && (
+                            <img
+                              src={resp.foto}
+                              alt={resp.nome}
+                              className={styles.avatarFuncionario}
+                            />
+                          )}
+                          <span>{resp.nome}</span>
+                        </div>
+                      </td>
+                      <td>{resp.email}</td>
+                      <td>{resp.cpf}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -364,35 +698,48 @@ export default function DetalhesSetor() {
                     </tr>
                   </thead>
                   <tbody>
-                    {setor.funcionarios.map((func) => (
-                      <tr key={func.id}>
-                        <td>
-                          <div className={styles.infoFuncionario}>
-                            {func.foto && (
-                              <img
-                                src={func.foto}
-                                alt={func.nome}
-                                className={styles.avatarFuncionario}
-                              />
-                            )}
-                            <span>{func.nome}</span>
-                          </div>
-                        </td>
-                        <td>{func.cargo}</td>
-                        <td>
-                          <span
-                            className={`${styles.badgeStatus} ${
-                              func.status?.toLowerCase() === "ativo"
-                                ? styles.statusAtivo
-                                : styles.statusInativo
-                            }`}
-                          >
-                            {func.status}
-                          </span>
-                        </td>
-                        <td>{func.ocorrencias ?? 0}</td>
-                      </tr>
-                    ))}
+                    {setor.funcionarios.map((func, idx) => {
+                      const funcId =
+                        func.id ?? func.ID_funcionario ?? func.id_funcionario;
+                      return (
+                        <tr
+                          key={`func-${funcId ?? idx}-${idx}`}
+                          className={funcId ? styles.linhaClicavel : undefined}
+                          onClick={() => {
+                            if (funcId) router.push(`/funcionarios/${funcId}`);
+                          }}
+                          title={
+                            funcId ? `Ver detalhes de ${func.nome}` : undefined
+                          }
+                        >
+                          <td>
+                            <div className={styles.infoFuncionario}>
+                              {func.foto && (
+                                <img
+                                  src={func.foto}
+                                  alt={func.nome}
+                                  className={styles.avatarFuncionario}
+                                />
+                              )}
+                              <span>{func.nome}</span>
+                            </div>
+                          </td>
+                          <td>{func.cargo}</td>
+                          <td>
+                            <span
+                              className={`${styles.badgeStatus} ${
+                                func.status?.toLowerCase() === "ativo"
+                                  ? styles.statusAtivo
+                                  : styles.statusInativo
+                              }`}
+                            >
+                              {func.status}
+                            </span>
+                          </td>
+                          <td>{func.ocorrencias ?? 0}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -408,8 +755,11 @@ export default function DetalhesSetor() {
 
             {setor.cameras.length > 0 ? (
               <div className={styles.listaCameras}>
-                {setor.cameras.map((cam) => (
-                  <div key={cam.id} className={styles.itemCamera}>
+                {setor.cameras.map((cam, idx) => (
+                  <div
+                    key={`cam-${cam.id ?? idx}-${idx}`}
+                    className={styles.itemCamera}
+                  >
                     <span>{cam.nome}</span>
                     <span
                       className={
@@ -449,18 +799,18 @@ export default function DetalhesSetor() {
                 className={styles.selectEpi}
                 value={epiSelecionado}
                 onChange={(e) => setEpiSelecionado(e.target.value)}
-                disabled={salvandoEpi}
+                disabled={salvando}
               >
                 <option value="">
                   {episDisponiveis.length > 0
                     ? "Selecione um EPI para adicionar..."
                     : "Todos os EPIs já foram adicionados"}
                 </option>
-                {episDisponiveis.map((item) => {
+                {episDisponiveis.map((item, idx) => {
                   const epiId = item.id ?? item.ID_epi;
                   const epiNome = item.nome ?? item.Nome_epi;
                   return (
-                    <option key={epiId} value={epiId}>
+                    <option key={`cat-${epiId}-${idx}`} value={epiId}>
                       {epiNome}
                     </option>
                   );
@@ -470,17 +820,17 @@ export default function DetalhesSetor() {
               <button
                 type="submit"
                 className={styles.botaoAdicionarEpi}
-                disabled={salvandoEpi || !epiSelecionado}
+                disabled={salvando || !epiSelecionado}
               >
-                {salvandoEpi ? "Salvando..." : "+ Adicionar EPI"}
+                {salvando ? "Salvando..." : "+ Adicionar EPI"}
               </button>
             </form>
           </div>
 
           {setor.epis.length > 0 ? (
             <div className={styles.gradeEpis}>
-              {setor.epis.map((epi) => (
-                <div key={epi.id} className={styles.cardEpi}>
+              {setor.epis.map((epi, idx) => (
+                <div key={`epi-${epi.id}-${idx}`} className={styles.cardEpi}>
                   {epi.foto ? (
                     <img
                       src={epi.foto}
@@ -502,7 +852,7 @@ export default function DetalhesSetor() {
                   <button
                     type="button"
                     onClick={() => handleRemoverEpi(epi.id)}
-                    disabled={salvandoEpi}
+                    disabled={salvando}
                     title="Remover EPI do setor"
                     style={{
                       background: "transparent",
@@ -530,19 +880,33 @@ export default function DetalhesSetor() {
 
           {setor.ocorrencias.length > 0 ? (
             <div className={styles.listaOcorrencias}>
-              {setor.ocorrencias.map((oc) => (
-                <div key={oc.id} className={styles.itemOcorrencia}>
-                  <div>
-                    <p className={styles.textoOcorrencia}>{oc.descricao}</p>
-                    {oc.data_hora && (
-                      <span className={styles.dataOcorrencia}>
-                        {new Date(oc.data_hora).toLocaleString("pt-BR")}
-                      </span>
-                    )}
+              {setor.ocorrencias.map((oc, idx) => {
+                const ocId = oc.id ?? oc.ID_ocorrencia ?? oc.id_ocorrencia;
+                return (
+                  <div
+                    key={`oc-${ocId ?? idx}-${idx}`}
+                    className={`${styles.itemOcorrencia} ${
+                      ocId ? styles.itemClicavel : ""
+                    }`}
+                    onClick={() => {
+                      if (ocId) router.push(`/ocorrencias/${ocId}`);
+                    }}
+                    title={
+                      ocId ? `Ver detalhes da ocorrência #${ocId}` : undefined
+                    }
+                  >
+                    <div>
+                      <p className={styles.textoOcorrencia}>{oc.descricao}</p>
+                      {oc.data_hora && (
+                        <span className={styles.dataOcorrencia}>
+                          {new Date(oc.data_hora).toLocaleString("pt-BR")}
+                        </span>
+                      )}
+                    </div>
+                    <span className={styles.badgeOcorrencia}>{oc.status}</span>
                   </div>
-                  <span className={styles.badgeOcorrencia}>{oc.status}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <p className={styles.vazio}>Nenhuma ocorrência registrada.</p>

@@ -499,6 +499,159 @@
     color: #8f9299;
     font-size: 14px;
   }
+  .areaUploadFoto {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    background: #181c1f;
+    border: 1.5px dashed #333940;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .areaUploadFoto:hover,
+  .areaUploadArrastando {
+    border-color: #ff9500;
+    background: rgba(255, 149, 0, 0.06);
+  }
+
+  .previewImagemSetor {
+    width: 72px;
+    height: 54px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #2b3036;
+    flex-shrink: 0;
+  }
+
+  .placeholderUpload {
+    width: 72px;
+    height: 54px;
+    border-radius: 8px;
+    background: #202427;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .textoUpload {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .textoUpload strong {
+    font-size: 14px;
+    color: #f5f5f5;
+  }
+
+  .textoUpload span {
+    font-size: 12px;
+    color: #8f939a;
+  }
+
+  .erroUpload {
+    font-size: 12px;
+    color: #ef4444;
+    margin-top: 2px;
+  }
+
+
+  /* Edição do Setor */
+  .acoesTopo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .botaoEditar {
+    padding: 8px 16px;
+    background: rgba(255, 149, 0, 0.14);
+    color: #ff9500;
+    border: 1px solid #ff9500;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
+  }
+
+  .botaoEditar:hover {
+    background: #ff9500;
+    color: #111;
+  }
+
+  .formEditarSetor {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #202427;
+  }
+
+  .topoFormEdicao {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .topoFormEdicao .tituloSecao {
+    margin: 0;
+  }
+
+  .gradeFormEdicao {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .campoGrupo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .campoLargo {
+    grid-column: 1 / -1;
+  }
+
+  .labelCampo {
+    font-size: 12px;
+    font-weight: 600;
+    color: #a4a6ad;
+  }
+
+  .inputCampo,
+  .textareaCampo {
+    width: 100%;
+    padding: 10px 12px;
+    background: #181c1f;
+    color: #f5f5f5;
+    border: 1px solid #2b3036;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    box-sizing: border-box;
+    outline: none;
+  }
+
+  .inputCampo:focus,
+  .textareaCampo:focus {
+    border-color: #ff9500;
+  }
+
+  .textareaCampo {
+    resize: vertical;
+  }
+
+
   
   @media (max-width: 900px) {
     .gradeDupla {

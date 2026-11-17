@@ -6,14 +6,16 @@ Objetivo: Estilização da página de setores
 Autor: João Pedro e Kaique Carvalho
 
 Autor do JS: Matheus Lucas
-Data: 05 de Novembro de 2026
-Objetivo: Tornar esta tela dinâmica e exibir a foto de cada setor no card
+Data: 16 de Novembro de 2026
+Objetivo: Tela de setores dinâmica com resumo geral, busca, filtros e paginação
 */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Shell from "../components/Shell.js";
 import styles from "../style/setores.module.css";
+
+const SETORES_POR_PAGINA = 12;
 
 function Icone({ tipo }) {
   if (tipo === "funcionarios") {
@@ -43,77 +45,62 @@ function Icone({ tipo }) {
   );
 }
 
-function Indicador({ tipo, valor, legenda }) {
+function Indicador({ tipo, valor, legenda, destaque }) {
   return (
-    <div className={styles.indicador}>
-      <span
-        className={`${styles.icone} ${
-          tipo === "alertas" ? styles.iconeAlerta : ""
-        }`}
-      >
-        <Icone tipo={tipo} />
-      </span>
+    <div
+      className={`${styles.indicador} ${
+        destaque ? styles.indicadorAlertaAtivo : ""
+      }`}
+    >
+      <div className={styles.topoIndicador}>
+        <span
+          className={`${styles.icone} ${
+            tipo === "alertas" ? styles.iconeAlerta : ""
+          }`}
+        >
+          <Icone tipo={tipo} />
+        </span>
 
-      <strong className={tipo === "alertas" ? styles.valorAlerta : ""}>
-        {valor}
-      </strong>
+        <strong
+          className={tipo === "alertas" && destaque ? styles.valorAlerta : ""}
+        >
+          {valor}
+        </strong>
+      </div>
 
       <span className={styles.legenda}>{legenda}</span>
     </div>
   );
 }
 
-function ImagemSetor({ foto, nome }) {
+function ImagemSetor({ foto, nome, status, abertas }) {
   const [falhou, setFalhou] = useState(false);
 
   const srcValido =
     foto && !falhou
-      ? foto.startsWith("http") || foto.startsWith("/") || foto.startsWith("data:")
+      ? foto.startsWith("http") ||
+        foto.startsWith("/") ||
+        foto.startsWith("data:")
         ? foto
         : `/${foto}`
       : null;
 
+  const isInativo = String(status || "").toLowerCase().includes("inativ");
+
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "150px",
-        borderRadius: "10px",
-        overflow: "hidden",
-        backgroundColor: "#14171a",
-        border: "1px solid #23272d",
-        marginBottom: "14px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
+    <div className={styles.capaSetor}>
       {srcValido ? (
         <img
           src={srcValido}
           alt={`Setor ${nome}`}
           onError={() => setFalhou(true)}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            display: "block",
-          }}
+          className={styles.imagemCapa}
         />
       ) : (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "6px",
-            color: "#6e7681",
-            fontSize: "12px",
-          }}
-        >
+        <div className={styles.placeholderCapa}>
           <svg
-            width="28"
-            height="28"
+            width="30"
+            height="30"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -126,6 +113,25 @@ function ImagemSetor({ foto, nome }) {
           <span>Sem imagem do setor</span>
         </div>
       )}
+
+      <div className={styles.gradienteCapa} />
+
+      <div className={styles.badgesCapa}>
+        <span
+          className={`${styles.badgeStatus} ${
+            isInativo ? styles.badgeInativo : styles.badgeAtivo
+          }`}
+        >
+          <span className={styles.pontoStatus} />
+          {isInativo ? "Inativo" : "Ativo"}
+        </span>
+
+        {abertas > 0 && (
+          <span className={styles.badgeAlertaCapa}>
+            {abertas} {abertas === 1 ? "alerta" : "alertas"}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
@@ -136,15 +142,21 @@ export default function Setores() {
   const [listaSetores, setListaSetores] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
+  const [busca, setBusca] = useState("");
+  const [filtro, setFiltro] = useState("todos");
+  const [paginaAtual, setPaginaAtual] = useState(1);
 
   const mapearSetorBD = (item) => ({
     id: item.ID_setor || item.id,
-    nome: item.Nome_setor || "Sem nome",
-    descricao: item.Descricao_setor || "Sem descrição disponível.",
+    nome: item.Nome_setor || item.nome || "Sem nome",
+    descricao:
+      item.Descricao_setor || item.descricao || "Sem descrição disponível.",
+    local: item.Local_setor || item.local || "",
+    status: item.Status_setor || item.status || "Ativo",
     foto: item.Foto_setor || item.foto || null,
-    funcionarios: item.Total_funcionarios ?? 0,
-    cameras: item.Total_cameras ?? 0,
-    abertas: item.Total_ocorrencias_abertas ?? 0,
+    funcionarios: Number(item.Total_funcionarios ?? 0),
+    cameras: Number(item.Total_cameras ?? 0),
+    abertas: Number(item.Total_ocorrencias_abertas ?? 0),
   });
 
   useEffect(() => {
@@ -152,7 +164,7 @@ export default function Setores() {
       setCarregando(true);
       setErro("");
       try {
-        const res = await fetch("/api/setor/dados");
+        const res = await fetch("/api/setor/dados", { cache: "no-store" });
         if (res.ok) {
           const json = await res.json();
 
@@ -161,6 +173,8 @@ export default function Setores() {
             dadosBrutos = json;
           } else if (json.response?.ocorrencia) {
             dadosBrutos = json.response.ocorrencia;
+          } else if (json.response?.setor) {
+            dadosBrutos = json.response.setor;
           } else if (json.response?.dados) {
             dadosBrutos = json.response.dados;
           } else if (json.dados) {
@@ -187,6 +201,59 @@ export default function Setores() {
     carregarSetores();
   }, []);
 
+  useEffect(() => {
+    setPaginaAtual(1);
+  }, [busca, filtro]);
+
+  const resumoGeral = useMemo(() => {
+    return listaSetores.reduce(
+      (acc, s) => {
+        acc.totalSetores += 1;
+        acc.totalFuncionarios += s.funcionarios;
+        acc.totalCameras += s.cameras;
+        acc.totalAbertas += s.abertas;
+        return acc;
+      },
+      {
+        totalSetores: 0,
+        totalFuncionarios: 0,
+        totalCameras: 0,
+        totalAbertas: 0,
+      }
+    );
+  }, [listaSetores]);
+
+  const setoresFiltrados = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+
+    return listaSetores.filter((setor) => {
+      const matchBusca =
+        !termo ||
+        setor.nome.toLowerCase().includes(termo) ||
+        setor.descricao.toLowerCase().includes(termo) ||
+        setor.local.toLowerCase().includes(termo);
+
+      if (!matchBusca) return false;
+
+      const isInativo = String(setor.status || "")
+        .toLowerCase()
+        .includes("inativ");
+
+      if (filtro === "alertas") return setor.abertas > 0;
+      if (filtro === "ativos") return !isInativo;
+      if (filtro === "inativos") return isInativo;
+      return true;
+    });
+  }, [listaSetores, busca, filtro]);
+
+  const totalPaginas = Math.max(
+    1,
+    Math.ceil(setoresFiltrados.length / SETORES_POR_PAGINA)
+  );
+  const indiceInicio = (paginaAtual - 1) * SETORES_POR_PAGINA;
+  const indiceFim = indiceInicio + SETORES_POR_PAGINA;
+  const setoresPaginados = setoresFiltrados.slice(indiceInicio, indiceFim);
+
   const registrar = (e) => {
     e.preventDefault();
     router.push("/cadastrarSetor");
@@ -199,12 +266,12 @@ export default function Setores() {
   return (
     <Shell>
       <section className={styles.conteudo}>
+        {/* TOPO DA PÁGINA */}
         <div className={styles.topoConteudo}>
           <div>
             <h1>Setores</h1>
             <p>
-              Áreas monitoradas da planta industrial e seus indicadores de
-              segurança.
+              Áreas monitoradas da planta industrial, alocação de equipes e indicadores de segurança.
             </p>
           </div>
 
@@ -213,53 +280,239 @@ export default function Setores() {
           </button>
         </div>
 
+        {/* RESUMO CONSOLIDADO DA PLANTA */}
+        {!carregando && !erro && listaSetores.length > 0 && (
+          <div className={styles.barraResumo}>
+            <div className={styles.cardResumo}>
+              <span>Setores mapeados</span>
+              <strong>{resumoGeral.totalSetores}</strong>
+            </div>
+            <div className={styles.cardResumo}>
+              <span>Colaboradores alocados</span>
+              <strong>{resumoGeral.totalFuncionarios}</strong>
+            </div>
+            <div className={styles.cardResumo}>
+              <span>Câmeras instaladas</span>
+              <strong>{resumoGeral.totalCameras}</strong>
+            </div>
+            <div className={`${styles.cardResumo} ${styles.cardResumoAlerta}`}>
+              <span>Ocorrências em aberto</span>
+              <strong>{resumoGeral.totalAbertas}</strong>
+            </div>
+          </div>
+        )}
+
+        {/* BARRA DE BUSCA E FILTROS */}
+        {!carregando && !erro && listaSetores.length > 0 && (
+          <div className={styles.barraControles}>
+            <div className={styles.campoBuscaWrapper}>
+              <svg
+                className={styles.iconeBusca}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+              <input
+                type="text"
+                className={styles.inputBusca}
+                placeholder="Buscar por nome do setor, galpão ou descrição..."
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+              />
+              {busca && (
+                <button
+                  type="button"
+                  className={styles.limparBusca}
+                  onClick={() => setBusca("")}
+                  title="Limpar busca"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            <div className={styles.grupoFiltros}>
+              {[
+                { id: "todos", label: `Todos (${listaSetores.length})` },
+                {
+                  id: "alertas",
+                  label: `Com alertas (${
+                    listaSetores.filter((s) => s.abertas > 0).length
+                  })`,
+                },
+                { id: "ativos", label: "Ativos" },
+                { id: "inativos", label: "Inativos" },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`${styles.botaoFiltro} ${
+                    filtro === item.id ? styles.botaoFiltroAtivo : ""
+                  }`}
+                  onClick={() => setFiltro(item.id)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* CABEÇALHO DE PAGINAÇÃO */}
+        {!carregando && !erro && setoresFiltrados.length > 0 && (
+          <div className={styles.barraPaginacao}>
+            <span className={styles.textoPaginacao}>
+              Mostrando{" "}
+              <strong>
+                {indiceInicio + 1}–{Math.min(indiceFim, setoresFiltrados.length)}
+              </strong>{" "}
+              de <strong>{setoresFiltrados.length}</strong> setores
+            </span>
+
+            {setoresFiltrados.length > SETORES_POR_PAGINA && (
+              <div className={styles.controlesPaginacao}>
+                <button
+                  type="button"
+                  className={styles.botaoPagina}
+                  disabled={paginaAtual === 1}
+                  onClick={() => setPaginaAtual((p) => Math.max(1, p - 1))}
+                  aria-label="Página anterior"
+                >
+                  ←
+                </button>
+                <span className={styles.textoPaginacao}>
+                  Página <strong>{paginaAtual}</strong> de{" "}
+                  <strong>{totalPaginas}</strong>
+                </span>
+                <button
+                  type="button"
+                  className={styles.botaoPagina}
+                  disabled={paginaAtual === totalPaginas}
+                  onClick={() =>
+                    setPaginaAtual((p) => Math.min(totalPaginas, p + 1))
+                  }
+                  aria-label="Próxima página"
+                >
+                  →
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* LISTAGEM DE CARDS */}
         {carregando ? (
-          <div className={styles.estado}>A carregar setores...</div>
+          <div className={styles.estado}>Carregando setores...</div>
         ) : erro ? (
           <div className={`${styles.estado} ${styles.estadoErro}`}>{erro}</div>
         ) : (
-          <div className={styles.grade}>
-            {listaSetores.length > 0 ? (
-              listaSetores.map((setor) => (
-                <article className={styles.card} key={setor.id}>
-                  <ImagemSetor foto={setor.foto} nome={setor.nome} />
-
-                  <h2>{setor.nome}</h2>
-
-                  <p className={styles.descricao}>{setor.descricao}</p>
-
-                  <div className={styles.indicadores}>
-                    <Indicador
-                      tipo="funcionarios"
-                      valor={setor.funcionarios}
-                      legenda="Funcionários"
-                    />
-
-                    <Indicador
-                      tipo="cameras"
-                      valor={setor.cameras}
-                      legenda="Câmeras"
-                    />
-
-                    <Indicador
-                      tipo="alertas"
-                      valor={setor.abertas}
-                      legenda="Abertas"
-                    />
-                  </div>
-
-                  <button
-                    className={styles.botaoVer}
+          <>
+            <div className={styles.grade}>
+              {setoresPaginados.length > 0 ? (
+                setoresPaginados.map((setor) => (
+                  <article
+                    className={`${styles.card} ${
+                      setor.abertas > 0 ? styles.cardComAlerta : ""
+                    }`}
+                    key={setor.id}
                     onClick={() => verDetalhesSetor(setor.id)}
                   >
-                    Ver setor <span>›</span>
+                    <ImagemSetor
+                      foto={setor.foto}
+                      nome={setor.nome}
+                      status={setor.status}
+                      abertas={setor.abertas}
+                    />
+
+                    <div className={styles.corpoCard}>
+                      <div className={styles.cabecalhoCard}>
+                        <h2>{setor.nome}</h2>
+                        {setor.local && (
+                          <span className={styles.localTag}>📍 {setor.local}</span>
+                        )}
+                      </div>
+
+                      <p className={styles.descricao}>{setor.descricao}</p>
+
+                      <div className={styles.indicadores}>
+                        <Indicador
+                          tipo="funcionarios"
+                          valor={setor.funcionarios}
+                          legenda="Funcionários"
+                        />
+
+                        <Indicador
+                          tipo="cameras"
+                          valor={setor.cameras}
+                          legenda="Câmeras"
+                        />
+
+                        <Indicador
+                          tipo="alertas"
+                          valor={setor.abertas}
+                          legenda="Abertas"
+                          destaque={setor.abertas > 0}
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        className={styles.botaoVer}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          verDetalhesSetor(setor.id);
+                        }}
+                      >
+                        Ver detalhes do setor <span>→</span>
+                      </button>
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <div className={styles.estado}>
+                  Nenhum setor encontrado para os filtros selecionados.
+                </div>
+              )}
+            </div>
+
+            {/* PAGINAÇÃO NO RODAPÉ */}
+            {setoresFiltrados.length > SETORES_POR_PAGINA && (
+              <div className={`${styles.barraPaginacao} ${styles.rodapePaginacao}`}>
+                <span className={styles.textoPaginacao}>
+                  Exibindo {SETORES_POR_PAGINA} setores por página
+                </span>
+
+                <div className={styles.controlesPaginacao}>
+                  <button
+                    type="button"
+                    className={styles.botaoPagina}
+                    disabled={paginaAtual === 1}
+                    onClick={() => setPaginaAtual((p) => Math.max(1, p - 1))}
+                  >
+                    ← Anterior
                   </button>
-                </article>
-              ))
-            ) : (
-              <div className={styles.estado}>Nenhum setor cadastrado.</div>
+                  <span className={styles.textoPaginacao}>
+                    Página <strong>{paginaAtual}</strong> de{" "}
+                    <strong>{totalPaginas}</strong>
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.botaoPagina}
+                    disabled={paginaAtual === totalPaginas}
+                    onClick={() =>
+                      setPaginaAtual((p) => Math.min(totalPaginas, p + 1))
+                    }
+                  >
+                    Próxima →
+                  </button>
+                </div>
+              </div>
             )}
-          </div>
+          </>
         )}
       </section>
     </Shell>

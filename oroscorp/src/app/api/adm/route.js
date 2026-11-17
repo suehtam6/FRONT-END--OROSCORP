@@ -36,7 +36,6 @@ function extrairId(dados) {
   return item?.id ?? item?.id_usuario ?? null;
 }
 
-// Única função POST exportada corretamente
 export async function POST(request) {
   let body;
   try {
@@ -115,4 +114,26 @@ export async function POST(request) {
     },
     { status: cadastroADM && !cadastroADM.resposta.ok ? cadastroADM.resposta.status : 502 }
   );
+}
+
+
+export async function GET() {
+  try {
+    const { resposta, dados } = await callBack('GET', ROTA_ADMINISTRADOR);
+
+    if (!resposta.ok) {
+      return NextResponse.json(
+        { message: mensagemDe(dados, 'Erro ao buscar dados do administrador.') },
+        { status: resposta.status }
+      );
+    }
+
+    return NextResponse.json(dados, { status: 200 });
+  } catch (err) {
+    console.error('Erro no GET administrador:', err);
+    return NextResponse.json(
+      { message: 'Não foi possível conectar ao servidor.' },
+      { status: 502 }
+    );
+  }
 }
