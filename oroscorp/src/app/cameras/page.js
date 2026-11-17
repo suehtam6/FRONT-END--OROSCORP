@@ -390,7 +390,6 @@ export default function Cameras() {
               ))}
             </div>
 
-            {/* BARRA DE PAGINAÇÃO INFERIOR */}
             {camerasFiltradas.length > CAMERAS_POR_PAGINA && (
               <div className={`${s.barraPaginacao} ${s.rodapePaginacao}`}>
                 <span className={s.textoPaginacao}>
