@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Shell from "../components/Shell";
 import Popup from "../components/Popup";
+import { uploadParaCloudinary } from "@/API/cloudinary";
 import styles from "../style/cadastrarGestor.module.css";
 import modalStyles from "../style/modalGerenciador.module.css";
-
 
 function mascaraCPF(valor) {
   let v = valor.replace(/\D/g, "");
@@ -39,8 +39,24 @@ function mascaraData(valor) {
   let resultado = dia;
   if (v.length >= 3) resultado += "/" + mes;
   if (v.length >= 5) resultado += "/" + ano;
- 
+
   return resultado;
+}
+
+function validarSenha(form) {
+  if (form.senha.length < 8 || form.senha.length > 72) {
+    return "A senha deve ter entre 8 e 72 caracteres.";
+  }
+  if (!/[A-Z]/.test(form.senha)) {
+    return "A senha deve conter pelo menos uma letra maiúscula.";
+  }
+  if (!/\d/.test(form.senha)) {
+    return "A senha deve conter pelo menos um número.";
+  }
+  if (form.senha !== form.confirmarSenha) {
+    return "As senhas não conferem.";
+  }
+  return "";
 }
 
 export default function CadastrarGestor() {
@@ -50,16 +66,14 @@ export default function CadastrarGestor() {
   const [preview, setPreview] = useState("");
   const [carregando, setCarregando] = useState(false);
 
-
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
-
 
   const [niveisAcesso, setNiveisAcesso] = useState([]);
   const [modalNivelAberto, setModalNivelAberto] = useState(false);
   const [novoNivelNome, setNovoNivelNome] = useState("");
   const [nivelEditandoId, setNivelEditandoId] = useState(null);
-  const [nomeNivelEditado, setNomeNivelEditado] = useState(""); 
+  const [nomeNivelEditado, setNomeNivelEditado] = useState("");
 
   const [dados, setDados] = useState({
     nome: "",
@@ -69,16 +83,17 @@ export default function CadastrarGestor() {
     nascimento: "",
     senha: "",
     confirmarSenha: "",
-    id_nivel_acesso: ""
+    id_nivel_acesso: "",
   });
 
   async function carregarNiveis() {
     try {
       const res = await fetch("/api/nivel-acesso");
-      const dadosAPI = await res.json().catch(() => ([]));
+      const dadosAPI = await res.json().catch(() => []);
 
       if (res.ok) {
-        const listaNiveis = dadosAPI.response?.dados || dadosAPI.response || dadosAPI.dados || dadosAPI;
+        const listaNiveis =
+          dadosAPI.response?.dados || dadosAPI.response || dadosAPI.dados || dadosAPI;
         if (Array.isArray(listaNiveis)) {
           setNiveisAcesso(listaNiveis);
         } else {
@@ -116,21 +131,26 @@ export default function CadastrarGestor() {
 
     setDados({
       ...dados,
-      [name]: novoValor
+      [name]: novoValor,
     });
     setErro("");
   }
 
-
   async function criarNivelAcesso(e) {
     e.preventDefault();
-    if (!novoNivelNome.trim()) return;
+    const nomeLimpo = novoNivelNome.trim();
+    if (!nomeLimpo) return;
+
+    if (nomeLimpo.toUpperCase() === "ADM") {
+      setErro("O nível de acesso ADM é reservado pelo sistema.");
+      return;
+    }
 
     try {
       const res = await fetch("/api/nivel-acesso", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome: novoNivelNome.trim() })
+        body: JSON.stringify({ nome: nomeLimpo }),
       });
 
       if (res.ok) {
@@ -140,7 +160,7 @@ export default function CadastrarGestor() {
 
         const idNovo = criado.id || criado.response?.id;
         if (idNovo) {
-          setDados(prev => ({ ...prev, id_nivel_acesso: String(idNovo) }));
+          setDados((prev) => ({ ...prev, id_nivel_acesso: String(idNovo) }));
         }
       } else {
         const err = await res.json().catch(() => ({}));
@@ -152,13 +172,19 @@ export default function CadastrarGestor() {
   }
 
   async function salvarEdicaoNivel(id) {
-    if (!nomeNivelEditado.trim()) return;
+    const nomeLimpo = nomeNivelEditado.trim();
+    if (!nomeLimpo) return;
+
+    if (nomeLimpo.toUpperCase() === "ADM") {
+      setErro("O nível de acesso ADM é reservado pelo sistema.");
+      return;
+    }
 
     try {
       const res = await fetch(`/api/nivel-acesso/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome: nomeNivelEditado.trim() })
+        body: JSON.stringify({ nome: nomeLimpo }),
       });
 
       if (res.ok) {
@@ -179,12 +205,12 @@ export default function CadastrarGestor() {
 
     try {
       const res = await fetch(`/api/nivel-acesso/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
       });
 
       if (res.ok) {
         if (Number(dados.id_nivel_acesso) === Number(id)) {
-          setDados(prev => ({ ...prev, id_nivel_acesso: "" }));
+          setDados((prev) => ({ ...prev, id_nivel_acesso: "" }));
         }
         await carregarNiveis();
       } else {
@@ -203,17 +229,20 @@ export default function CadastrarGestor() {
       setErro("Os e-mails não coincidem.");
       return;
     }
-    if (dados.senha !== dados.confirmarSenha) {
-      setErro("As senhas não coincidem.");
+
+    const erroSenha = validarSenha(dados);
+    if (erroSenha) {
+      setErro(erroSenha);
       return;
     }
+
     if (!dados.id_nivel_acesso) {
       setErro("Selecione um nível de acesso.");
       return;
     }
 
     let dataFormatada = dados.nascimento;
-    const partesData = dados.nascimento.split('/');
+    const partesData = dados.nascimento.split("/");
     if (partesData.length === 3) {
       dataFormatada = `${partesData[2]}-${partesData[1]}-${partesData[0]}`;
     }
@@ -222,8 +251,16 @@ export default function CadastrarGestor() {
     setErro("");
     setSucesso("");
 
-
-    const fotoParaEnvio = (foto && typeof foto === "string" && foto.startsWith("http")) ? foto : "";
+    let fotoParaEnvio = "";
+    if (foto && foto instanceof File) {
+      try {
+        fotoParaEnvio = await uploadParaCloudinary(foto);
+      } catch {
+        setErro("Não foi possível enviar a foto. Tente novamente.");
+        setCarregando(false);
+        return;
+      }
+    }
 
     try {
       const resposta = await fetch("/api/responsavel", {
@@ -236,7 +273,7 @@ export default function CadastrarGestor() {
           data_nascimento: dataFormatada,
           senha: dados.senha,
           id_nivel_acesso: Number(dados.id_nivel_acesso),
-          foto: fotoParaEnvio
+          foto: fotoParaEnvio,
         }),
       });
 
@@ -245,7 +282,7 @@ export default function CadastrarGestor() {
       if (resposta.ok) {
         setSucesso("Gestor cadastrado com sucesso!");
       } else {
-        setErro(retorno.message || "Erro ao cadastrar gestor.");
+        setErro(retorno.message || retorno.response?.message || "Erro ao cadastrar gestor.");
       }
     } catch {
       setErro("Erro de conexão com o servidor.");
@@ -254,12 +291,16 @@ export default function CadastrarGestor() {
     }
   }
 
+  const niveisSemAdm = niveisAcesso.filter(
+    (nivel) => (nivel.nome || "").trim().toUpperCase() !== "ADM"
+  );
+
   return (
     <Shell voltar={false}>
       <main className={styles.container}>
         {/* TÍTULO NO TOPO DA PÁGINA */}
         <div className={styles.tituloPagina}>
-          <h1>Cadastro do Gestor</h1>
+          <h1>Cadastro do Responsável</h1>
           <p>Preencha os dados para cadastrar um novo gestor no sistema.</p>
         </div>
 
@@ -277,10 +318,19 @@ export default function CadastrarGestor() {
                       <p>Clique para selecionar uma imagem</p>
                     </div>
                   )}
-                  <input type="file" accept="image/*" hidden onChange={(e) => setFoto(e.target.files?.[0] || null)} />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={(e) => setFoto(e.target.files?.[0] || null)}
+                  />
                 </label>
                 {foto && (
-                  <button type="button" className={styles.removerFoto} onClick={() => setFoto(null)}>
+                  <button
+                    type="button"
+                    className={styles.removerFoto}
+                    onClick={() => setFoto(null)}
+                  >
                     Remover foto
                   </button>
                 )}
@@ -288,17 +338,38 @@ export default function CadastrarGestor() {
 
               <div className={styles.campos}>
                 <div className={styles.campo}>
-                  <label htmlFor="nome">Nome completo <span>*</span></label>
-                  <input id="nome" name="nome" value={dados.nome} onChange={atualizar} placeholder="Digite o nome completo" required />
+                  <label htmlFor="nome">
+                    Nome completo <span>*</span>
+                  </label>
+                  <input
+                    id="nome"
+                    name="nome"
+                    value={dados.nome}
+                    onChange={atualizar}
+                    placeholder="Digite o nome completo"
+                    required
+                  />
                 </div>
 
                 <div className={styles.campo}>
-                  <label htmlFor="email">E-mail <span>*</span></label>
-                  <input id="email" name="email" type="email" value={dados.email} onChange={atualizar} placeholder="exemplo@dominio.com" required />
+                  <label htmlFor="email">
+                    E-mail <span>*</span>
+                  </label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={dados.email}
+                    onChange={atualizar}
+                    placeholder="exemplo@dominio.com"
+                    required
+                  />
                 </div>
 
                 <div className={styles.campo}>
-                  <label htmlFor="cpf">CPF <span>*</span></label>
+                  <label htmlFor="cpf">
+                    CPF <span>*</span>
+                  </label>
                   <input
                     id="cpf"
                     name="cpf"
@@ -311,12 +382,24 @@ export default function CadastrarGestor() {
                 </div>
 
                 <div className={styles.campo}>
-                  <label htmlFor="confirmarEmail">Confirmar e-mail <span>*</span></label>
-                  <input id="confirmarEmail" name="confirmarEmail" type="email" value={dados.confirmarEmail} onChange={atualizar} placeholder="Digite o e-mail novamente" required />
+                  <label htmlFor="confirmarEmail">
+                    Confirmar e-mail <span>*</span>
+                  </label>
+                  <input
+                    id="confirmarEmail"
+                    name="confirmarEmail"
+                    type="email"
+                    value={dados.confirmarEmail}
+                    onChange={atualizar}
+                    placeholder="Digite o e-mail novamente"
+                    required
+                  />
                 </div>
 
                 <div className={styles.campo}>
-                  <label htmlFor="nascimento">Data de nascimento <span>*</span></label>
+                  <label htmlFor="nascimento">
+                    Data de nascimento <span>*</span>
+                  </label>
                   <input
                     id="nascimento"
                     name="nascimento"
@@ -330,17 +413,39 @@ export default function CadastrarGestor() {
                 </div>
 
                 <div className={styles.campo}>
-                  <label htmlFor="senha">Senha <span>*</span></label>
-                  <input id="senha" name="senha" type="password" value={dados.senha} onChange={atualizar} placeholder="Digite a senha" required />
+                  <label htmlFor="senha">
+                    Senha <span>*</span>
+                  </label>
+                  <input
+                    id="senha"
+                    name="senha"
+                    type="password"
+                    value={dados.senha}
+                    onChange={atualizar}
+                    placeholder="Mín. 8 caracteres, 1 maiúscula e 1 número"
+                    required
+                  />
                 </div>
 
                 <div className={styles.campo}>
-                  <label htmlFor="confirmarSenha">Confirmar senha <span>*</span></label>
-                  <input id="confirmarSenha" name="confirmarSenha" type="password" value={dados.confirmarSenha} onChange={atualizar} placeholder="Digite a senha novamente" required />
+                  <label htmlFor="confirmarSenha">
+                    Confirmar senha <span>*</span>
+                  </label>
+                  <input
+                    id="confirmarSenha"
+                    name="confirmarSenha"
+                    type="password"
+                    value={dados.confirmarSenha}
+                    onChange={atualizar}
+                    placeholder="Digite a senha novamente"
+                    required
+                  />
                 </div>
 
                 <div className={styles.campo}>
-                  <label htmlFor="id_nivel_acesso">Nível de Acesso <span>*</span></label>
+                  <label htmlFor="id_nivel_acesso">
+                    Nível de Acesso <span>*</span>
+                  </label>
                   <select
                     id="id_nivel_acesso"
                     name="id_nivel_acesso"
@@ -348,17 +453,17 @@ export default function CadastrarGestor() {
                     onChange={atualizar}
                     required
                   >
-                    <option value="" disabled>Selecione um nível</option>
-                    {niveisAcesso
-                      .filter((nivel) => (nivel.nome || "").toUpperCase() !== "ADM")
-                      .map((nivel) => {
-                        const nId = nivel.id || nivel.id_nivel_acesso;
-                        return (
-                          <option key={nId} value={nId}>
-                            {nivel.nome}
-                          </option>
-                        );
-                      })}
+                    <option value="" disabled>
+                      Selecione um nível
+                    </option>
+                    {niveisSemAdm.map((nivel) => {
+                      const nId = nivel.id || nivel.id_nivel_acesso;
+                      return (
+                        <option key={nId} value={nId}>
+                          {nivel.nome}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
               </div>
@@ -373,7 +478,12 @@ export default function CadastrarGestor() {
                 + GERENCIAR NÍVEIS DE ACESSO
               </button>
 
-              <button type="button" className={styles.cancelar} onClick={() => router.push("/home")} disabled={carregando}>
+              <button
+                type="button"
+                className={styles.cancelar}
+                onClick={() => router.push("/home")}
+                disabled={carregando}
+              >
                 CANCELAR
               </button>
               <button type="submit" className={styles.cadastrar} disabled={carregando}>
@@ -382,7 +492,6 @@ export default function CadastrarGestor() {
             </div>
           </form>
         </section>
-
 
         {modalNivelAberto && (
           <div className={modalStyles.modalOverlay}>
@@ -416,7 +525,7 @@ export default function CadastrarGestor() {
               </div>
 
               <div className={modalStyles.modalLista}>
-                {niveisAcesso.map((item, index) => {
+                {niveisSemAdm.map((item, index) => {
                   const itemId = item.id || item.id_nivel_acesso || index;
                   const itemNome = item.nome || "Sem Nome";
 
@@ -490,6 +599,17 @@ export default function CadastrarGestor() {
             </div>
           </div>
         )}
+
+        <Popup mensagem={erro} tipo="erro" aoFechar={() => setErro("")} />
+        <Popup
+          mensagem={sucesso}
+          tipo="sucesso"
+          titulo="Gestor Cadastrado!"
+          aoFechar={() => {
+            setSucesso("");
+            router.push("/home");
+          }}
+        />
       </main>
     </Shell>
   );

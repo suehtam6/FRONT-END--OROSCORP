@@ -47,6 +47,8 @@ export default function FuncionariosPage() {
 
         if (resFunc.ok) {
           setFuncionarios(extrairLista(await resFunc.json()));
+        } else if (resFunc.status === 404) {
+          setFuncionarios([]);
         } else {
           const r = await resFunc.json().catch(() => ({}));
           setErro(
@@ -67,7 +69,6 @@ export default function FuncionariosPage() {
     carregar();
   }, []);
 
-  // Volta para a página 1 sempre que qualquer filtro ou busca mudar
   useEffect(() => {
     setPaginaAtual(1);
   }, [busca, setorFiltro, situacaoFiltro, somenteComOcorrencias]);
@@ -144,9 +145,9 @@ export default function FuncionariosPage() {
   const obterQtdOcorrencias = (func) =>
     Number(
       func.ocorrencias_abertas ??
-        func.total_ocorrencias ??
-        func.ocorrencias ??
-        0
+      func.total_ocorrencias ??
+      func.ocorrencias ??
+      0
     );
 
   const resumoGeral = useMemo(() => {
@@ -168,12 +169,12 @@ export default function FuncionariosPage() {
     setores.length > 0
       ? setores.map((s) => s.nome || s.descricao).filter(Boolean)
       : [
-          ...new Set(
-            funcionarios
-              .map((f) => obterNomeSetor(f))
-              .filter((n) => n !== "Sem setor")
-          ),
-        ];
+        ...new Set(
+          funcionarios
+            .map((f) => obterNomeSetor(f))
+            .filter((n) => n !== "Sem setor")
+        ),
+      ];
 
   const opcoesSituacoes =
     statusFuncionarioLista.length > 0
@@ -205,7 +206,7 @@ export default function FuncionariosPage() {
     const bateSituacao =
       !situacaoFiltro ||
       statusFunc.texto.trim().toLowerCase() ===
-        situacaoFiltro.trim().toLowerCase();
+      situacaoFiltro.trim().toLowerCase();
 
     const bateOcorrencia =
       !somenteComOcorrencias || obterQtdOcorrencias(func) > 0;
@@ -276,9 +277,8 @@ export default function FuncionariosPage() {
           </div>
 
           <div
-            className={`${styles.cardResumo} ${
-              resumoGeral.comOcorrencias > 0 ? styles.resumoAlerta : ""
-            }`}
+            className={`${styles.cardResumo} ${resumoGeral.comOcorrencias > 0 ? styles.resumoAlerta : ""
+              }`}
           >
             <span>Com ocorrências abertas</span>
             <strong>{carregando ? "—" : resumoGeral.comOcorrencias}</strong>
@@ -348,11 +348,10 @@ export default function FuncionariosPage() {
           <div className={styles.filtrosRapidos}>
             <button
               type="button"
-              className={`${styles.chipFiltro} ${
-                !situacaoFiltro && !somenteComOcorrencias
+              className={`${styles.chipFiltro} ${!situacaoFiltro && !somenteComOcorrencias
                   ? styles.chipFiltroAtivo
                   : ""
-              }`}
+                }`}
               onClick={() => {
                 setSituacaoFiltro("");
                 setSomenteComOcorrencias(false);
@@ -363,11 +362,10 @@ export default function FuncionariosPage() {
 
             <button
               type="button"
-              className={`${styles.chipFiltro} ${
-                situacaoFiltro.toLowerCase() === "ativo"
+              className={`${styles.chipFiltro} ${situacaoFiltro.toLowerCase() === "ativo"
                   ? styles.chipFiltroAtivo
                   : ""
-              }`}
+                }`}
               onClick={() => {
                 setSituacaoFiltro("Ativo");
                 setSomenteComOcorrencias(false);
@@ -378,9 +376,8 @@ export default function FuncionariosPage() {
 
             <button
               type="button"
-              className={`${styles.chipFiltro} ${
-                somenteComOcorrencias ? styles.chipFiltroAtivo : ""
-              }`}
+              className={`${styles.chipFiltro} ${somenteComOcorrencias ? styles.chipFiltroAtivo : ""
+                }`}
               onClick={() => {
                 setSomenteComOcorrencias(!somenteComOcorrencias);
                 setSituacaoFiltro("");
@@ -528,11 +525,10 @@ export default function FuncionariosPage() {
                         </td>
                         <td>
                           <span
-                            className={`${styles.badgeContainer} ${
-                              statusFunc.ativo
+                            className={`${styles.badgeContainer} ${statusFunc.ativo
                                 ? styles.badgeVerde
                                 : styles.badgeVermelho
-                            }`}
+                              }`}
                           >
                             <span className={styles.dot} />
                             {statusFunc.texto}
@@ -540,11 +536,10 @@ export default function FuncionariosPage() {
                         </td>
                         <td>
                           <span
-                            className={`${styles.badgeOcorrencia} ${
-                              ocorrenciasAbertas > 0
+                            className={`${styles.badgeOcorrencia} ${ocorrenciasAbertas > 0
                                 ? styles.badgeOcorrenciaAlerta
                                 : styles.badgeOcorrenciaZero
-                            }`}
+                              }`}
                           >
                             {ocorrenciasAbertas}
                           </span>
@@ -558,7 +553,6 @@ export default function FuncionariosPage() {
             </table>
           </div>
 
-          {/* PAGINAÇÃO NO RODAPÉ DA TABELA */}
           {!carregando && funcionariosFiltrados.length > ITENS_POR_PAGINA && (
             <div className={styles.rodapePaginacao}>
               <span className={styles.contadorResultados}>

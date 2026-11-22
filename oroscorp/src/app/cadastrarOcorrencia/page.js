@@ -24,6 +24,7 @@ export default function RegistrarOcorrencia() {
   const [hora, setHora] = useState("");
   const [idPrioridade, setIdPrioridade] = useState("");
   const [idStatusOcorrencia, setIdStatusOcorrencia] = useState("");
+  const [episSelecionados, setEpisSelecionados] = useState([]);
   const [descricao, setDescricao] = useState("");
   const [imagem, setImagem] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
@@ -33,6 +34,7 @@ export default function RegistrarOcorrencia() {
   const [funcionarios, setFuncionarios] = useState([]);
   const [setores, setSetores] = useState([]);
   const [cameras, setCameras] = useState([]);
+  const [episLista, setEpisLista] = useState([]);
   const [prioridades, setPrioridades] = useState([]);
   const [statusLista, setStatusLista] = useState([]);
   const [listaMotivoOcorrencia, setMotivoOcorrencia] = useState([]);
@@ -61,7 +63,6 @@ export default function RegistrarOcorrencia() {
 
   const idDoMotivo = (motivo) => motivo.id ?? motivo.id_motivo_ocorrencia;
 
-  // Extração inteligente do nome do funcionário
   const extrairNomeFuncionario = (item) => {
     if (!item) return "Funcionário sem nome";
     return (
@@ -73,7 +74,6 @@ export default function RegistrarOcorrencia() {
     );
   };
 
-  // Extração inteligente do nome da câmera
   const extrairNomeCamera = (item) => {
     if (!item) return "Câmera sem nome";
     return (
@@ -82,6 +82,15 @@ export default function RegistrarOcorrencia() {
       item.descricao ||
       item.localizacao ||
       `Câmera #${item.id || item.id_camera}`
+    );
+  };
+
+  const alternarEpi = (epiId) => {
+    const idNum = Number(epiId);
+    setEpisSelecionados((prev) =>
+      prev.includes(idNum)
+        ? prev.filter((item) => item !== idNum)
+        : [...prev, idNum]
     );
   };
 
@@ -121,10 +130,19 @@ export default function RegistrarOcorrencia() {
   useEffect(() => {
     async function carregarDependencias() {
       try {
-        const [resFunc, resSetor, resCam, resPrio, resStat, resMotivoOcorrencia] = await Promise.all([
+        const [
+          resFunc,
+          resSetor,
+          resCam,
+          resEpi,
+          resPrio,
+          resStat,
+          resMotivoOcorrencia,
+        ] = await Promise.all([
           fetch("/api/funcionario"),
           fetch("/api/setor"),
           fetch("/api/camera"),
+          fetch("/api/epi"),
           fetch("/api/ocorrencia/prioridade"),
           fetch("/api/ocorrencia/status-ocorrencia"),
           fetch("/api/ocorrencia/motivo_ocorrencia"),
@@ -133,7 +151,9 @@ export default function RegistrarOcorrencia() {
         if (resFunc.ok) setFuncionarios(extrairLista(await resFunc.json()));
         if (resSetor.ok) setSetores(extrairLista(await resSetor.json()));
         if (resCam.ok) setCameras(extrairLista(await resCam.json()));
-        if (resMotivoOcorrencia.ok) setMotivoOcorrencia(extrairLista(await resMotivoOcorrencia.json()));
+        if (resEpi.ok) setEpisLista(extrairLista(await resEpi.json()));
+        if (resMotivoOcorrencia.ok)
+          setMotivoOcorrencia(extrairLista(await resMotivoOcorrencia.json()));
 
         if (resPrio.ok) {
           const listaPrio = extrairLista(await resPrio.json());
@@ -153,7 +173,6 @@ export default function RegistrarOcorrencia() {
     carregarDependencias();
   }, []);
 
-  // Filtra as câmeras pertencentes ao setor selecionado no formulário
   const camerasDoSetor = cameras.filter((c) => {
     const setorCameraId = c.id_setor || c.setor?.[0]?.id || c.setor?.id;
     return Number(setorCameraId) === Number(idSetor);
@@ -163,12 +182,16 @@ export default function RegistrarOcorrencia() {
     e.preventDefault();
     if (carregando) return;
 
+    if (episSelecionados.length === 0) {
+      setErro("Selecione pelo menos um EPI ausente para registrar a ocorrência.");
+      return;
+    }
+
     setCarregando(true);
     setErro("");
     setSucesso("");
 
     try {
-      // Envia a foto para o Cloudinary (só reenvia se o arquivo mudou)
       let fotoUrl = "";
       if (imagem) {
         if (uploadRef.current.arquivo !== imagem) {
@@ -189,7 +212,6 @@ export default function RegistrarOcorrencia() {
           ? `${data} ${hora}:00`
           : new Date().toISOString().replace("T", " ").substring(0, 19);
 
-      // Se houver foto anexada mas nenhuma câmera escolhida, vincula à primeira câmera do setor
       const cameraAlvoId =
         idCamera ||
         (fotoUrl
@@ -202,19 +224,19 @@ export default function RegistrarOcorrencia() {
         id_funcionario: Number(idFuncionario) || null,
         id_motivo_ocorrencia: Number(IdMotivoOcorrencia),
         id_status_ocorrencia: Number(idStatusOcorrencia),
-        id_usuario_registro: 1,
+        id_usuario_registro: null,
         id_origem: 1,
         id_prioridade: Number(idPrioridade),
-        id_epi: [{ id: 1 }],
+        id_epi: episSelecionados.map((id) => ({ id: Number(id) })),
         cameras: cameraAlvoId
           ? [
-              {
-                id_camera: Number(cameraAlvoId),
-                foto: fotoUrl || "sem-foto.png",
-                confianca_ia: 95,
-                data_hora: dataHoraStr,
-              },
-            ]
+            {
+              id_camera: Number(cameraAlvoId),
+              foto: fotoUrl || "sem-foto.png",
+              confianca_ia: 95,
+              data_hora: dataHoraStr,
+            },
+          ]
           : [],
       };
 
@@ -449,9 +471,8 @@ export default function RegistrarOcorrencia() {
                           <button
                             key={pId}
                             type="button"
-                            className={`${styles.btnPrioridade} ${
-                              Number(idPrioridade) === Number(pId) ? styles.prioAtiva : ""
-                            }`}
+                            className={`${styles.btnPrioridade} ${Number(idPrioridade) === Number(pId) ? styles.prioAtiva : ""
+                              }`}
                             onClick={() => setIdPrioridade(pId)}
                           >
                             {pNome}
@@ -509,6 +530,41 @@ export default function RegistrarOcorrencia() {
                       + Gerenciar
                     </button>
                   </div>
+                </div>
+
+                {/* SELEÇÃO DE EPIs AUSENTES */}
+                <div className={styles.campo}>
+                  <label>
+                    EPIs ausentes <span>*</span>
+                  </label>
+                  {episLista.length > 0 ? (
+                    <div className={styles.gradeEpis}>
+                      {episLista.map((epi) => {
+                        const epiId = Number(epi.id || epi.id_epi);
+                        const epiNome = epi.nome || epi.epi || `EPI #${epiId}`;
+                        const selecionado = episSelecionados.includes(epiId);
+
+                        return (
+                          <button
+                            key={epiId}
+                            type="button"
+                            className={`${styles.btnEpi} ${selecionado ? styles.epiAtivo : ""
+                              }`}
+                            onClick={() => alternarEpi(epiId)}
+                          >
+                            <span className={styles.checkEpi}>
+                              {selecionado ? "✓" : "+"}
+                            </span>
+                            {epiNome}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className={styles.avisoEpis}>
+                      Nenhum EPI cadastrado no sistema.
+                    </p>
+                  )}
                 </div>
 
                 <div className={styles.campo}>

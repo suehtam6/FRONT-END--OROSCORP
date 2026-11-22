@@ -282,6 +282,51 @@
   background: #20180e;
 }
 
+.gradeEpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.btnEpi {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #2e3238;
+  background-color: #1f2226;
+  color: #cbd5e1;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btnEpi:hover {
+  border-color: #f97316;
+  color: #ffffff;
+}
+
+.epiAtivo {
+  background-color: rgba(249, 115, 22, 0.16);
+  border-color: #f97316;
+  color: #fb923c;
+  font-weight: 600;
+}
+
+.checkEpi {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.avisoEpis {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin: 4px 0 0;
+}
+
 
 @media (max-width: 1100px) {
   .painel {

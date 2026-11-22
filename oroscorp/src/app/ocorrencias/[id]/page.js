@@ -1,6 +1,6 @@
 /*
   Autor: Matheus Lucas
-  Objetivo: Tela de detalhes da ocorrência, com vínculo de funcionário, responsável, evidência e confiança da IA
+  Objetivo: Tela de detalhes da ocorrência, com vínculo de funcionário, responsável automático ao fechar, evidência e confiança da IA
   Data: 14/11/2026
 */
 
@@ -62,10 +62,55 @@ function formatarPrioridade(prioridade = "") {
 function extrairOcorrencia(json) {
   const r = json?.response;
   if (!r) return null;
-  if (Array.isArray(r.ocorrencia)) return r.ocorrencia[0] || null;
-  if (Array.isArray(r.dados)) return r.dados[0] || null;
-  if (r.ocorrencia && typeof r.ocorrencia === "object") return r.ocorrencia;
-  return null;
+
+  let registros = [];
+  if (Array.isArray(r.ocorrencia)) {
+    registros = r.ocorrencia;
+  } else if (Array.isArray(r.dados)) {
+    registros = r.dados;
+  } else if (r.ocorrencia && typeof r.ocorrencia === "object") {
+    registros = [r.ocorrencia];
+  } else if (typeof r === "object" && (r.ID_ocorrencia || r.id)) {
+    registros = [r];
+  }
+
+  if (registros.length === 0) return null;
+
+  const base = { ...registros[0] };
+  const mapaEpis = new Map();
+
+  for (const reg of registros) {
+    if (Array.isArray(reg.epis) || Array.isArray(reg.epi)) {
+      const arr = reg.epis || reg.epi;
+      for (const e of arr) {
+        const chave = e.id || e.ID_EPI || e.nome || e.Nome_EPI;
+        if (chave && !mapaEpis.has(chave)) {
+          mapaEpis.set(chave, {
+            id: e.id || e.ID_EPI || null,
+            nome: e.nome || e.Nome_EPI || "",
+            categoria: e.categoria || e.Categoria_EPI || "",
+            cor: e.cor || e.Cor_EPI || "",
+          });
+        }
+      }
+    }
+
+    const nomeEpi = reg.Nome_EPI || reg.nome_epi;
+    if (nomeEpi) {
+      const chave = reg.ID_EPI || nomeEpi;
+      if (!mapaEpis.has(chave)) {
+        mapaEpis.set(chave, {
+          id: reg.ID_EPI || null,
+          nome: nomeEpi,
+          categoria: reg.Categoria_EPI || "",
+          cor: reg.Cor_EPI || "",
+        });
+      }
+    }
+  }
+
+  base.lista_epis = Array.from(mapaEpis.values());
+  return base;
 }
 
 function extrairLista(json) {
@@ -93,13 +138,12 @@ export default function DetalhesOcorrencia() {
   const [erroEvidencia, setErroEvidencia] = useState(false);
 
   const [funcionarios, setFuncionarios] = useState([]);
-  const [responsaveis, setResponsaveis] = useState([]);
+  const [usuarios, setUsuarios] = useState([]);
+  const [idRegistroBruto, setIdRegistroBruto] = useState(null);
 
   const [editandoFunc, setEditandoFunc] = useState(false);
   const [funcionarioSelecionado, setFuncionarioSelecionado] = useState("");
-
-  const [editandoResp, setEditandoResp] = useState(false);
-  const [responsavelSelecionado, setResponsavelSelecionado] = useState("");
+  const [erroFotoResp, setErroFotoResp] = useState(false);
 
   const carregarOcorrencia = useCallback(async () => {
     if (!id) return;
@@ -135,29 +179,40 @@ export default function DetalhesOcorrencia() {
   useEffect(() => {
     async function carregarListas() {
       try {
-        const [resFunc, resResp] = await Promise.all([
+        const [resFunc, resUsers, resOcorrBruta] = await Promise.all([
           fetch("/api/funcionario/dados").catch(() => null),
-          fetch("/api/responsavel").catch(() => null),
+          fetch("/api/usuario").catch(() => null),
+          fetch("/api/ocorrencia").catch(() => null),
         ]);
 
         if (resFunc && resFunc.ok) {
           setFuncionarios(extrairLista(await resFunc.json()));
         }
-        if (resResp && resResp.ok) {
-          setResponsaveis(extrairLista(await resResp.json()));
+        if (resUsers && resUsers.ok) {
+          setUsuarios(extrairLista(await resUsers.json()));
+        }
+        if (resOcorrBruta && resOcorrBruta.ok) {
+          const listaBruta = extrairLista(await resOcorrBruta.json());
+          const reg = listaBruta.find(
+            (item) => String(item.id ?? item.ID_ocorrencia) === String(id)
+          );
+          const idReg = reg?.id_usuario_registro ?? reg?.ID_usuario_registro;
+          if (idReg) {
+            setIdRegistroBruto(Number(idReg));
+          }
         }
       } catch (e) {
-        console.error("Erro ao carregar funcionários/responsáveis:", e);
+        console.error("Erro ao carregar listas:", e);
       }
     }
     carregarListas();
-  }, []);
+  }, [id]);
 
   async function atualizarOcorrencia(camposAtualizados, msgSucesso) {
     setSalvando(true);
     setErro("");
     try {
-      const [resBruta, resMotivos, resStatus, resOrigens, resPrioridades, resCameras] =
+      const [resBruta, resMotivos, resStatus, resOrigens, resPrioridades, resCameras, resEpis] =
         await Promise.all([
           fetch("/api/ocorrencia").catch(() => null),
           fetch("/api/ocorrencia/motivo_ocorrencia").catch(() => null),
@@ -165,17 +220,21 @@ export default function DetalhesOcorrencia() {
           fetch("/api/ocorrencia/origem").catch(() => null),
           fetch("/api/ocorrencia/prioridade").catch(() => null),
           fetch("/api/camera").catch(() => null),
+          fetch("/api/epi").catch(() => null),
         ]);
 
       const listaBruta = resBruta?.ok ? extrairLista(await resBruta.json()) : [];
-      const regBruto =
-        listaBruta.find((item) => String(item.id ?? item.ID_ocorrencia) === String(id)) || {};
+      const registrosBrutos = listaBruta.filter(
+        (item) => String(item.id ?? item.ID_ocorrencia) === String(id)
+      );
+      const regBruto = registrosBrutos[0] || {};
 
       const motivos = resMotivos?.ok ? extrairLista(await resMotivos.json()) : [];
       const statuses = resStatus?.ok ? extrairLista(await resStatus.json()) : [];
       const origens = resOrigens?.ok ? extrairLista(await resOrigens.json()) : [];
       const prioridades = resPrioridades?.ok ? extrairLista(await resPrioridades.json()) : [];
       const camerasLista = resCameras?.ok ? extrairLista(await resCameras.json()) : [];
+      const episCatalogo = resEpis?.ok ? extrairLista(await resEpis.json()) : [];
 
       const normalizar = (str) =>
         String(str || "")
@@ -194,39 +253,45 @@ export default function DetalhesOcorrencia() {
         return achado?.id ?? fallback;
       };
 
-      let idRespAtual =
+      const idRespAtual =
         regBruto.id_usuario_registro ??
         ocorrencia.ID_usuario_registro ??
-        ocorrencia.ID_responsavel ??
+        ocorrencia.id_usuario_registro ??
+        idRegistroBruto ??
         null;
 
-      if (!idRespAtual && ocorrencia.Email_responsavel && responsaveis.length > 0) {
-        const respEncontrado = responsaveis.find(
-          (r) =>
-            String(r.email || "").toLowerCase() ===
-            String(ocorrencia.Email_responsavel).toLowerCase()
-        );
-        idRespAtual = respEncontrado?.id ?? null;
-      }
-
-      if (!idRespAtual && responsaveis.length > 0) {
-        idRespAtual = responsaveis[0].id;
-      }
-
-      // Descobre o ID da câmera
       const camEncontrada = camerasLista.find(
         (c) => normalizar(c.nome) === normalizar(ocorrencia.Nome_camera)
       );
       const idCamera = regBruto.id_camera ?? camEncontrada?.id ?? camerasLista[0]?.id ?? 1;
 
-      let listaEpi = [];
+      const idsEpiSet = new Set();
       if (Array.isArray(regBruto.id_epi)) {
-        listaEpi = regBruto.id_epi;
-      } else if (Array.isArray(regBruto.epi)) {
-        listaEpi = regBruto.epi.map((e) => ({ id: Number(e.id) }));
-      } else if (ocorrencia.ID_EPI) {
-        listaEpi = [{ id: Number(ocorrencia.ID_EPI) }];
+        regBruto.id_epi.forEach((e) => idsEpiSet.add(Number(e.id ?? e)));
       }
+      if (Array.isArray(regBruto.epi)) {
+        regBruto.epi.forEach((e) => idsEpiSet.add(Number(e.id)));
+      }
+      registrosBrutos.forEach((r) => {
+        if (r.ID_EPI) idsEpiSet.add(Number(r.ID_EPI));
+      });
+      if (Array.isArray(ocorrencia.lista_epis)) {
+        ocorrencia.lista_epis.forEach((e) => {
+          if (e.id) {
+            idsEpiSet.add(Number(e.id));
+          } else if (e.nome && episCatalogo.length > 0) {
+            const achado = episCatalogo.find(
+              (cat) => normalizar(cat.nome || cat.epi) === normalizar(e.nome)
+            );
+            if (achado?.id) idsEpiSet.add(Number(achado.id));
+          }
+        });
+      }
+      if (idsEpiSet.size === 0 && ocorrencia.ID_EPI) {
+        idsEpiSet.add(Number(ocorrencia.ID_EPI));
+      }
+
+      const listaEpi = Array.from(idsEpiSet).map((epiId) => ({ id: epiId }));
 
       const confiancaAtual = Number(
         regBruto.confianca_ia ?? ocorrencia.confianca_ia ?? 95.0
@@ -235,22 +300,22 @@ export default function DetalhesOcorrencia() {
       const listaCameras =
         Array.isArray(regBruto.cameras) && regBruto.cameras.length > 0
           ? regBruto.cameras.map((c) => ({
-              id_camera: Number(c.id_camera ?? c.id ?? idCamera),
-              foto: c.foto ?? ocorrencia.foto_ocorrencia ?? "evidencia.png",
-              confianca_ia: Number(c.confianca_ia ?? confiancaAtual),
-              data_hora: formatarDataSQL(c.data_hora ?? ocorrencia.data_hora),
-            }))
+            id_camera: Number(c.id_camera ?? c.id ?? idCamera),
+            foto: c.foto ?? ocorrencia.foto_ocorrencia ?? "evidencia.png",
+            confianca_ia: Number(c.confianca_ia ?? confiancaAtual),
+            data_hora: formatarDataSQL(c.data_hora ?? ocorrencia.data_hora),
+          }))
           : [
-              {
-                id_camera: Number(idCamera),
-                foto:
-                  ocorrencia.foto_ocorrencia ??
-                  ocorrencia.Foto_ocorrencia ??
-                  "evidencia.png",
-                confianca_ia: confiancaAtual,
-                data_hora: formatarDataSQL(ocorrencia.data_hora),
-              },
-            ];
+            {
+              id_camera: Number(idCamera),
+              foto:
+                ocorrencia.foto_ocorrencia ??
+                ocorrencia.Foto_ocorrencia ??
+                "evidencia.png",
+              confianca_ia: confiancaAtual,
+              data_hora: formatarDataSQL(ocorrencia.data_hora),
+            },
+          ];
 
       const payload = {
         descricao: regBruto.descricao ?? ocorrencia.Descricao_Ocorrencia ?? "",
@@ -261,22 +326,21 @@ export default function DetalhesOcorrencia() {
             : regBruto.id_funcionario ?? ocorrencia.ID_funcionario ?? null,
         id_motivo_ocorrencia: Number(
           regBruto.id_motivo_ocorrencia ??
-            encontrarIdPorTexto(motivos, ocorrencia.Motivo_ocorrencia, 1)
+          encontrarIdPorTexto(motivos, ocorrencia.Motivo_ocorrencia, 1)
         ),
         id_status_ocorrencia: Number(
           camposAtualizados.id_status_ocorrencia ??
-            regBruto.id_status_ocorrencia ??
-            encontrarIdPorTexto(statuses, ocorrencia.Status_ocorrencia, 1)
+          regBruto.id_status_ocorrencia ??
+          encontrarIdPorTexto(statuses, ocorrencia.Status_ocorrencia, 1)
         ),
-        id_usuario_registro: Number(
-          camposAtualizados.id_usuario_registro ?? idRespAtual ?? 1
-        ),
+        id_usuario_registro: idRespAtual ? Number(idRespAtual) : null,
+        vincular_usuario_token: Boolean(camposAtualizados.vincular_usuario_token || !idRespAtual),
         id_origem: Number(
           regBruto.id_origem ?? encontrarIdPorTexto(origens, ocorrencia.origem_ocorrencia, 1)
         ),
         id_prioridade: Number(
           regBruto.id_prioridade ??
-            encontrarIdPorTexto(prioridades, ocorrencia.prioridade_ocorrencia, 2)
+          encontrarIdPorTexto(prioridades, ocorrencia.prioridade_ocorrencia, 2)
         ),
         id_epi: listaEpi,
         cameras: listaCameras,
@@ -291,7 +355,11 @@ export default function DetalhesOcorrencia() {
       const json = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setErro(json.message || "Não foi possível atualizar a ocorrência.");
+        setErro(
+          json.message ||
+          json.response?.message ||
+          "Não foi possível atualizar a ocorrência."
+        );
         return false;
       }
 
@@ -322,28 +390,18 @@ export default function DetalhesOcorrencia() {
     }
   }
 
-  async function handleSalvarResponsavel(e) {
-    e.preventDefault();
-    if (!responsavelSelecionado) {
-      setErro("Selecione um responsável.");
-      return;
-    }
-    const ok = await atualizarOcorrencia(
-      { id_usuario_registro: Number(responsavelSelecionado) },
-      "Responsável vinculado com sucesso!"
-    );
-    if (ok) {
-      setEditandoResp(false);
-      setResponsavelSelecionado("");
-    }
-  }
-
   async function handleAlternarStatus() {
     const fechadaAtual = (ocorrencia?.Status_ocorrencia || "").toLowerCase().includes("fech");
     const novoStatusId = fechadaAtual ? 1 : 3;
+
     await atualizarOcorrencia(
-      { id_status_ocorrencia: novoStatusId },
-      fechadaAtual ? "Ocorrência reaberta com sucesso!" : "Ocorrência fechada com sucesso!"
+      {
+        id_status_ocorrencia: novoStatusId,
+        vincular_usuario_token: !fechadaAtual,
+      },
+      fechadaAtual
+        ? "Ocorrência reaberta com sucesso!"
+        : "Ocorrência fechada e atribuída ao seu usuário!"
     );
   }
 
@@ -374,11 +432,9 @@ export default function DetalhesOcorrencia() {
   const o = ocorrencia;
   const { data, hora } = formatarData(o.data_hora || o.Data_ocorrencia);
   const temFuncionario = Boolean(o.ID_funcionario);
-  const temResponsavel = Boolean(o.Nome_responsavel || o.ID_responsavel);
   const fechada = (o.Status_ocorrencia || "").toLowerCase().includes("fech");
   const idFormatado = String(o.ID_ocorrencia).padStart(5, "0");
 
-  // Verifica se a ocorrência veio da IA e calcula a porcentagem de confiança
   const isOrigemIA = String(o.origem_ocorrencia || "").trim().toUpperCase() === "IA";
   const confiancaNum = Number(o.confianca_ia);
   const porcentagemIA = !isNaN(confiancaNum)
@@ -392,17 +448,44 @@ export default function DetalhesOcorrencia() {
       : `/uploads/${fotoBruta}`
     : null;
 
+  const listaEpis =
+    Array.isArray(o.lista_epis) && o.lista_epis.length > 0
+      ? o.lista_epis
+      : o.Nome_EPI
+        ? [{ nome: o.Nome_EPI, categoria: o.Categoria_EPI, cor: o.Cor_EPI }]
+        : [];
+
+  const nomesEpisUnidos = listaEpis.map((e) => e.nome).filter(Boolean).join(", ");
+  const variosEpis = listaEpis.length > 1;
+
   const infos = [
     { rotulo: "Tipo", valor: o.Motivo_ocorrencia },
-    { rotulo: "EPI", valor: o.Nome_EPI },
-    { rotulo: "Categoria do EPI", valor: o.Categoria_EPI },
-    { rotulo: "Cor do EPI", valor: o.Cor_EPI },
+    ...(!variosEpis
+      ? [
+        { rotulo: "EPI", valor: listaEpis[0]?.nome },
+        { rotulo: "Categoria do EPI", valor: listaEpis[0]?.categoria },
+        { rotulo: "Cor do EPI", valor: listaEpis[0]?.cor },
+      ]
+      : []),
     { rotulo: "Setor", valor: o.Nome_setor },
     { rotulo: "Local do setor", valor: o.Local_setor },
     { rotulo: "Câmera", valor: o.Nome_camera },
     { rotulo: "Data", valor: data },
     { rotulo: "Horário", valor: hora },
   ].filter((i) => i.valor);
+
+  const idAutor = Number(
+    o.ID_usuario_registro || o.id_usuario_registro || idRegistroBruto || o.ID_responsavel || 0
+  );
+
+  const usuarioAutor =
+    usuarios.find((u) => Number(u.id || u.id_usuario) === idAutor) || null;
+
+  const nomeResponsavelExibicao = o.Nome_responsavel || usuarioAutor?.nome || "";
+  const emailResponsavelExibicao = o.Email_responsavel || usuarioAutor?.email || "";
+  const fotoResponsavelExibicao =
+    o.Foto_responsavel || o.foto_responsavel || usuarioAutor?.foto || "";
+  const temResponsavel = Boolean(nomeResponsavelExibicao || idAutor);
 
   return (
     <Shell>
@@ -452,14 +535,14 @@ export default function DetalhesOcorrencia() {
                   <span>
                     {temFuncionario
                       ? [
-                          o.Cargo_funcionario,
-                          o.ID_funcionario && `Mat. ${String(o.ID_funcionario).padStart(5, "0")}`,
-                        ]
-                          .filter(Boolean)
-                          .join(" · ")
+                        o.Cargo_funcionario,
+                        o.ID_funcionario && `Mat. ${String(o.ID_funcionario).padStart(5, "0")}`,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")
                       : isOrigemIA
-                      ? "Detecção automática pela IA"
-                      : "Aguardando identificação"}
+                        ? "Detecção automática pela IA"
+                        : "Aguardando identificação"}
                   </span>
                 </div>
               </div>
@@ -560,7 +643,6 @@ export default function DetalhesOcorrencia() {
               )}
             </div>
 
-            {/* CARD DETECÇÃO DA IA (EXIBIDO APENAS QUANDO ORIGEM FOR IA) */}
             {isOrigemIA && porcentagemIA !== null && (
               <div className={styles.card}>
                 <h4
@@ -610,7 +692,6 @@ export default function DetalhesOcorrencia() {
                   {porcentagemIA}%
                 </div>
 
-                {/* Barra de progresso laranja */}
                 <div
                   style={{
                     width: "100%",
@@ -635,8 +716,8 @@ export default function DetalhesOcorrencia() {
                 <div style={{ fontSize: "13px", color: "#8e96a0" }}>
                   Detecção:{" "}
                   <strong style={{ color: "#e6edf3", fontWeight: 600 }}>
-                    {o.Nome_EPI
-                      ? `Ausência de ${o.Nome_EPI.toLowerCase()}`
+                    {nomesEpisUnidos
+                      ? `Ausência de ${nomesEpisUnidos.toLowerCase()}`
                       : o.Motivo_ocorrencia || "Não conformidade de EPI"}
                   </strong>
                 </div>
@@ -654,86 +735,80 @@ export default function DetalhesOcorrencia() {
                   </div>
                 ))}
               </div>
+
+              {variosEpis && (
+                <div style={{ marginTop: "14px" }}>
+                  <span
+                    style={{
+                      display: "block",
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      letterSpacing: "0.04em",
+                      color: "#8e96a0",
+                      textTransform: "uppercase",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    EPIs vinculados ({listaEpis.length})
+                  </span>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {listaEpis.map((epi, idx) => (
+                      <div
+                        key={epi.id || `${epi.nome}-${idx}`}
+                        className={styles.infoItem}
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "3px",
+                        }}
+                      >
+                        <strong>{epi.nome}</strong>
+                        {(epi.categoria || epi.cor) && (
+                          <span style={{ fontSize: "12px", color: "#8e96a0" }}>
+                            {[epi.categoria, epi.cor].filter(Boolean).join(" · ")}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* CARD RESPONSÁVEL */}
+            {/* AQUI ESTARÁ O CARD DO RESPONSÁVEL*/}
             <div className={styles.card}>
               <h4 className={styles.cardTituloCinza}>
                 {temResponsavel ? "RESPONSÁVEL" : "RESPONSÁVEL NÃO ATRIBUÍDO"}
               </h4>
 
-              {temResponsavel ? (
+             {temResponsavel ? (
                 <div className={styles.perfil}>
-                  <div className={styles.avatar}>{iniciais(o.Nome_responsavel)}</div>
+                  {fotoResponsavelExibicao &&
+                  fotoResponsavelExibicao.startsWith("http") &&
+                  !erroFotoResp ? (
+                    <img
+                      src={fotoResponsavelExibicao}
+                      alt={nomeResponsavelExibicao}
+                      className={styles.avatar}
+                      style={{ objectFit: "cover" }}
+                      onError={() => setErroFotoResp(true)}
+                    />
+                  ) : (
+                    <div className={styles.avatar}>
+                      {iniciais(nomeResponsavelExibicao || `U${idAutor}`)}
+                    </div>
+                  )}
                   <div>
-                    <strong>{o.Nome_responsavel}</strong>
-                    <span>{o.Email_responsavel}</span>
+                    <strong>{nomeResponsavelExibicao || `Usuário #${idAutor}`}</strong>
+                    <span>{emailResponsavelExibicao}</span>
                   </div>
                 </div>
               ) : (
-                <>
-                  <p className={styles.textoApoio}>
-                    Nenhum responsável está atribuído a esta ocorrência no momento.
-                  </p>
-
-                  {!editandoResp ? (
-                    <button
-                      type="button"
-                      className={styles.botaoPrimario}
-                      onClick={() => setEditandoResp(true)}
-                    >
-                      + Adicionar responsável
-                    </button>
-                  ) : (
-                    <form onSubmit={handleSalvarResponsavel} style={{ marginTop: "12px" }}>
-                      <select
-                        value={responsavelSelecionado}
-                        onChange={(e) => setResponsavelSelecionado(e.target.value)}
-                        disabled={salvando}
-                        style={{
-                          width: "100%",
-                          padding: "10px 12px",
-                          borderRadius: "8px",
-                          background: "#0f1113",
-                          color: "#fff",
-                          border: "1px solid #2c3138",
-                          marginBottom: "10px",
-                          fontSize: "14px",
-                        }}
-                      >
-                        <option value="">Selecione um responsável...</option>
-                        {responsaveis.map((r) => {
-                          const rId = r.id || r.ID_responsavel || r.id_responsavel;
-                          return (
-                            <option key={rId} value={rId}>
-                              #{rId} - {r.nome}
-                            </option>
-                          );
-                        })}
-                      </select>
-                      <div style={{ display: "flex", gap: "8px" }}>
-                        <button
-                          type="submit"
-                          className={styles.botaoPrimario}
-                          disabled={salvando}
-                        >
-                          {salvando ? "Salvando..." : "Salvar"}
-                        </button>
-                        <button
-                          type="button"
-                          className={styles.botaoSecundario}
-                          disabled={salvando}
-                          onClick={() => {
-                            setEditandoResp(false);
-                            setResponsavelSelecionado("");
-                          }}
-                        >
-                          Cancelar
-                        </button>
-                      </div>
-                    </form>
-                  )}
-                </>
+                <p className={styles.textoApoio}>
+                  Nenhum responsável atribuído. Ao clicar em{" "}
+                  <strong style={{ color: "#e6edf3" }}>Fechar ocorrência</strong>, o seu usuário
+                  será registrado automaticamente como responsável pelo encerramento.
+                </p>
               )}
             </div>
           </div>

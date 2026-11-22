@@ -113,7 +113,7 @@ const PRINCIPAL = [
 
 const CADASTROS = [
   { href: "/cadastroEPI", icone: ICONES.epi, texto: "EPI" },
-  { href: "/cadastrarGestor", icone: ICONES.gestor, texto: "GESTOR" },
+  { href: "/cadastrarGestor", icone: ICONES.gestor, texto: "RESPONSÁVEL" },
   { href: "/cadastrarFuncionario", icone: ICONES.addFuncionario, texto: "FUNCIONÁRIO" },
   { href: "/cadastrarOcorrencia", icone: ICONES.addOcorrencia, texto: "OCORRÊNCIA" },
   { href: "/cadastrarSetor", icone: ICONES.addSetor, texto: "SETOR" },
