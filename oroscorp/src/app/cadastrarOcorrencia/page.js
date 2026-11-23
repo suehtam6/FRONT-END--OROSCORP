@@ -233,7 +233,7 @@ export default function RegistrarOcorrencia() {
             {
               id_camera: Number(cameraAlvoId),
               foto: fotoUrl || "sem-foto.png",
-              confianca_ia: 95,
+              confianca_ia: null,
               data_hora: dataHoraStr,
             },
           ]
