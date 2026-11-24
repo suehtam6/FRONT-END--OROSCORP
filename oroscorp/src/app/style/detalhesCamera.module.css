@@ -152,6 +152,39 @@
   background: #1b1f24;
 }
 
+.deletar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #f87171;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  transition: all 0.2s ease;
+}
+
+.deletar:hover:not(:disabled) {
+  background-color: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+  transform: translateY(-1px);
+}
+
+.deletar:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.deletar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* CONTAINER GRANDE DO PLAYER */
 .playerContainer {
   position: relative;
