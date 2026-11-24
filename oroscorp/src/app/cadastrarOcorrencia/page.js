@@ -218,6 +218,8 @@ export default function RegistrarOcorrencia() {
           ? camerasDoSetor[0]?.id || camerasDoSetor[0]?.id_camera || cameras[0]?.id || 1
           : null);
 
+      const cameraSelecionadaId = idCamera ? Number(idCamera) : null;
+
       const payload = {
         descricao: descricao,
         id_setor: Number(idSetor),
@@ -228,16 +230,17 @@ export default function RegistrarOcorrencia() {
         id_origem: 1,
         id_prioridade: Number(idPrioridade),
         id_epi: episSelecionados.map((id) => ({ id: Number(id) })),
-        cameras: cameraAlvoId
-          ? [
-            {
-              id_camera: Number(cameraAlvoId),
-              foto: fotoUrl || "sem-foto.png",
-              confianca_ia: null,
-              data_hora: dataHoraStr,
-            },
-          ]
-          : [],
+        cameras:
+          cameraSelecionadaId || fotoUrl
+            ? [
+              {
+                id_camera: cameraSelecionadaId,
+                foto: fotoUrl || "sem-foto.png",
+                confianca_ia: null,
+                data_hora: dataHoraStr,
+              },
+            ]
+            : [],
       };
 
       const res = await fetch("/api/ocorrencia", {

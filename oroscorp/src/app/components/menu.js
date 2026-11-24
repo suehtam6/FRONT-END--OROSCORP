@@ -109,6 +109,9 @@ const PRINCIPAL = [
   { href: "/cameras", icone: ICONES.cameras, texto: "CÂMERAS" },
   { href: "/ocorrencias", icone: ICONES.ocorrencias, texto: "OCORRÊNCIAS" },
   { href: "/funcionarios", icone: ICONES.funcionarios, texto: "FUNCIONÁRIOS" },
+  { href: "/responsavel", icone: ICONES.funcionarios, texto: "RESPONSÁVEIS" },
+   { href: "/epis", icone: ICONES.setores, texto: "EPIs" },
+
 ];
 
 const CADASTROS = [

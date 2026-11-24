@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
+import { uploadParaCloudinary } from "@/API/cloudinary";
 import Shell from "../components/Shell";
 import Popup from "../components/Popup";
 import styles from "../style/cadastrarsetor.module.css";
@@ -11,7 +12,9 @@ import modalStyles from "../style/modalGerenciador.module.css";
 Data: 9 de Outubro de 2026
 Objetivo: Cadastro de Setor
 Autor: João Pedro e Kaique Carvalho
-Atualização: Modal Gerenciador de Status do Setor integrado
+
+Autor do JS: Matheus Lucas
+Objetivo: Possibilitar o cadastro de setores corretamente
 */
 
 function Icone({ tipo, className = "" }) {
@@ -92,15 +95,17 @@ function Icone({ tipo, className = "" }) {
 export default function CadastroSetor() {
   const router = useRouter();
   const inputImagem = useRef(null);
+  const uploadRef = useRef({ arquivo: null, url: "" });
 
   // Estados do Formulário
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
   const [localizacao, setLocalizacao] = useState("");
   const [imagem, setImagem] = useState(null);
-  
+  const [previewUrl, setPreviewUrl] = useState("");
+
   // Status (gerenciado por ID numérico)
-  const [idStatusSetor, setIdStatusSetor] = useState(""); 
+  const [idStatusSetor, setIdStatusSetor] = useState("");
   const [statusLista, setStatusLista] = useState([]);
 
   // Modal Gerenciador de Status do Setor
@@ -111,18 +116,26 @@ export default function CadastroSetor() {
 
   // Estados de Seleção Múltipla
   const [responsaveis, setResponsaveis] = useState([]);
-  const [funcionarios, setFuncionarios] = useState([]);
   const [epis, setEpis] = useState([]);
 
   // Listas vindas da API
   const [responsaveisDisponiveis, setResponsaveisDisponiveis] = useState([]);
-  const [funcionariosDisponiveis, setFuncionariosDisponiveis] = useState([]);
   const [episDisponiveis, setEpisDisponiveis] = useState([]);
 
   // Estados dos Popups de Notificação
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
   const [carregando, setCarregando] = useState(false);
+
+  useEffect(() => {
+    if (!imagem) {
+      setPreviewUrl("");
+      return;
+    }
+    const url = URL.createObjectURL(imagem);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [imagem]);
 
   const extrairNome = (item) => {
     if (!item) return "Sem Nome";
@@ -136,7 +149,7 @@ export default function CadastroSetor() {
       if (item.usuario.nome) return item.usuario.nome;
     }
 
-    const nomeAlt = item.nome_responsavel || item.nome_funcionario || item.nome_epi || item.categoria;
+    const nomeAlt = item.nome_responsavel || item.nome_epi || item.categoria;
     if (nomeAlt) return nomeAlt;
 
     return `Item #${item.id || 1}`;
@@ -165,10 +178,15 @@ export default function CadastroSetor() {
     try {
       const res = await fetch("/api/status-setor");
       if (res.ok) {
-        const json = await res.json().catch(() => ([]));
-        const lista = json.response?.dados || json.dados || json.response || json.content || (Array.isArray(json) ? json : []);
+        const json = await res.json().catch(() => []);
+        const lista =
+          json.response?.dados ||
+          json.dados ||
+          json.response ||
+          json.content ||
+          (Array.isArray(json) ? json : []);
         setStatusLista(lista);
-        
+
         if (lista.length > 0 && !idStatusSetor) {
           const primeiroId = lista[0].id || lista[0].id_status_setor || lista[0].idStatusSetor || 1;
           setIdStatusSetor(primeiroId);
@@ -182,42 +200,38 @@ export default function CadastroSetor() {
   useEffect(() => {
     async function carregarDados() {
       try {
-        const [resResp, resFunc, resEpi] = await Promise.all([
+        const [resResp, resEpi] = await Promise.all([
           fetch("/api/responsavel"),
-          fetch("/api/funcionario"),
-          fetch("/api/epi")
+          fetch("/api/epi"),
         ]);
 
         const extrair = async (res) => {
           if (!res.ok) return [];
-          const json = await res.json().catch(() => ([]));
-          return json.response?.dados || json.dados || json.response || json.content || (Array.isArray(json) ? json : []);
+          const json = await res.json().catch(() => []);
+          return (
+            json.response?.dados ||
+            json.dados ||
+            json.response ||
+            json.content ||
+            (Array.isArray(json) ? json : [])
+          );
         };
 
         const listaResp = await extrair(resResp);
-        const listaFunc = await extrair(resFunc);
         const listaEpi = await extrair(resEpi);
 
         setResponsaveisDisponiveis(
-          listaResp.map(r => ({
+          listaResp.map((r) => ({
             value: r.id || r.id_responsavel || r.idResponsavel,
             label: extrairNome(r),
-            foto: extrairFoto(r)
-          }))
-        );
-
-        setFuncionariosDisponiveis(
-          listaFunc.map(f => ({
-            value: f.id || f.id_funcionario || f.idFuncionario,
-            label: extrairNome(f),
-            foto: extrairFoto(f)
+            foto: extrairFoto(r),
           }))
         );
 
         setEpisDisponiveis(
-          listaEpi.map(e => ({
+          listaEpi.map((e) => ({
             value: e.id || e.id_epi || e.idEpi,
-            label: extrairNome(e)
+            label: extrairNome(e),
           }))
         );
 
@@ -237,14 +251,14 @@ export default function CadastroSetor() {
       const res = await fetch("/api/status-setor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: novoStatusNome.trim(), nome: novoStatusNome.trim() })
+        body: JSON.stringify({ status: novoStatusNome.trim(), nome: novoStatusNome.trim() }),
       });
 
       if (res.ok) {
         const criado = await res.json().catch(() => ({}));
         setNovoStatusNome("");
         await carregarStatusSetor();
-        
+
         const idNovo = criado.id || criado.id_status_setor || criado.response?.id;
         if (idNovo) setIdStatusSetor(idNovo);
       } else {
@@ -263,7 +277,7 @@ export default function CadastroSetor() {
       const res = await fetch(`/api/status-setor/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: nomeStatusEditado.trim(), nome: nomeStatusEditado.trim() })
+        body: JSON.stringify({ status: nomeStatusEditado.trim(), nome: nomeStatusEditado.trim() }),
       });
 
       if (res.ok) {
@@ -284,7 +298,7 @@ export default function CadastroSetor() {
 
     try {
       const res = await fetch(`/api/status-setor/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
       });
 
       if (res.ok) {
@@ -304,7 +318,7 @@ export default function CadastroSetor() {
   function alternarSelecao(valorStr, lista, atualizar) {
     const valorNum = Number(valorStr);
     if (isNaN(valorNum)) return;
-    
+
     atualizar(
       lista.includes(valorNum)
         ? lista.filter((item) => item !== valorNum)
@@ -319,28 +333,44 @@ export default function CadastroSetor() {
 
   async function cadastrarSetor(event) {
     event.preventDefault();
+    if (carregando) return;
+
     setCarregando(true);
     setErro("");
     setSucesso("");
 
-    const mapearParaObjetosId = (arrayDeIds) => arrayDeIds.map((id) => ({ id }));
-
-    const payload = {
-      nome: nome,
-      foto: imagem ? imagem.name : "Almoxarifado.png",
-      descricao: descricao,
-      local: localizacao,
-      id_status_setor: Number(idStatusSetor),
-      id_epi: mapearParaObjetosId(epis),
-      id_responsavel: mapearParaObjetosId(responsaveis),
-      id_funcionario: mapearParaObjetosId(funcionarios)
-    };
-
     try {
+      let fotoUrl = "";
+      if (imagem) {
+        if (uploadRef.current.arquivo !== imagem) {
+          try {
+            const url = await uploadParaCloudinary(imagem);
+            uploadRef.current = { arquivo: imagem, url };
+          } catch {
+            setErro("Não foi possível enviar a foto para o Cloudinary. Tente novamente.");
+            return;
+          }
+        }
+        fotoUrl = uploadRef.current.url;
+      }
+
+      const mapearParaObjetosId = (arrayDeIds) => arrayDeIds.map((id) => ({ id }));
+
+      const payload = {
+        nome: nome,
+        foto: fotoUrl || "sem-foto.png",
+        descricao: descricao,
+        local: localizacao,
+        id_status_setor: Number(idStatusSetor) || 1,
+        id_epi: mapearParaObjetosId(epis),
+        id_responsavel: mapearParaObjetosId(responsaveis),
+        id_funcionario: [],
+      };
+
       const resposta = await fetch("/api/setor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       const retorno = await resposta.json().catch(() => ({}));
@@ -348,7 +378,7 @@ export default function CadastroSetor() {
       if (resposta.ok) {
         setSucesso("Setor cadastrado com sucesso!");
       } else {
-        setErro(retorno.message || "Erro ao cadastrar o Setor.");
+        setErro(retorno.message || retorno.response?.message || "Erro ao cadastrar o Setor.");
       }
     } catch {
       setErro("Erro de conexão ao comunicar com o servidor.");
@@ -360,470 +390,465 @@ export default function CadastroSetor() {
   return (
     <Shell>
       <div className={styles.pagina}>
-      <section className={styles.conteudo}>
-        <div className={styles.tituloPagina}>
-          <h1>Cadastro de Setor</h1>
-          <p>Preencha as informações do novo setor da empresa.</p>
-        </div>
+        <section className={styles.conteudo}>
+          <div className={styles.tituloPagina}>
+            <h1>Cadastro de Setor</h1>
+            <p>Preencha as informações do novo setor da empresa.</p>
+          </div>
 
-        <form onSubmit={cadastrarSetor}>
-          <div className={styles.painel}>
-            <div className={styles.areaSuperior}>
-              
-              {/* UPLOAD DE IMAGEM */}
-              <button
-                type="button"
-                className={styles.uploadImagem}
-                onClick={() => inputImagem.current?.click()}
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  const arquivo = event.dataTransfer.files?.[0];
-                  if (arquivo?.type.startsWith("image/")) {
-                    setImagem(arquivo);
-                  }
-                }}
-              >
-                {imagem ? (
-                  <img
-                    className={styles.previewImagem}
-                    src={URL.createObjectURL(imagem)}
-                    alt="Pré-visualização do setor"
-                  />
-                ) : (
-                  <>
-                    <span className={styles.caixaImagem}>
-                      <Icone tipo="imagem" />
-                      <span className={styles.seloUpload}>
-                        <Icone tipo="upload" />
-                      </span>
-                    </span>
-                    <span className={styles.textoUpload}>
-                      Clique para enviar uma imagem ou
-                      <br />
-                      arraste o arquivo aqui.
-                    </span>
-                  </>
-                )}
-              </button>
-              <input
-                ref={inputImagem}
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={(event) => {
-                  const arquivo = event.target.files?.[0];
-                  if (arquivo) setImagem(arquivo);
-                }}
-              />
-
-              {/* CARD DE RESUMO */}
-              <div className={styles.resumo}>
-                <div className={styles.resumoCabecalho}>
-                  <span className={styles.iconeEscudo}>
-                    <Icone tipo="escudo" />
-                  </span>
-                  <div>
-                    <h2>Informações do setor</h2>
-                    <p>Cadastre um novo setor para<br />organizar os funcionários,<br />câmeras e ocorrências.</p>
-                  </div>
-                </div>
-                <div className={styles.resumoLinha}>
-                  <span><Icone tipo="funcionarios" />Funcionários</span>
-                  <strong>{funcionarios.length}</strong>
-                </div>
-                <div className={styles.resumoLinha}>
-                  <span><Icone tipo="camera" />Câmeras</span>
-                  <strong>0</strong>
-                </div>
-                <div className={styles.resumoLinha}>
-                  <span><Icone tipo="alerta" />Ocorrências abertas</span>
-                  <strong>0</strong>
-                </div>
-              </div>
-            </div>
-
-            {/* DADOS DO FORMULÁRIO */}
-            <div className={styles.formulario}>
-              <div className={styles.coluna}>
-                <div className={styles.campo}>
-                  <label htmlFor="nome">
-                    NOME DO SETOR <span className={styles.obrigatorio}>*</span>
-                  </label>
-                  <input
-                    id="nome"
-                    type="text"
-                    placeholder="Digite o nome do setor"
-                    value={nome}
-                    onChange={(event) => setNome(event.target.value)}
-                    maxLength={100}
-                    required
-                  />
-                </div>
-
-                <div className={styles.campo}>
-                  <label htmlFor="descricao">DESCRIÇÃO</label>
-                  <div className={styles.textareaWrapper}>
-                    <textarea
-                      id="descricao"
-                      placeholder="Descreva o setor, suas atividades e observações..."
-                      value={descricao}
-                      onChange={(event) => setDescricao(event.target.value)}
-                      maxLength={500}
-                    />
-                    <span className={styles.contador}>{descricao.length}/500</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.coluna}>
-                
-                {/* RESPONSÁVEL DO SETOR */}
-                <div className={styles.campo}>
-                  <label>RESPONSÁVEL</label>
-                  <div className={styles.selectWrapper}>
-                    <select
-                      value=""
-                      className={styles.selectComIcone}
-                      onChange={(event) => {
-                        if (event.target.value) {
-                          alternarSelecao(event.target.value, responsaveis, setResponsaveis);
-                        }
-                      }}
-                    >
-                      <option value="">
-                        {responsaveis.length ? `${responsaveis.length} responsável(is) selecionado(s)` : "Selecione os responsáveis"}
-                      </option>
-                      {responsaveisDisponiveis.map((item) => (
-                        <option key={item.value} value={item.value}>{item.label}</option>
-                      ))}
-                    </select>
-                    <Icone tipo="seta" className={styles.setaSelect} />
-                  </div>
-                  {responsaveis.length > 0 && (
-                    <div className={styles.selecionados}>
-                      {responsaveis.map((id) => {
-                        const item = responsaveisDisponiveis.find((r) => r.value === id);
-                        return (
-                          <button
-                            key={id}
-                            type="button"
-                            onClick={() => alternarSelecao(id, responsaveis, setResponsaveis)}
-                            className={styles.tag}
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                          >
-                            {item?.foto ? (
-                              <img src={item.foto} alt="" style={{ width: 16, height: 16, borderRadius: '50%', objectFit: 'cover' }} />
-                            ) : (
-                              <span>👤</span>
-                            )}
-                            {item?.label || `ID #${id}`} ×
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {/* LOCALIZAÇÃO */}
-                <div className={styles.campo}>
-                  <label htmlFor="localizacao">LOCALIZAÇÃO</label>
-                  <input
-                    id="localizacao"
-                    type="text"
-                    placeholder="Ex: Galpão A, Piso 1"
-                    value={localizacao}
-                    onChange={(event) => setLocalizacao(event.target.value)}
-                  />
-                </div>
-
-                {/* FUNCIONÁRIOS DO SETOR */}
-                <div className={styles.campo}>
-                  <label>FUNCIONÁRIOS DO SETOR</label>
-                  <div className={styles.selectWrapper}>
-                    <Icone tipo="camera" className={styles.iconeCampo} />
-                    <select
-                      value=""
-                      className={styles.selectComIcone}
-                      onChange={(event) => {
-                        if (event.target.value) alternarSelecao(event.target.value, funcionarios, setFuncionarios);
-                      }}
-                    >
-                      <option value="">
-                        {funcionarios.length ? `${funcionarios.length} funcionário(s) selecionado(s)` : "Selecione os funcionários"}
-                      </option>
-                      {funcionariosDisponiveis.map((item) => (
-                        <option key={item.value} value={item.value}>{item.label}</option>
-                      ))}
-                    </select>
-                    <Icone tipo="seta" className={styles.setaSelect} />
-                  </div>
-                  {funcionarios.length > 0 && (
-                    <div className={styles.selecionados}>
-                      {funcionarios.map((id) => {
-                        const item = funcionariosDisponiveis.find((f) => f.value === id);
-                        return (
-                          <button
-                            key={id}
-                            type="button"
-                            onClick={() => alternarSelecao(id, funcionarios, setFuncionarios)}
-                            className={styles.tag}
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                          >
-                            {item?.foto ? (
-                              <img src={item.foto} alt="" style={{ width: 16, height: 16, borderRadius: '50%', objectFit: 'cover' }} />
-                            ) : (
-                              <span>👤</span>
-                            )}
-                            {item?.label || `ID #${id}`} ×
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {/* EPIS DO SETOR */}
-                <div className={styles.campo}>
-                  <label>EPI DO SETOR</label>
-                  <div className={styles.selectWrapper}>
-                    <Icone tipo="capacete" className={styles.iconeCapacete} />
-                    <select
-                      value=""
-                      className={styles.selectComIcone}
-                      onChange={(event) => {
-                        if (event.target.value) alternarSelecao(event.target.value, epis, setEpis);
-                      }}
-                    >
-                      <option value="">
-                        {epis.length ? `${epis.length} EPI(s) selecionado(s)` : "Selecione os EPIs"}
-                      </option>
-                      {episDisponiveis.map((item) => (
-                        <option key={item.value} value={item.value}>{item.label}</option>
-                      ))}
-                    </select>
-                    <Icone tipo="seta" className={styles.setaSelect} />
-                  </div>
-                  {epis.length > 0 && (
-                    <div className={styles.selecionados}>
-                      {epis.map((id) => {
-                        const item = episDisponiveis.find((e) => e.value === id);
-                        return (
-                          <button
-                            key={id}
-                            type="button"
-                            onClick={() => alternarSelecao(id, epis, setEpis)}
-                            className={styles.tag}
-                          >
-                            {item?.label || `ID #${id}`} ×
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* CONFIGURAÇÕES DE SEGURANÇA (STATUS DO SETOR) */}
-            <div className={styles.seguranca}>
-              <div className={styles.cabecalhoCampoStatus} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div className={styles.tituloSeguranca}>
-                  <Icone tipo="escudo" />
-                  <h2>Configurações de segurança</h2>
-                </div>
+          <form onSubmit={cadastrarSetor}>
+            <div className={styles.painel}>
+              <div className={styles.areaSuperior}>
+                {/* UPLOAD DE IMAGEM */}
                 <button
                   type="button"
-                  className={styles.botaoGerenciar}
-                  onClick={() => setModalStatusAberto(true)}
-                  style={{ background: 'transparent', border: 'none', color: '#ff7a00', cursor: 'pointer', fontWeight: 'bold' }}
+                  className={styles.uploadImagem}
+                  onClick={() => inputImagem.current?.click()}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    const arquivo = event.dataTransfer.files?.[0];
+                    if (arquivo?.type.startsWith("image/")) {
+                      setImagem(arquivo);
+                    }
+                  }}
                 >
-                  + Gerenciar Status
+                  {previewUrl ? (
+                    <img
+                      className={styles.previewImagem}
+                      src={previewUrl}
+                      alt="Pré-visualização do setor"
+                    />
+                  ) : (
+                    <>
+                      <span className={styles.caixaImagem}>
+                        <Icone tipo="imagem" />
+                        <span className={styles.seloUpload}>
+                          <Icone tipo="upload" />
+                        </span>
+                      </span>
+                      <span className={styles.textoUpload}>
+                        Clique para enviar uma imagem ou
+                        <br />
+                        arraste o arquivo aqui.
+                      </span>
+                    </>
+                  )}
                 </button>
+                <input
+                  ref={inputImagem}
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={(event) => {
+                    const arquivo = event.target.files?.[0];
+                    if (arquivo) setImagem(arquivo);
+                  }}
+                />
+
+                {/* CARD DE RESUMO */}
+                <div className={styles.resumo}>
+                  <div className={styles.resumoCabecalho}>
+                    <span className={styles.iconeEscudo}>
+                      <Icone tipo="escudo" />
+                    </span>
+                    <div>
+                      <h2>Informações do setor</h2>
+                      <p>
+                        Cadastre um novo setor para
+                        <br />
+                        organizar os responsáveis,
+                        <br />
+                        câmeras e EPIs obrigatórios.
+                      </p>
+                    </div>
+                  </div>
+                  <div className={styles.resumoLinha}>
+                    <span>
+                      <Icone tipo="funcionarios" />
+                      Responsáveis
+                    </span>
+                    <strong>{responsaveis.length}</strong>
+                  </div>
+                  <div className={styles.resumoLinha}>
+                    <span>
+                      <Icone tipo="capacete" />
+                      EPIs obrigatórios
+                    </span>
+                    <strong>{epis.length}</strong>
+                  </div>
+                  <div className={styles.resumoLinha}>
+                    <span>
+                      <Icone tipo="camera" />
+                      Câmeras
+                    </span>
+                    <strong>0</strong>
+                  </div>
+                </div>
               </div>
 
-              <p>Status do setor</p>
-              <div className={styles.opcoesStatus}>
-                {statusLista.length > 0 ? (
-                  statusLista.map((status) => {
-                    const sId = status.id || status.id_status_setor || status.idStatusSetor;
-                    const sNome = status.nome || status.status || (sId === 1 ? "Ativo" : "Inativo");
-                    
-                    return (
+              {/* DADOS DO FORMULÁRIO */}
+              <div className={styles.formulario}>
+                <div className={styles.coluna}>
+                  <div className={styles.campo}>
+                    <label htmlFor="nome">
+                      NOME DO SETOR <span className={styles.obrigatorio}>*</span>
+                    </label>
+                    <input
+                      id="nome"
+                      type="text"
+                      placeholder="Digite o nome do setor"
+                      value={nome}
+                      onChange={(event) => setNome(event.target.value)}
+                      maxLength={100}
+                      required
+                    />
+                  </div>
+
+                  <div className={styles.campo}>
+                    <label htmlFor="descricao">DESCRIÇÃO</label>
+                    <div className={styles.textareaWrapper}>
+                      <textarea
+                        id="descricao"
+                        placeholder="Descreva o setor, suas atividades e observações..."
+                        value={descricao}
+                        onChange={(event) => setDescricao(event.target.value)}
+                        maxLength={500}
+                      />
+                      <span className={styles.contador}>{descricao.length}/500</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.coluna}>
+                  {/* RESPONSÁVEL DO SETOR */}
+                  <div className={styles.campo}>
+                    <label>RESPONSÁVEL</label>
+                    <div className={styles.selectWrapper}>
+                      <select
+                        value=""
+                        className={styles.selectComIcone}
+                        onChange={(event) => {
+                          if (event.target.value) {
+                            alternarSelecao(event.target.value, responsaveis, setResponsaveis);
+                          }
+                        }}
+                      >
+                        <option value="">
+                          {responsaveis.length
+                            ? `${responsaveis.length} responsável(is) selecionado(s)`
+                            : "Selecione os responsáveis"}
+                        </option>
+                        {responsaveisDisponiveis.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                      <Icone tipo="seta" className={styles.setaSelect} />
+                    </div>
+                    {responsaveis.length > 0 && (
+                      <div className={styles.selecionados}>
+                        {responsaveis.map((id) => {
+                          const item = responsaveisDisponiveis.find((r) => r.value === id);
+                          return (
+                            <button
+                              key={id}
+                              type="button"
+                              onClick={() => alternarSelecao(id, responsaveis, setResponsaveis)}
+                              className={styles.tag}
+                              style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+                            >
+                              {item?.foto ? (
+                                <img
+                                  src={item.foto}
+                                  alt=""
+                                  style={{
+                                    width: 16,
+                                    height: 16,
+                                    borderRadius: "50%",
+                                    objectFit: "cover",
+                                  }}
+                                />
+                              ) : (
+                                <span>👤</span>
+                              )}
+                              {item?.label || `ID #${id}`} ×
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* LOCALIZAÇÃO */}
+                  <div className={styles.campo}>
+                    <label htmlFor="localizacao">LOCALIZAÇÃO</label>
+                    <input
+                      id="localizacao"
+                      type="text"
+                      placeholder="Ex: Galpão A, Piso 1"
+                      value={localizacao}
+                      onChange={(event) => setLocalizacao(event.target.value)}
+                    />
+                  </div>
+
+                  {/* EPIS DO SETOR */}
+                  <div className={styles.campo}>
+                    <label>EPI DO SETOR</label>
+                    <div className={styles.selectWrapper}>
+                      <Icone tipo="capacete" className={styles.iconeCapacete} />
+                      <select
+                        value=""
+                        className={styles.selectComIcone}
+                        onChange={(event) => {
+                          if (event.target.value) alternarSelecao(event.target.value, epis, setEpis);
+                        }}
+                      >
+                        <option value="">
+                          {epis.length ? `${epis.length} EPI(s) selecionado(s)` : "Selecione os EPIs"}
+                        </option>
+                        {episDisponiveis.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                      <Icone tipo="seta" className={styles.setaSelect} />
+                    </div>
+                    {epis.length > 0 && (
+                      <div className={styles.selecionados}>
+                        {epis.map((id) => {
+                          const item = episDisponiveis.find((e) => e.value === id);
+                          return (
+                            <button
+                              key={id}
+                              type="button"
+                              onClick={() => alternarSelecao(id, epis, setEpis)}
+                              className={styles.tag}
+                            >
+                              {item?.label || `ID #${id}`} ×
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* CONFIGURAÇÕES DE SEGURANÇA (STATUS DO SETOR) */}
+              <div className={styles.seguranca}>
+                <div
+                  className={styles.cabecalhoCampoStatus}
+                  style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                >
+                  <div className={styles.tituloSeguranca}>
+                    <Icone tipo="escudo" />
+                    <h2>Configurações de segurança</h2>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.botaoGerenciar}
+                    onClick={() => setModalStatusAberto(true)}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "#ff7a00",
+                      cursor: "pointer",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    + Gerenciar Status
+                  </button>
+                </div>
+
+                <p>Status do setor</p>
+                <div className={styles.opcoesStatus}>
+                  {statusLista.length > 0 ? (
+                    statusLista.map((status) => {
+                      const sId = status.id || status.id_status_setor || status.idStatusSetor;
+                      const sNome = status.nome || status.status || (sId === 1 ? "Ativo" : "Inativo");
+
+                      return (
+                        <button
+                          key={sId}
+                          type="button"
+                          className={`${styles.statusBotao} ${
+                            Number(idStatusSetor) === Number(sId)
+                              ? Number(sId) === 1
+                                ? styles.statusAtivo
+                                : styles.statusInativo
+                              : ""
+                          }`}
+                          onClick={() => setIdStatusSetor(sId)}
+                        >
+                          <span />
+                          {sNome}
+                        </button>
+                      );
+                    })
+                  ) : (
+                    <>
                       <button
-                        key={sId}
                         type="button"
-                        className={`${styles.statusBotao} ${Number(idStatusSetor) === Number(sId) ? (Number(sId) === 1 ? styles.statusAtivo : styles.statusInativo) : ""}`}
-                        onClick={() => setIdStatusSetor(sId)}
+                        className={`${styles.statusBotao} ${
+                          Number(idStatusSetor) === 1 ? styles.statusAtivo : ""
+                        }`}
+                        onClick={() => setIdStatusSetor(1)}
                       >
                         <span />
-                        {sNome}
+                        Ativo
                       </button>
+                      <button
+                        type="button"
+                        className={`${styles.statusBotao} ${
+                          Number(idStatusSetor) === 2 ? styles.statusInativo : ""
+                        }`}
+                        onClick={() => setIdStatusSetor(2)}
+                      >
+                        <span />
+                        Inativo
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* BOTÕES DE AÇÃO */}
+            <div className={styles.acoes}>
+              <button
+                type="button"
+                className={styles.botaoCancelar}
+                onClick={cancelar}
+                disabled={carregando}
+              >
+                CANCELAR
+              </button>
+              <button type="submit" className={styles.botaoCadastrar} disabled={carregando}>
+                {carregando ? "CADASTRANDO..." : "CADASTRAR SETOR"}
+              </button>
+            </div>
+          </form>
+
+          {/* MODAL DE GERENCIAMENTO DE STATUS DO SETOR */}
+          {modalStatusAberto && (
+            <div className={modalStyles.modalOverlay}>
+              <div className={modalStyles.modalContainer}>
+                <div className={modalStyles.modalCabecalho}>
+                  <h3>Gerenciar Status do Setor</h3>
+                  <button
+                    type="button"
+                    className={modalStyles.modalFechar}
+                    onClick={() => setModalStatusAberto(false)}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className={modalStyles.modalFormulario}>
+                  <input
+                    type="text"
+                    placeholder="Novo Status (ex: Manutenção)..."
+                    value={novoStatusNome}
+                    onChange={(e) => setNovoStatusNome(e.target.value)}
+                    className={modalStyles.modalInput}
+                  />
+                  <button
+                    type="button"
+                    onClick={criarStatusSetor}
+                    className={modalStyles.modalBotaoAdicionar}
+                  >
+                    Adicionar
+                  </button>
+                </div>
+
+                <div className={modalStyles.modalLista}>
+                  {statusLista.map((item, index) => {
+                    const itemId = item.id || item.id_status_setor || index;
+                    const itemNome = item.nome || item.status || "Sem Nome";
+
+                    return (
+                      <div key={itemId} className={modalStyles.modalItem}>
+                        {statusEditandoId === itemId ? (
+                          <input
+                            type="text"
+                            value={nomeStatusEditado}
+                            onChange={(e) => setNomeStatusEditado(e.target.value)}
+                            className={modalStyles.modalInputEdicao}
+                          />
+                        ) : (
+                          <span className={modalStyles.modalItemTexto}>● {itemNome}</span>
+                        )}
+
+                        <div className={modalStyles.modalAcoesItem}>
+                          {statusEditandoId === itemId ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => salvarEdicaoStatus(itemId)}
+                                className={modalStyles.modalBotaoSalvar}
+                              >
+                                Salvar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setStatusEditandoId(null)}
+                                className={modalStyles.modalBotaoCancelarItem}
+                              >
+                                Cancelar
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setStatusEditandoId(itemId);
+                                  setNomeStatusEditado(itemNome);
+                                }}
+                                className={modalStyles.modalBotaoEditar}
+                              >
+                                Editar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => deletarStatus(itemId)}
+                                className={modalStyles.modalBotaoExcluir}
+                              >
+                                Excluir
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
                     );
-                  })
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      className={`${styles.statusBotao} ${Number(idStatusSetor) === 1 ? styles.statusAtivo : ""}`}
-                      onClick={() => setIdStatusSetor(1)}
-                    >
-                      <span />
-                      Ativo
-                    </button>
-                    <button
-                      type="button"
-                      className={`${styles.statusBotao} ${Number(idStatusSetor) === 2 ? styles.statusInativo : ""}`}
-                      onClick={() => setIdStatusSetor(2)}
-                    >
-                      <span />
-                      Inativo
-                    </button>
-                  </>
-                )}
+                  })}
+                </div>
+
+                <div className={modalStyles.modalRodape}>
+                  <button
+                    type="button"
+                    onClick={() => setModalStatusAberto(false)}
+                    className={modalStyles.modalBotaoConcluido}
+                  >
+                    Concluído
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* BOTÕES DE AÇÃO */}
-          <div className={styles.acoes}>
-            <button
-              type="button"
-              className={styles.botaoCancelar}
-              onClick={cancelar}
-              disabled={carregando}
-            >
-              CANCELAR
-            </button>
-            <button 
-              type="submit"
-              className={styles.botaoCadastrar}
-              disabled={carregando}
-            >
-              {carregando ? "CADASTRANDO..." : "CADASTRAR SETOR"}
-            </button>
-          </div>
-        </form>
-
-        {/* MODAL DE GERENCIAMENTO DE STATUS DO SETOR */}
-
-{modalStatusAberto && (
-  <div className={modalStyles.modalOverlay}>
-    <div className={modalStyles.modalContainer}>
-      <div className={modalStyles.modalCabecalho}>
-        <h3>Gerenciar Status do Setor</h3>
-        <button
-          type="button"
-          className={modalStyles.modalFechar}
-          onClick={() => setModalStatusAberto(false)}
-        >
-          ✕
-        </button>
-      </div>
-
-      <div className={modalStyles.modalFormulario}>
-        <input
-          type="text"
-          placeholder="Novo Status (ex: Manutenção)..."
-          value={novoStatusNome}
-          onChange={(e) => setNovoStatusNome(e.target.value)}
-          className={modalStyles.modalInput}
-        />
-        <button
-          type="button"
-          onClick={criarStatusSetor}
-          className={modalStyles.modalBotaoAdicionar}
-        >
-          Adicionar
-        </button>
-      </div>
-
-      <div className={modalStyles.modalLista}>
-        {statusLista.map((item, index) => {
-          const itemId = item.id || item.id_status_setor || index;
-          const itemNome = item.nome || item.status || "Sem Nome";
-
-          return (
-            <div key={itemId} className={modalStyles.modalItem}>
-              {statusEditandoId === itemId ? (
-                <input
-                  type="text"
-                  value={nomeStatusEditado}
-                  onChange={(e) => setNomeStatusEditado(e.target.value)}
-                  className={modalStyles.modalInputEdicao}
-                />
-              ) : (
-                <span className={modalStyles.modalItemTexto}>● {itemNome}</span>
-              )}
-
-              <div className={modalStyles.modalAcoesItem}>
-                {statusEditandoId === itemId ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => salvarEdicaoStatus(itemId)}
-                      className={modalStyles.modalBotaoSalvar}
-                    >
-                      Salvar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setStatusEditandoId(null)}
-                      className={modalStyles.modalBotaoCancelarItem}
-                    >
-                      Cancelar
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setStatusEditandoId(itemId);
-                        setNomeStatusEditado(itemNome);
-                      }}
-                      className={modalStyles.modalBotaoEditar}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => deletarStatus(itemId)}
-                      className={modalStyles.modalBotaoExcluir}
-                    >
-                      Excluir
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className={modalStyles.modalRodape}>
-        <button
-          type="button"
-          onClick={() => setModalStatusAberto(false)}
-          className={modalStyles.modalBotaoConcluido}
-        >
-          Concluído
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-        
-        <Popup mensagem={erro} tipo="erro" aoFechar={() => setErro("")} />
-        <Popup
-          mensagem={sucesso}
-          tipo="sucesso"
-          titulo="Setor Cadastrado!"
-          textoBotao="Ir para Setores"
-          aoFechar={() => router.push("/setores")}
-        />
-      </section>
+          <Popup mensagem={erro} tipo="erro" aoFechar={() => setErro("")} />
+          <Popup
+            mensagem={sucesso}
+            tipo="sucesso"
+            titulo="Setor Cadastrado!"
+            textoBotao="Ir para Setores"
+            aoFechar={() => router.push("/setores")}
+          />
+        </section>
       </div>
     </Shell>
   );
