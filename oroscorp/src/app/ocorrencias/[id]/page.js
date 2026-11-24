@@ -212,22 +212,38 @@ export default function DetalhesOcorrencia() {
     setSalvando(true);
     setErro("");
     try {
-      const [resBruta, resMotivos, resStatus, resOrigens, resPrioridades, resCameras, resEpis] =
-        await Promise.all([
-          fetch("/api/ocorrencia").catch(() => null),
-          fetch("/api/ocorrencia/motivo_ocorrencia").catch(() => null),
-          fetch("/api/ocorrencia/status-ocorrencia").catch(() => null),
-          fetch("/api/ocorrencia/origem").catch(() => null),
-          fetch("/api/ocorrencia/prioridade").catch(() => null),
-          fetch("/api/camera").catch(() => null),
-          fetch("/api/epi").catch(() => null),
-        ]);
+      const [
+        resBruta,
+        resOcorrCam,
+        resMotivos,
+        resStatus,
+        resOrigens,
+        resPrioridades,
+        resCameras,
+        resEpis,
+      ] = await Promise.all([
+        fetch("/api/ocorrencia").catch(() => null),
+        fetch("/api/ocorrencia-camera").catch(() => null),
+        fetch("/api/ocorrencia/motivo_ocorrencia").catch(() => null),
+        fetch("/api/ocorrencia/status-ocorrencia").catch(() => null),
+        fetch("/api/ocorrencia/origem").catch(() => null),
+        fetch("/api/ocorrencia/prioridade").catch(() => null),
+        fetch("/api/camera").catch(() => null),
+        fetch("/api/epi").catch(() => null),
+      ]);
 
       const listaBruta = resBruta?.ok ? extrairLista(await resBruta.json()) : [];
       const registrosBrutos = listaBruta.filter(
         (item) => String(item.id ?? item.ID_ocorrencia) === String(id)
       );
       const regBruto = registrosBrutos[0] || {};
+
+      const listaOcorrCam = resOcorrCam?.ok
+        ? extrairLista(await resOcorrCam.json())
+        : [];
+      const vinculosCamExistentes = listaOcorrCam.filter(
+        (item) => String(item.id_ocorrencia ?? item.ID_ocorrencia) === String(id)
+      );
 
       const motivos = resMotivos?.ok ? extrairLista(await resMotivos.json()) : [];
       const statuses = resStatus?.ok ? extrairLista(await resStatus.json()) : [];
@@ -260,10 +276,19 @@ export default function DetalhesOcorrencia() {
         idRegistroBruto ??
         null;
 
-      const camEncontrada = camerasLista.find(
-        (c) => normalizar(c.nome) === normalizar(ocorrencia.Nome_camera)
-      );
-      const idCamera = regBruto.id_camera ?? camEncontrada?.id ?? camerasLista[0]?.id ?? 1;
+      const camEncontrada = ocorrencia.Nome_camera
+        ? camerasLista.find(
+            (c) => normalizar(c.nome) === normalizar(ocorrencia.Nome_camera)
+          )
+        : null;
+
+      const idCameraExistente =
+        vinculosCamExistentes[0]?.id_camera ??
+        regBruto.id_camera ??
+        ocorrencia.ID_camera ??
+        ocorrencia.id_camera ??
+        camEncontrada?.id ??
+        null;
 
       const idsEpiSet = new Set();
       if (Array.isArray(regBruto.id_epi)) {
@@ -293,30 +318,56 @@ export default function DetalhesOcorrencia() {
 
       const listaEpi = Array.from(idsEpiSet).map((epiId) => ({ id: epiId }));
 
-      const confiancaAtual = Number(
-        regBruto.confianca_ia ?? ocorrencia.confianca_ia ?? 95.0
-      );
+      const confiancaBruta =
+        vinculosCamExistentes[0]?.confianca_ia ??
+        regBruto.confianca_ia ??
+        ocorrencia.confianca_ia;
+      const temConfianca =
+        confiancaBruta !== null &&
+        confiancaBruta !== undefined &&
+        confiancaBruta !== "" &&
+        !isNaN(Number(confiancaBruta));
 
-      const listaCameras =
-        Array.isArray(regBruto.cameras) && regBruto.cameras.length > 0
-          ? regBruto.cameras.map((c) => ({
-            id_camera: Number(c.id_camera ?? c.id ?? idCamera),
-            foto: c.foto ?? ocorrencia.foto_ocorrencia ?? "evidencia.png",
-            confianca_ia: Number(c.confianca_ia ?? confiancaAtual),
-            data_hora: formatarDataSQL(c.data_hora ?? ocorrencia.data_hora),
-          }))
+      const fonteCameras =
+        vinculosCamExistentes.length > 0
+          ? vinculosCamExistentes
+          : Array.isArray(regBruto.cameras) && regBruto.cameras.length > 0
+          ? regBruto.cameras
           : [
-            {
-              id_camera: Number(idCamera),
-              foto:
-                ocorrencia.foto_ocorrencia ??
-                ocorrencia.Foto_ocorrencia ??
-                "evidencia.png",
-              confianca_ia: confiancaAtual,
-              data_hora: formatarDataSQL(ocorrencia.data_hora),
-            },
-          ];
+              {
+                id_camera: idCameraExistente,
+                foto:
+                  ocorrencia.foto_ocorrencia ??
+                  ocorrencia.Foto_ocorrencia ??
+                  "evidencia.png",
+                confianca_ia: temConfianca ? Number(confiancaBruta) : null,
+                data_hora: ocorrencia.data_hora ?? ocorrencia.Data_ocorrencia,
+              },
+            ];
 
+      const listaCameras = fonteCameras.map((c) => {
+        const idCamItem = c.id_camera ?? idCameraExistente ?? null;
+        return {
+          ...(c.id ? { id: Number(c.id) } : {}),
+          id_camera: idCamItem ? Number(idCamItem) : null,
+          foto:
+            c.foto ??
+            ocorrencia.foto_ocorrencia ??
+            ocorrencia.Foto_ocorrencia ??
+            "evidencia.png",
+          confianca_ia:
+            c.confianca_ia !== null && c.confianca_ia !== undefined
+              ? Number(c.confianca_ia)
+              : temConfianca
+              ? Number(confiancaBruta)
+              : null,
+          data_hora: formatarDataSQL(
+            c.data_hora ?? ocorrencia.data_hora ?? ocorrencia.Data_ocorrencia
+          ),
+        };
+      });
+
+      // 1º PASSO: Atualiza tbl_ocorrencia (e tbl_ocorrencia_epi)
       const payload = {
         descricao: regBruto.descricao ?? ocorrencia.Descricao_Ocorrencia ?? "",
         id_setor: Number(regBruto.id_setor ?? ocorrencia.ID_setor ?? 1),
@@ -326,21 +377,24 @@ export default function DetalhesOcorrencia() {
             : regBruto.id_funcionario ?? ocorrencia.ID_funcionario ?? null,
         id_motivo_ocorrencia: Number(
           regBruto.id_motivo_ocorrencia ??
-          encontrarIdPorTexto(motivos, ocorrencia.Motivo_ocorrencia, 1)
+            encontrarIdPorTexto(motivos, ocorrencia.Motivo_ocorrencia, 1)
         ),
         id_status_ocorrencia: Number(
           camposAtualizados.id_status_ocorrencia ??
-          regBruto.id_status_ocorrencia ??
-          encontrarIdPorTexto(statuses, ocorrencia.Status_ocorrencia, 1)
+            regBruto.id_status_ocorrencia ??
+            encontrarIdPorTexto(statuses, ocorrencia.Status_ocorrencia, 1)
         ),
         id_usuario_registro: idRespAtual ? Number(idRespAtual) : null,
-        vincular_usuario_token: Boolean(camposAtualizados.vincular_usuario_token || !idRespAtual),
+        vincular_usuario_token: Boolean(
+          camposAtualizados.vincular_usuario_token || !idRespAtual
+        ),
         id_origem: Number(
-          regBruto.id_origem ?? encontrarIdPorTexto(origens, ocorrencia.origem_ocorrencia, 1)
+          regBruto.id_origem ??
+            encontrarIdPorTexto(origens, ocorrencia.origem_ocorrencia, 1)
         ),
         id_prioridade: Number(
           regBruto.id_prioridade ??
-          encontrarIdPorTexto(prioridades, ocorrencia.prioridade_ocorrencia, 2)
+            encontrarIdPorTexto(prioridades, ocorrencia.prioridade_ocorrencia, 2)
         ),
         id_epi: listaEpi,
         cameras: listaCameras,
@@ -357,10 +411,35 @@ export default function DetalhesOcorrencia() {
       if (!res.ok) {
         setErro(
           json.message ||
-          json.response?.message ||
-          "Não foi possível atualizar a ocorrência."
+            json.response?.message ||
+            "Não foi possível atualizar a ocorrência."
         );
         return false;
+      }
+
+      // 2º PASSO: Garante o vínculo na tbl_ocorrencia_camera caso o PUT de ocorrência não tenha recriado quando id_camera é null
+      const resCheckCam = await fetch("/api/ocorrencia-camera").catch(() => null);
+      const listaPosUpdate = resCheckCam?.ok
+        ? extrairLista(await resCheckCam.json())
+        : [];
+      const aindaExisteVinculo = listaPosUpdate.some(
+        (item) => String(item.id_ocorrencia ?? item.ID_ocorrencia) === String(id)
+      );
+
+      if (!aindaExisteVinculo) {
+        for (const cam of listaCameras) {
+          await fetch("/api/ocorrencia-camera", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id_ocorrencia: Number(id),
+              id_camera: cam.id_camera,
+              foto: cam.foto,
+              data_hora: cam.data_hora,
+              confianca_ia: cam.confianca_ia,
+            }),
+          }).catch(() => null);
+        }
       }
 
       setSucesso(msgSucesso);
@@ -373,7 +452,7 @@ export default function DetalhesOcorrencia() {
       setSalvando(false);
     }
   }
-
+  
   async function handleSalvarFuncionario(e) {
     e.preventDefault();
     if (!funcionarioSelecionado) {

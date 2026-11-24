@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { uploadParaCloudinary } from "@/API/cloudinary";
 import Shell from "../components/Shell";
 import Popup from "../components/Popup";
 import s from "../style/atualizar_perfil.module.css";
@@ -171,33 +172,6 @@ export default function AtualizarPerfil() {
     return null;
   }
 
-  async function enviarFotoCloudinary(arquivo) {
-    const formData = new FormData();
-    formData.append("file", arquivo);
-    formData.append(
-      "upload_preset",
-      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "oroscorp"
-    );
-
-    const cloudName =
-      process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "deuflqtkr";
-
-    const res = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
-
-    if (!res.ok) {
-      throw new Error("Falha ao enviar a nova foto para o Cloudinary.");
-    }
-
-    const json = await res.json();
-    return json.secure_url;
-  }
-
   async function salvar(e) {
     e.preventDefault();
 
@@ -223,7 +197,12 @@ export default function AtualizarPerfil() {
       let urlFotoFinal = fotoAtualUrl || "sem-foto.png";
 
       if (foto) {
-        urlFotoFinal = await enviarFotoCloudinary(foto);
+        try {
+          urlFotoFinal = await uploadParaCloudinary(foto);
+        } catch (uploadErr) {
+          console.error("Erro no upload Cloudinary:", uploadErr);
+          throw new Error("Não foi possível enviar a nova foto para o Cloudinary.");
+        }
       }
 
       const res = await fetch(`/api/adm/${idsConta.id_adm}`, {

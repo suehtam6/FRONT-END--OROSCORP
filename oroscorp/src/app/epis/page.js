@@ -195,7 +195,7 @@ export default function EpisPage() {
           <button
             type="button"
             className={styles.botao}
-            onClick={() => router.push("/cadastrarEpi")}
+            onClick={() => router.push("/cadastroEPI")}
           >
             <span>+</span> Cadastrar EPI
           </button>
