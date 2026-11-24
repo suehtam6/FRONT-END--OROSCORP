@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Shell from "../../components/Shell";
 import PlayerCamera from "../../components/PlayerCamera";
+import Popup from "../../components/Popup";
 import s from "../../style/detalhesCamera.module.css";
 
 export default function DetalhesCamera() {
@@ -16,6 +17,11 @@ export default function DetalhesCamera() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
   const [streamFalhou, setStreamFalhou] = useState(false);
+
+  // para deletar camera
+  const [deletando, setDeletando] = useState(false);
+  const [sucessoExcluir, setSucessoExcluir] = useState("");
+  const [erroExcluir, setErroExcluir] = useState("");
 
   const carregarCamera = useCallback(async () => {
     if (!id) return;
@@ -53,6 +59,31 @@ export default function DetalhesCamera() {
   const ativarTelaCheia = () => {
     if (containerPlayerRef.current?.requestFullscreen) {
       containerPlayerRef.current.requestFullscreen();
+    }
+  };
+
+  const deletarCamera = async () => {
+    const confirmar = window.confirm(
+      `Tem certeza que deseja excluir a câmera "${camera?.nome}"?`
+    );
+    if (!confirmar) return;
+
+    
+    setDeletando(true);
+
+    try {
+      const res = await fetch(`/api/camera/${id}`, { method: "DELETE" });
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(json?.message || "Erro ao excluir a câmera.");
+      }
+
+      setSucessoExcluir("Câmera excluída com sucesso!");
+    } catch (err) {
+      setErroExcluir("esta câmera não pode ser excluida, a câmera já esta vinculada a outas informações");
+    } finally {
+      setDeletando(false);
     }
   };
 
@@ -124,7 +155,7 @@ export default function DetalhesCamera() {
             </div>
 
             <p className={s.subtitulo}>
-              <span>📍 {nomeSetor}</span>
+              <span> {nomeSetor}</span>
               <span>·</span>
               <code className={s.codigoStream}>
                 {urlStream || "Stream não configurado"}
@@ -142,6 +173,15 @@ export default function DetalhesCamera() {
                 ⛶ Tela cheia
               </button>
             )}
+
+            <button
+              type="button"
+              className={s.deletar}
+              onClick={deletarCamera}
+              disabled={deletando}
+            >
+              {deletando ? "Excluindo..." : "Excluir câmera"}
+            </button>
 
             <button
               type="button"
@@ -224,6 +264,21 @@ export default function DetalhesCamera() {
             <strong>{camera.ip || urlStream || "Não informado"}</strong>
           </div>
         </div>
+
+        {/* POPUPS DE EXCLUIR CÂMERA */}
+        <Popup
+          mensagem={erroExcluir}
+          tipo="erro"
+          aoFechar={() => setErroExcluir("")}
+        />
+
+        <Popup
+          mensagem={sucessoExcluir}
+          tipo="sucesso"
+          titulo="Câmera excluída!"
+          textoBotao="Ir para câmeras"
+          aoFechar={() => router.push("/cameras")}
+        />
       </section>
     </Shell>
   );

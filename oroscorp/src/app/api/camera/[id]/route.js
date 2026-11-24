@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -74,3 +75,33 @@ export async function GET(request, context) {
     );
   }
 }
+export async function DELETE(request, { params }) {
+    try {
+      const { id } = await params;
+      const token = request.cookies.get('token')?.value;
+  
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+  
+      const resposta = await fetch(`${API_URL}${ROTA_CAMERA}/${id}`, {
+        method: 'DELETE',
+        headers,
+        cache: 'no-store',
+      });
+  
+      if (!resposta.ok) {
+        const dados = await resposta.json().catch(() => ({}));
+        return NextResponse.json(
+          { message: dados.message || 'Erro ao deletar o nível de acesso.' },
+          { status: resposta.status }
+        );
+      }
+  
+      return NextResponse.json({ sucesso: true }, { status: 200 });
+    } catch (error) {
+      return NextResponse.json(
+        { message: 'Erro interno no servidor ao deletar nível de acesso.' },
+        { status: 500 }
+      );
+    }
+  }
