@@ -1,13 +1,49 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-pagina: #0b0d0f;
+  --bg-painel: #14171a;
+  --bg-card-interno: #1a1e23;
+  --bg-input: #0f1113;
+  --bg-hover: rgba(255, 255, 255, 0.04);
+
+  --borda-padrao: #22262b;
+  --borda-input: #2c3138;
+
+  --texto-principal: #ffffff;
+  --texto-secundario: #c5cbd3;
+  --texto-suave: #8e96a0;
+
+  --destaque-laranja: #f36f16;
+
+  --grad-card-laranja: linear-gradient(145deg, #161412 0%, #111315 100%);
+  --grad-card-amarelo: linear-gradient(145deg, #161511 0%, #111315 100%);
+  --grad-card-verde: linear-gradient(145deg, #111613 0%, #111315 100%);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html[data-theme="light"] {
+  --bg-pagina: #ffffff;
+  --bg-painel: #f8fafc;
+  --bg-card-interno: #f1f5f9;
+  --bg-input: #ffffff;
+  --bg-hover: rgba(15, 23, 42, 0.04);
+
+  --borda-padrao: #e2e8f0;
+  --borda-input: #cbd5e1;
+
+  --texto-principal: #0f172a;
+  --texto-secundario: #334155;
+  --texto-suave: #64748b;
+
+  --destaque-laranja: #f36f16;
+
+  --grad-card-laranja: linear-gradient(145deg, #fff7ed 0%, #f8fafc 100%);
+  --grad-card-amarelo: linear-gradient(145deg, #fefce8 0%, #f8fafc 100%);
+  --grad-card-verde: linear-gradient(145deg, #f0fdf4 0%, #f8fafc 100%);
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
 html {
@@ -24,17 +60,12 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
+  color: var(--texto-principal);
+  background-color: var(--bg-pagina);
   font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 a {
@@ -42,8 +73,29 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+/* Fundo 100% branco nas páginas e wrappers no tema claro */
+html[data-theme="light"],
+html[data-theme="light"] body,
+html[data-theme="light"] main,
+html[data-theme="light"] [class*="pagina"] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Header sempre preto, idêntico ao tema escuro, para a logo PNG aparecer */
+html[data-theme="light"] header {
+  background-color: #050505 !important;
+  background: #050505 !important;
+  border-bottom: 1px solid #1f2225 !important;
+}
+
+html[data-theme="light"] header img {
+  background: transparent !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+html[data-theme="light"] header button {
+  background-color: #14171a !important;
+  color: #ff9800 !important;
 }

@@ -5,10 +5,10 @@
   padding: clamp(24px, 3vw, 44px) clamp(16px, 3.5vw, 48px) 60px;
   box-sizing: border-box;
   font-family: 'DM Sans', Arial, Helvetica, sans-serif;
-  color: #ffffff;
+  color: var(--texto-principal, #ffffff);
+  transition: color 0.2s ease;
 }
 
-/* CABEÇALHO */
 .cabecalhoPagina {
   display: flex;
   align-items: center;
@@ -21,11 +21,11 @@
   font-size: clamp(26px, 2.2vw, 34px);
   font-weight: 700;
   margin: 0 0 6px;
-  color: #ffffff;
+  color: var(--texto-principal, #ffffff);
 }
 
 .sub {
-  color: #a4a6ad;
+  color: var(--texto-suave, #a4a6ad);
   margin: 0;
   font-size: 14px;
   line-height: 1.5;
@@ -34,32 +34,32 @@
 .botaoVoltarTopo {
   height: 40px;
   padding: 0 16px;
-  background: #15181c;
-  color: #e5e7eb;
-  border: 1px solid #292e35;
+  background: var(--bg-card-interno, #15181c);
+  color: var(--texto-secundario, #e5e7eb);
+  border: 1px solid var(--borda-padrao, #292e35);
   border-radius: 9px;
   font-size: 13.5px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
 }
 
 .botaoVoltarTopo:hover {
   border-color: #ff9500;
-  background: #1b1f24;
+  color: var(--texto-principal, #ffffff);
 }
 
-/* PAINEL PRINCIPAL */
 .painel {
   position: relative;
   width: 100%;
-  background: #111416;
-  border: 1px solid #22262b;
+  background: var(--bg-painel, #111416);
+  border: 1px solid var(--borda-padrao, #22262b);
   border-radius: 16px;
   padding: clamp(24px, 2.6vw, 36px);
   box-sizing: border-box;
   overflow: hidden;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .painel::before {
@@ -72,7 +72,6 @@
   background: linear-gradient(90deg, #ff9500 0%, transparent 100%);
 }
 
-/* GRADE PRINCIPAL: COLUNA DA FOTO + COLUNA DO FORMULÁRIO */
 .grade {
   display: grid;
   grid-template-columns: 270px minmax(0, 1fr);
@@ -80,10 +79,9 @@
   align-items: start;
 }
 
-/* COLUNA DA FOTO */
 .colunaFoto {
-  background: #15181c;
-  border: 1px solid #242930;
+  background: var(--bg-card-interno, #15181c);
+  border: 1px solid var(--borda-padrao, #242930);
   border-radius: 14px;
   padding: 24px 20px;
   display: flex;
@@ -91,6 +89,7 @@
   align-items: center;
   text-align: center;
   gap: 14px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .upload {
@@ -99,7 +98,7 @@
   height: 156px;
   border-radius: 50%;
   border: 2px dashed rgba(255, 149, 0, 0.55);
-  background: #101316;
+  background: var(--bg-input, #101316);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -107,7 +106,7 @@
   gap: 8px;
   cursor: pointer;
   overflow: hidden;
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  transition: border-color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
 }
 
 .upload:hover {
@@ -160,15 +159,15 @@
 
 .dicaFoto {
   font-size: 12px;
-  color: #8f949d;
+  color: var(--texto-suave, #8f949d);
   line-height: 1.45;
   margin: 0;
 }
 
 .botaoRemoverFoto {
   background: transparent;
-  border: 1px solid #2b3038;
-  color: #9ba0a8;
+  border: 1px solid var(--borda-padrao, #2b3038);
+  color: var(--texto-suave, #9ba0a8);
   font-size: 12px;
   font-weight: 600;
   padding: 6px 12px;
@@ -179,10 +178,9 @@
 
 .botaoRemoverFoto:hover {
   border-color: #ef4444;
-  color: #f87171;
+  color: #ef4444;
 }
 
-/* FORMULÁRIO À DIREITA */
 .colunaFormulario {
   display: flex;
   flex-direction: column;
@@ -203,7 +201,7 @@
   color: #ff9500;
   margin: 0;
   padding-bottom: 10px;
-  border-bottom: 1px solid #1f2328;
+  border-bottom: 1px solid var(--borda-padrao, #1f2328);
 }
 
 .formGrade {
@@ -225,26 +223,25 @@
 .campo label {
   font-size: 13px;
   font-weight: 600;
-  color: #d1d5db;
+  color: var(--texto-secundario, #d1d5db);
 }
 
 .campo input {
   width: 100%;
   height: 44px;
   font-size: 14px;
-  color: #ffffff;
-  background-color: #16191d;
-  border: 1px solid #272c33;
+  color: var(--texto-principal, #ffffff);
+  background-color: var(--bg-input, #0f1113);
+  border: 1px solid var(--borda-input, #272c33);
   border-radius: 9px;
   padding: 0 14px;
   box-sizing: border-box;
   outline: none;
-  color-scheme: dark;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
 .campo input::placeholder {
-  color: #6c7078;
+  color: var(--texto-suave, #6c7078);
 }
 
 .campo input:focus {
@@ -254,18 +251,17 @@
 
 .dicaSenha {
   font-size: 12px;
-  color: #8f949d;
+  color: var(--texto-suave, #8f949d);
   margin: -6px 0 0;
 }
 
-/* BOTÕES DO RODAPÉ */
 .linhaAcoes {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
   padding-top: 18px;
-  border-top: 1px solid #1f2328;
+  border-top: 1px solid var(--borda-padrao, #1f2328);
 }
 
 .botao {
@@ -293,14 +289,14 @@
 }
 
 .secundario {
-  background-color: #171a1e;
-  color: #e5e7eb;
-  border: 1px solid #2b3038;
+  background-color: var(--bg-card-interno, #171a1e);
+  color: var(--texto-secundario, #e5e7eb);
+  border: 1px solid var(--borda-padrao, #2b3038);
 }
 
 .secundario:hover:not(:disabled) {
-  background-color: #20242a;
-  border-color: #3c424d;
+  border-color: #ff9500;
+  color: var(--texto-principal, #ffffff);
   transform: none;
 }
 

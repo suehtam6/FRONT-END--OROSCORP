@@ -7,9 +7,10 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  background: #343434;
-  color: #fff;
+  background: transparent;
+  color: var(--texto-principal, #ffffff);
   font-family: Arial, sans-serif;
+  transition: color 0.2s ease;
 }
 
 .tituloPagina {
@@ -20,12 +21,12 @@
   margin: 0 0 8px;
   font-size: clamp(24px, 2.2vw, 34px);
   font-weight: 700;
-  color: #fff;
+  color: var(--texto-principal, #ffffff);
 }
 
 .tituloPagina p {
   margin: 0;
-  color: #929ba8;
+  color: var(--texto-suave, #929ba8);
   font-size: clamp(13px, 1vw, 16px);
   line-height: 1.5;
 }
@@ -33,10 +34,11 @@
 .cadastroBox {
   width: 100%;
   padding: clamp(24px, 2.5vw, 42px);
-  background: #0e1217;
-  border: 1px solid #252c35;
+  background: var(--bg-painel, #0e1217);
+  border: 1px solid var(--borda-padrao, #252c35);
   border-radius: 12px;
   box-sizing: border-box;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .formulario {
@@ -56,8 +58,8 @@
 .fotoArea {
   width: 100%;
   height: clamp(280px, 22vw, 380px);
-  background: #151a1f;
-  border: 2px dashed #343b44;
+  background: var(--bg-input, #151a1f);
+  border: 2px dashed var(--borda-input, #343b44);
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -66,11 +68,12 @@
   overflow: hidden;
   cursor: pointer;
   box-sizing: border-box;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .fotoArea:hover {
   border-color: #ff7900;
+  background: var(--bg-card-interno, #1a2026);
 }
 
 .fotoTexto {
@@ -81,11 +84,11 @@
   display: block;
   font-size: clamp(14px, 1.1vw, 17px);
   margin-bottom: 10px;
-  color: #fff;
+  color: var(--texto-principal, #ffffff);
 }
 
 .fotoTexto p {
-  color: #929ba8;
+  color: var(--texto-suave, #929ba8);
   font-size: clamp(12px, 0.9vw, 14px);
   line-height: 1.5;
   margin: 0;
@@ -99,16 +102,18 @@
 
 .removerFoto {
   padding: clamp(10px, 0.8vw, 13px);
-  background: #2d1919;
-  border: 1px solid #743636;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
   border-radius: 7px;
-  color: #ff7777;
+  color: #ef4444;
   font-size: clamp(11px, 0.85vw, 13px);
+  font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .removerFoto:hover {
-  background: #402020;
+  background: rgba(239, 68, 68, 0.22);
 }
 
 .campos {
@@ -127,7 +132,7 @@
 }
 
 .campo label {
-  color: #c2cad4;
+  color: var(--texto-secundario, #c2cad4);
   font-size: clamp(13px, 0.95vw, 15px);
   font-weight: 500;
 }
@@ -140,41 +145,37 @@
   width: 100%;
   height: clamp(44px, 3vw, 52px);
   padding: 0 14px;
-  background: #151a1f;
-  border: 1px solid #303842;
+  background: var(--bg-input, #151a1f);
+  border: 1px solid var(--borda-input, #303842);
   border-radius: 7px;
   box-sizing: border-box;
-  color: #fff;
+  color: var(--texto-principal, #ffffff);
   font-size: clamp(13px, 0.95vw, 15px);
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .campo input::placeholder {
-  color: #798493;
+  color: var(--texto-suave, #798493);
 }
 
 .campo input:focus {
   border-color: #ff7900;
 }
 
-.campo input[type="date"] {
-  color-scheme: dark;
-}
-
 .campo select {
   width: 100%;
   height: clamp(44px, 3vw, 52px);
   padding: 0 14px;
-  background: #151a1f;
-  border: 1px solid #303842;
+  background: var(--bg-input, #151a1f);
+  border: 1px solid var(--borda-input, #303842);
   border-radius: 7px;
   box-sizing: border-box;
-  color: #fff;
+  color: var(--texto-principal, #ffffff);
   font-size: clamp(13px, 0.95vw, 15px);
   outline: none;
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .campo select:focus {
@@ -188,7 +189,7 @@
   gap: 14px;
   margin-top: clamp(24px, 2vw, 36px);
   padding-top: clamp(18px, 1.5vw, 24px);
-  border-top: 1px solid #292e34;
+  border-top: 1px solid var(--borda-padrao, #292e34);
 }
 
 .botoes button {
@@ -198,14 +199,14 @@
   font-size: clamp(12px, 0.9vw, 14px);
   font-weight: bold;
   cursor: pointer;
-  transition: 0.2s;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .btnNovoNivel {
   margin-right: auto;
   background: transparent !important;
-  border: 1px solid #303842 !important;
-  color: #929ba8 !important;
+  border: 1px solid var(--borda-padrao, #303842) !important;
+  color: var(--texto-suave, #929ba8) !important;
 }
 
 .btnNovoNivel:hover {
@@ -214,12 +215,14 @@
 }
 
 .cancelar {
-  background: #1a2026;
-  color: #ddd;
+  background: var(--bg-card-interno, #1a2026);
+  color: var(--texto-secundario, #ddd);
+  border: 1px solid var(--borda-padrao, #292e34) !important;
 }
 
 .cancelar:hover {
-  background: #29313b;
+  border-color: #ff7900 !important;
+  color: var(--texto-principal, #ffffff);
 }
 
 .cadastrar {
@@ -277,4 +280,3 @@
     padding: 12px 8px;
   }
 }
-

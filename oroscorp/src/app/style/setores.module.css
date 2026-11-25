@@ -1,9 +1,10 @@
 .pagina {
   min-height: 100vh;
   width: 100%;
-  background: #1c1e20;
-  color: #f5f5f5;
+  background: var(--bg-pagina, #0b0d0f);
+  color: var(--texto-principal, #f5f5f5);
   font-family: 'DM Sans', Arial, Helvetica, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .conteudo {
@@ -27,12 +28,12 @@
   font-size: clamp(26px, 2.2vw, 34px);
   font-weight: 700;
   line-height: 1.2;
-  color: #ffffff;
+  color: var(--texto-principal, #ffffff);
 }
 
 .topoConteudo p {
   margin: 0;
-  color: #a4a6ad;
+  color: var(--texto-suave, #a4a6ad);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -75,8 +76,8 @@
 }
 
 .cardResumo {
-  background: #111416;
-  border: 1px solid #202427;
+  background: var(--bg-painel, #111416);
+  border: 1px solid var(--borda-padrao, #202427);
   border-radius: 12px;
   padding: 14px 18px;
   display: flex;
@@ -86,18 +87,18 @@
 
 .cardResumo span {
   font-size: 12px;
-  color: #8f949d;
+  color: var(--texto-suave, #8f949d);
 }
 
 .cardResumo strong {
   font-size: 24px;
   font-weight: 700;
-  color: #f5f5f5;
+  color: var(--texto-principal, #f5f5f5);
 }
 
 .cardResumoAlerta {
-  background: linear-gradient(145deg, #191410 0%, #111416 100%);
-  border-color: rgba(255, 149, 0, 0.28);
+  background: var(--grad-card-laranja, linear-gradient(145deg, #191410 0%, #111416 100%));
+  border-color: rgba(255, 149, 0, 0.35);
 }
 
 .cardResumoAlerta strong {
@@ -128,7 +129,7 @@
   transform: translateY(-50%);
   width: 16px;
   height: 16px;
-  color: #7d838c;
+  color: var(--texto-suave, #7d838c);
   pointer-events: none;
 }
 
@@ -136,9 +137,9 @@
   width: 100%;
   height: 42px;
   padding: 0 36px 0 40px;
-  background: #111416;
-  color: #f5f5f5;
-  border: 1px solid #24292e;
+  background: var(--bg-input, #111416);
+  color: var(--texto-principal, #f5f5f5);
+  border: 1px solid var(--borda-input, #24292e);
   border-radius: 10px;
   font-size: 13.5px;
   outline: none;
@@ -156,14 +157,14 @@
   transform: translateY(-50%);
   background: transparent;
   border: none;
-  color: #8f949d;
+  color: var(--texto-suave, #8f949d);
   cursor: pointer;
   font-size: 13px;
   padding: 4px;
 }
 
 .limparBusca:hover {
-  color: #fff;
+  color: var(--texto-principal, #fff);
 }
 
 .grupoFiltros {
@@ -176,9 +177,9 @@
 .botaoFiltro {
   height: 38px;
   padding: 0 14px;
-  background: #111416;
-  color: #a4a6ad;
-  border: 1px solid #24292e;
+  background: var(--bg-painel, #111416);
+  color: var(--texto-suave, #a4a6ad);
+  border: 1px solid var(--borda-padrao, #24292e);
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
@@ -188,7 +189,7 @@
 
 .botaoFiltro:hover {
   border-color: #ff9500;
-  color: #f5f5f5;
+  color: var(--texto-principal, #f5f5f5);
 }
 
 .botaoFiltroAtivo {
@@ -209,19 +210,19 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  background: #111416;
-  border: 1px solid #202427;
+  background: var(--bg-painel, #111416);
+  border: 1px solid var(--borda-padrao, #202427);
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
-  border-color: #3a4046;
+  border-color: #ff9500;
   transform: translateY(-3px);
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.14);
 }
 
 .cardComAlerta {
@@ -233,7 +234,7 @@
   position: relative;
   width: 100%;
   height: 165px;
-  background: #16191d;
+  background: var(--bg-card-interno, #1a1e23);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -257,9 +258,9 @@
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(17, 20, 22, 0.15) 0%,
-    rgba(17, 20, 22, 0.05) 55%,
-    rgba(17, 20, 22, 0.92) 100%
+    rgba(17, 20, 22, 0.1) 0%,
+    rgba(17, 20, 22, 0.02) 55%,
+    rgba(17, 20, 22, 0.45) 100%
   );
   pointer-events: none;
 }
@@ -269,7 +270,7 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  color: #6e7681;
+  color: var(--texto-suave, #6e7681);
   font-size: 12px;
 }
 
@@ -304,13 +305,13 @@
 }
 
 .badgeAtivo {
-  background: rgba(16, 24, 20, 0.82);
+  background: rgba(16, 24, 20, 0.85);
   color: #4ade80;
   border: 1px solid rgba(74, 222, 128, 0.35);
 }
 
 .badgeInativo {
-  background: rgba(24, 18, 18, 0.82);
+  background: rgba(24, 18, 18, 0.85);
   color: #f87171;
   border: 1px solid rgba(248, 113, 113, 0.35);
 }
@@ -320,7 +321,7 @@
   border-radius: 999px;
   font-size: 11px;
   font-weight: 700;
-  background: rgba(255, 149, 0, 0.92);
+  background: rgba(255, 149, 0, 0.95);
   color: #111;
 }
 
@@ -338,7 +339,7 @@
 
 .cabecalhoCard h2 {
   margin: 0 0 4px;
-  color: #f5f5f5;
+  color: var(--texto-principal, #f5f5f5);
   font-size: 18px;
   font-weight: 700;
   line-height: 1.3;
@@ -349,12 +350,12 @@
   display: inline-block;
   font-size: 12px;
   color: #ff9500;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .descricao {
   margin: 0;
-  color: #a4a6ad;
+  color: var(--texto-suave, #a4a6ad);
   font-size: 13px;
   line-height: 1.5;
   display: -webkit-box;
@@ -379,14 +380,14 @@
   flex-direction: column;
   justify-content: center;
   gap: 4px;
-  background: #171b1e;
-  border: 1px solid #22272c;
+  background: var(--bg-card-interno, #171b1e);
+  border: 1px solid var(--borda-padrao, #22272c);
   border-radius: 10px;
 }
 
 .indicadorAlertaAtivo {
-  background: rgba(255, 149, 0, 0.08);
-  border-color: rgba(255, 149, 0, 0.32);
+  background: rgba(255, 149, 0, 0.1);
+  border-color: rgba(255, 149, 0, 0.35);
 }
 
 .topoIndicador {
@@ -399,7 +400,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #8f959e;
+  color: var(--texto-suave, #8f959e);
 }
 
 .icone svg {
@@ -417,7 +418,7 @@
 }
 
 .indicador strong {
-  color: #f3f3f3;
+  color: var(--texto-principal, #f3f3f3);
   font-size: 18px;
   line-height: 1;
   font-weight: 700;
@@ -428,7 +429,7 @@
 }
 
 .legenda {
-  color: #9ba0a8;
+  color: var(--texto-suave, #9ba0a8);
   font-size: 11px;
   line-height: 1.2;
   white-space: nowrap;
@@ -444,9 +445,9 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #171b1e;
-  color: #f1f1f1;
-  border: 1px solid #262b30;
+  background: var(--bg-card-interno, #171b1e);
+  color: var(--texto-principal, #f1f1f1);
+  border: 1px solid var(--borda-padrao, #262b30);
   border-radius: 10px;
   font-size: 13px;
   font-weight: 600;
@@ -475,15 +476,15 @@
   grid-column: 1 / -1;
   padding: 48px 20px;
   text-align: center;
-  color: #a8a8b0;
+  color: var(--texto-suave, #a8a8b0);
   font-size: 15px;
-  background: #111416;
-  border: 1px solid #202427;
+  background: var(--bg-painel, #111416);
+  border: 1px solid var(--borda-padrao, #202427);
   border-radius: 14px;
 }
 
 .estadoErro {
-  color: #ff4d4d;
+  color: #ef4444;
 }
 
 .barraPaginacao {
@@ -499,16 +500,16 @@
   margin-top: 24px;
   margin-bottom: 0;
   padding-top: 18px;
-  border-top: 1px solid #24292e;
+  border-top: 1px solid var(--borda-padrao, #24292e);
 }
 
 .textoPaginacao {
   font-size: 13px;
-  color: #8f949d;
+  color: var(--texto-suave, #8f949d);
 }
 
 .textoPaginacao strong {
-  color: #f5f5f5;
+  color: var(--texto-principal, #f5f5f5);
 }
 
 .controlesPaginacao {
@@ -520,9 +521,9 @@
 .botaoPagina {
   height: 36px;
   padding: 0 13px;
-  background: #111416;
-  color: #f3f4f6;
-  border: 1px solid #262b31;
+  background: var(--bg-painel, #111416);
+  color: var(--texto-principal, #f3f4f6);
+  border: 1px solid var(--borda-padrao, #262b31);
   border-radius: 8px;
   font-size: 13px;
   font-weight: 700;

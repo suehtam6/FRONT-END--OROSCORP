@@ -3,6 +3,9 @@
   margin-left: calc(50% - min(100vw, 2200px) / 2);
   padding: 0 clamp(16px, 4vw, 96px);
   box-sizing: border-box;
+  background: transparent;
+  color: var(--texto-principal, #ffffff);
+  transition: color 0.2s ease;
 }
 
 .titulo {
@@ -12,21 +15,23 @@
 .titulo h1 {
   font-size: clamp(23px, 2vw, 32px);
   margin: 0 0 8px;
+  color: var(--texto-principal, #ffffff);
 }
 
 .titulo p {
   font-size: clamp(12px, 1vw, 15px);
-  color: #aaa;
+  color: var(--texto-suave, #aaa);
   margin: 0;
 }
 
 .painel {
-  background: #111519;
-  border: 1px solid #292e34;
+  background: var(--bg-painel, #111519);
+  border: 1px solid var(--borda-padrao, #292e34);
   border-radius: 12px;
   padding: clamp(20px, 2.5vw, 38px);
   max-width: 2200px;
   margin: auto;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .layout {
@@ -46,7 +51,7 @@
 .imagemArea h2 {
   font-size: clamp(15px, 1.2vw, 19px);
   margin: 0 0 5px;
-  color: #eee;
+  color: var(--texto-principal, #eee);
 }
 
 .campo {
@@ -57,7 +62,7 @@
 
 .campo label {
   font-size: clamp(12px, 0.9vw, 14px);
-  color: #ccc;
+  color: var(--texto-secundario, #ccc);
 }
 
 .campo label span {
@@ -69,15 +74,15 @@
 .campo textarea {
   width: 100%;
   box-sizing: border-box;
-  background: #151a1f;
-  border: 1px solid #2a3037;
+  background: var(--bg-input, #151a1f);
+  border: 1px solid var(--borda-input, #2a3037);
   border-radius: 7px;
-  color: #ddd;
+  color: var(--texto-principal, #ddd);
   font-size: clamp(12px, 0.9vw, 15px);
   font-family: Arial, sans-serif;
   padding: 0 14px;
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .campo input,
@@ -93,7 +98,7 @@
 
 .campo input::placeholder,
 .campo textarea::placeholder {
-  color: #777f89;
+  color: var(--texto-suave, #777f89);
 }
 
 .campo input:focus,
@@ -109,9 +114,9 @@
 }
 
 .status button {
-  background: #171b20;
-  color: #aaa;
-  border: 1px solid #30363d;
+  background: var(--bg-card-interno, #171b20);
+  color: var(--texto-suave, #aaa);
+  border: 1px solid var(--borda-padrao, #30363d);
   border-radius: 7px;
   padding: clamp(10px, 0.8vw, 13px) clamp(18px, 1.2vw, 24px);
   font-size: clamp(11px, 0.85vw, 13px);
@@ -120,16 +125,17 @@
 }
 
 .status .statusAtivo {
-  background: #09291e;
-  border-color: #12573a;
-  color: #00d782;
+  background: rgba(16, 185, 129, 0.14);
+  border-color: rgba(16, 185, 129, 0.45);
+  color: #10b981;
+  font-weight: 600;
 }
 
 .uploadImagem {
   width: 100%;
   height: clamp(350px, 24vw, 450px);
-  background: #151a1f;
-  border: 2px dashed #343b44;
+  background: var(--bg-input, #151a1f);
+  border: 2px dashed var(--borda-input, #343b44);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -138,12 +144,12 @@
   cursor: pointer;
   overflow: hidden;
   box-sizing: border-box;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .uploadImagem:hover {
   border-color: #ff7900;
-  background: #1a2026;
+  background: var(--bg-card-interno, #1a2026);
 }
 
 .conteudoUpload {
@@ -160,19 +166,19 @@
 
 .conteudoUpload strong {
   font-size: clamp(14px, 1.1vw, 17px);
-  color: #eee;
+  color: var(--texto-principal, #eee);
 }
 
 .conteudoUpload p {
   font-size: clamp(12px, 0.9vw, 14px);
-  color: #9299a3;
+  color: var(--texto-suave, #9299a3);
   line-height: 1.6;
   margin: 0;
 }
 
 .conteudoUpload small {
   font-size: clamp(10px, 0.8vw, 12px);
-  color: #777;
+  color: var(--texto-suave, #777);
 }
 
 .fotoCamera {
@@ -184,28 +190,29 @@
 .legenda {
   text-align: center;
   font-size: clamp(11px, 0.85vw, 13px);
-  color: #9299a3;
+  color: var(--texto-suave, #9299a3);
   margin: 0;
 }
 
 .removerImagem {
-  background: #2d1919;
-  color: #ff7777;
-  border: 1px solid #743636;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.35);
   border-radius: 7px;
   padding: clamp(10px, 0.8vw, 13px);
   font-size: clamp(11px, 0.85vw, 13px);
+  font-weight: 600;
   cursor: pointer;
   transition: background 0.2s ease;
 }
 
 .removerImagem:hover {
-  background: #402020;
+  background: rgba(239, 68, 68, 0.22);
 }
 
 .informacoes {
-  background: #171c21;
-  border: 1px solid #292e34;
+  background: var(--bg-card-interno, #171c21);
+  border: 1px solid var(--borda-padrao, #292e34);
   border-radius: 9px;
   padding: clamp(18px, 1.5vw, 24px);
 }
@@ -217,7 +224,7 @@
 }
 
 .informacoes p {
-  color: #999;
+  color: var(--texto-suave, #999);
   font-size: clamp(11px, 0.85vw, 13px);
   line-height: 1.6;
   margin: 8px 0;
@@ -229,7 +236,7 @@
   gap: 12px;
   margin-top: clamp(24px, 2vw, 36px);
   padding-top: clamp(16px, 1.5vw, 24px);
-  border-top: 1px solid #292e34;
+  border-top: 1px solid var(--borda-padrao, #292e34);
 }
 
 .acoes button {
@@ -239,12 +246,18 @@
   font-size: clamp(11px, 0.9vw, 14px);
   font-weight: bold;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .cancelar {
-  background: #1a2026;
-  color: #ddd;
+  background: var(--bg-card-interno, #1a2026);
+  color: var(--texto-secundario, #ddd);
+  border: 1px solid var(--borda-padrao, #292e34) !important;
+}
+
+.cancelar:hover {
+  border-color: #ff7900 !important;
+  color: var(--texto-principal, #ffffff);
 }
 
 .cadastrar {

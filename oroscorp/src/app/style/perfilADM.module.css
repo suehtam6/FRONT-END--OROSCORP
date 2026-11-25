@@ -5,10 +5,10 @@
   padding: clamp(24px, 3vw, 44px) clamp(16px, 3.5vw, 48px) 60px;
   box-sizing: border-box;
   font-family: 'DM Sans', Arial, Helvetica, sans-serif;
-  color: #ffffff;
+  color: var(--texto-principal, #ffffff);
+  transition: color 0.2s ease;
 }
 
-/* CABEÇALHO DA PÁGINA */
 .cabecalhoPagina {
   display: flex;
   align-items: center;
@@ -21,11 +21,11 @@
   font-size: clamp(26px, 2.2vw, 34px);
   font-weight: 700;
   margin: 0 0 6px;
-  color: #ffffff;
+  color: var(--texto-principal, #ffffff);
 }
 
 .subtituloPagina {
-  color: #a4a6ad;
+  color: var(--texto-suave, #a4a6ad);
   font-size: 14px;
   margin: 0;
   line-height: 1.5;
@@ -54,18 +54,17 @@
   transform: translateY(-1px);
 }
 
-/* PAINÉIS */
 .painel {
   position: relative;
-  background: #111416;
-  border: 1px solid #22262b;
+  background: var(--bg-painel, #111416);
+  border: 1px solid var(--borda-padrao, #22262b);
   border-radius: 16px;
   padding: 26px 28px;
   margin-bottom: 20px;
   overflow: hidden;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-/* CARTÃO DO TOPO */
 .topo {
   display: flex;
   align-items: center;
@@ -90,7 +89,7 @@
   border: 2px solid #ff9500;
   border-radius: 50%;
   object-fit: cover;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
 }
 
 .fotoVazia {
@@ -119,9 +118,9 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 12px;
   font-weight: 700;
-  color: #9ba0a8;
-  background: #171a1e;
-  border: 1px solid #262b31;
+  color: var(--texto-secundario, #9ba0a8);
+  background: var(--bg-card-interno, #171a1e);
+  border: 1px solid var(--borda-padrao, #262b31);
   padding: 4px 10px;
   border-radius: 6px;
 }
@@ -143,10 +142,10 @@
   align-items: center;
   gap: 6px;
   padding: 4px 11px;
-  border: 1px solid rgba(54, 209, 138, 0.32);
+  border: 1px solid rgba(16, 185, 129, 0.32);
   border-radius: 999px;
-  background: rgba(54, 209, 138, 0.14);
-  color: #36d18a;
+  background: rgba(16, 185, 129, 0.14);
+  color: #10b981;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -160,20 +159,19 @@
 }
 
 .nome {
-  color: #ffffff;
+  color: var(--texto-principal, #ffffff);
   font-size: clamp(24px, 2vw, 32px);
   font-weight: 700;
   margin: 2px 0 0;
 }
 
 .descricao {
-  color: #9ba0a8;
+  color: var(--texto-suave, #9ba0a8);
   font-size: 14px;
   margin: 0;
   line-height: 1.5;
 }
 
-/* CABEÇALHO DE SEÇÃO */
 .cabecalhoSecao {
   display: flex;
   align-items: center;
@@ -181,7 +179,7 @@
   gap: 12px;
   padding-bottom: 16px;
   margin-bottom: 20px;
-  border-bottom: 1px solid #1f2328;
+  border-bottom: 1px solid var(--borda-padrao, #1f2328);
 }
 
 .secao {
@@ -195,10 +193,9 @@
 
 .hintSecao {
   font-size: 12px;
-  color: #7d838c;
+  color: var(--texto-suave, #7d838c);
 }
 
-/* GRADE DE INFORMAÇÕES */
 .gradeInfo {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -206,24 +203,25 @@
 }
 
 .campoInfo {
-  background: #16191d;
-  border: 1px solid #242930;
+  background: var(--bg-card-interno, #171a1e);
+  border: 1px solid var(--borda-padrao, #242930);
   border-radius: 12px;
   padding: 16px 18px;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .rotulo {
   font-size: 12px;
-  color: #8f949d;
+  color: var(--texto-suave, #8f949d);
 }
 
 .valor {
   font-size: 15px;
   font-weight: 600;
-  color: #f3f4f6;
+  color: var(--texto-principal, #f3f4f6);
   word-break: break-word;
 }
 
@@ -231,10 +229,9 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-/* ZONA DE PERIGO */
 .painelPerigo {
-  border-color: rgba(239, 68, 68, 0.25);
-  background: linear-gradient(145deg, #161214 0%, #111416 100%);
+  border-color: rgba(239, 68, 68, 0.35);
+  background: var(--bg-painel, #111416);
 }
 
 .zonaPerigoConteudo {
@@ -248,13 +245,13 @@
   margin: 0 0 4px;
   font-size: 15px;
   font-weight: 700;
-  color: #f87171;
+  color: #ef4444;
 }
 
 .textoPerigo {
   margin: 0;
   font-size: 13px;
-  color: #9ba0a8;
+  color: var(--texto-suave, #9ba0a8);
   line-height: 1.5;
 }
 
@@ -264,7 +261,7 @@
   border-radius: 9px;
   background: rgba(239, 68, 68, 0.14);
   border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #f87171;
+  color: #ef4444;
   font-size: 13.5px;
   font-weight: 700;
   cursor: pointer;
@@ -273,12 +270,11 @@
 }
 
 .deletar:hover {
-  background: rgba(239, 68, 68, 0.24);
+  background: #ef4444;
   border-color: #ef4444;
   color: #ffffff;
 }
 
-/* MODAL */
 .modalFundo {
   position: fixed;
   inset: 0;
@@ -286,7 +282,7 @@
   display: grid;
   place-items: center;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.72);
+  background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(4px);
 }
 
@@ -294,11 +290,12 @@
   width: 100%;
   max-width: 420px;
   padding: 28px;
-  background: #14171a;
-  border: 1px solid #2c3138;
+  background: var(--bg-painel, #111416);
+  border: 1px solid var(--borda-padrao, #2c3138);
   border-radius: 16px;
-  color: #ffffff;
+  color: var(--texto-principal, #ffffff);
   text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
 }
 
 .modalIcone {
@@ -308,7 +305,7 @@
   border-radius: 50%;
   background: rgba(239, 68, 68, 0.16);
   border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #f87171;
+  color: #ef4444;
   display: grid;
   place-items: center;
   font-size: 22px;
@@ -319,12 +316,13 @@
   margin: 0 0 8px;
   font-size: 18px;
   font-weight: 700;
+  color: var(--texto-principal, #ffffff);
 }
 
 .modal p {
   margin: 0;
   font-size: 13.5px;
-  color: #a4a6ad;
+  color: var(--texto-suave, #a4a6ad);
   line-height: 1.5;
 }
 
@@ -347,13 +345,14 @@
 }
 
 .negar {
-  background: #1c2024;
-  border: 1px solid #2e343b;
-  color: #d6d9de;
+  background: var(--bg-card-interno, #1c2024);
+  border: 1px solid var(--borda-padrao, #2e343b);
+  color: var(--texto-secundario, #d6d9de);
 }
 
 .negar:hover {
-  background: #252a30;
+  border-color: #ff9500;
+  color: var(--texto-principal, #ffffff);
 }
 
 .confirmarExcluir {
@@ -366,7 +365,6 @@
   background: #ef4444;
 }
 
-/* RESPONSIVO */
 @media (max-width: 900px) {
   .gradeInfo {
     grid-template-columns: repeat(2, minmax(0, 1fr));

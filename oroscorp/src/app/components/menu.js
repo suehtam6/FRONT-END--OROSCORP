@@ -13,6 +13,7 @@ import styles from "@/app/style/menu.module.css";
 import PerfilUsuario from "@/app/components/PerfilUsuario";
 import { usePathname, useRouter } from "next/navigation";
 
+
 const ICONES = {
   dashboard: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

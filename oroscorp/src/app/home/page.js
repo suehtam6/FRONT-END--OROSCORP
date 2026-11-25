@@ -14,6 +14,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import styles from "../style/home.module.css";
 import Menu from "@/app/components/menu.js";
+import Shell from "../components/Shell";
 
 function extrairLista(json) {
   if (!json) return [];
@@ -274,23 +275,8 @@ export default function Home() {
   }, [alertasEmAberto, filtroPrioridade]);
 
   return (
+    <Shell>
     <main className={styles.pagina}>
-      <header className={styles.topo}>
-        <button
-          className={styles.menu}
-          aria-label="Abrir ou fechar menu"
-          aria-expanded={menuAberto}
-          onClick={() => setMenuAberto(!menuAberto)}
-        >
-          ☰
-        </button>
-
-        <img
-          src="/logo-oroscorp.png"
-          alt="Oroscorp"
-          className={styles.logo}
-        />
-      </header>
 
       <Menu aberto={menuAberto} aoFechar={() => setMenuAberto(false)} />
 
@@ -592,5 +578,6 @@ export default function Home() {
         </section>
       </section>
     </main>
+    </Shell>
   );
 }

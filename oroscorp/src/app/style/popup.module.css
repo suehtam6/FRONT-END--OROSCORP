@@ -1,11 +1,9 @@
-/* Popup de aviso. As cores ficam no topo para você ajustar ao tema do projeto. */
-
 .erro {
-  --cor: #ff5a5a;
+  --cor: #ef4444;
 }
 
 .sucesso {
-  --cor: #3ddc84;
+  --cor: #10b981;
 }
 
 .fundo {
@@ -26,13 +24,14 @@
   max-width: 380px;
   padding: 28px 24px 24px;
   border-radius: 16px;
-  border: 1px solid #2f2f2f;
+  border: 1px solid var(--borda-padrao, #2f2f2f);
   border-top: 4px solid var(--cor);
-  background: #161616;
-  color: #ffffff;
+  background: var(--bg-painel, #161616);
+  color: var(--texto-principal, #ffffff);
   text-align: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   animation: subir 0.18s ease-out;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .icone {
@@ -52,11 +51,12 @@
   margin: 0 0 8px;
   font-size: 18px;
   font-weight: 700;
+  color: var(--texto-principal, #ffffff);
 }
 
 .mensagem {
   margin: 0 0 22px;
-  color: #d0d0d0;
+  color: var(--texto-secundario, #d0d0d0);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -67,17 +67,18 @@
   padding: 12px 16px;
   border: none;
   border-radius: 12px;
-  background: #ffffff;
-  color: #ff6a00;
+  background: #ff6a00;
+  color: #ffffff;
   font-family: inherit;
   font-weight: 800;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .botao:hover {
-  background: #f1f1f1;
+  background: #ff802b;
 }
 
 .botao:focus-visible {

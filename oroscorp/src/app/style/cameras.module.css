@@ -5,6 +5,8 @@
   padding: clamp(24px, 3vw, 44px) clamp(16px, 3.5vw, 48px) 60px;
   box-sizing: border-box;
   font-family: 'DM Sans', Arial, Helvetica, sans-serif;
+  color: var(--texto-principal, #ffffff);
+  transition: color 0.2s ease;
 }
 
 .topoPagina {
@@ -19,11 +21,11 @@
   font-size: clamp(26px, 2.2vw, 34px);
   font-weight: 700;
   margin: 0 0 6px;
-  color: #ffffff;
+  color: var(--texto-principal, #ffffff);
 }
 
 .sub {
-  color: #a4a6ad;
+  color: var(--texto-suave, #a4a6ad);
   margin: 0;
   font-size: 14px;
   line-height: 1.5;
@@ -66,51 +68,53 @@
 }
 
 .cardResumo {
-  background: #111416;
-  border: 1px solid #22262b;
+  background: var(--bg-painel, #111416);
+  border: 1px solid var(--borda-padrao, #22262b);
   border-radius: 12px;
   padding: 14px 18px;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .cardResumo span {
   font-size: 12px;
-  color: #8f949d;
+  color: var(--texto-suave, #8f949d);
 }
 
 .cardResumo strong {
   font-size: 24px;
   font-weight: 700;
-  color: #f5f5f5;
+  color: var(--texto-principal, #f5f5f5);
 }
 
 .resumoOnline {
-  background: linear-gradient(145deg, #101714 0%, #111416 100%);
-  border-color: rgba(54, 209, 138, 0.25);
+  background: var(--grad-card-verde, linear-gradient(145deg, #101714 0%, #111416 100%));
+  border-color: rgba(16, 185, 129, 0.35);
 }
 
 .resumoOnline strong {
-  color: #36d18a;
+  color: #10b981;
 }
 
 .resumoOffline {
-  background: linear-gradient(145deg, #191112 0%, #111416 100%);
-  border-color: rgba(255, 69, 69, 0.28);
+  background: var(--bg-painel, #111416);
+  border-color: rgba(239, 68, 68, 0.35);
 }
 
 .resumoOffline strong {
-  color: #ff5c5c;
+  color: #ef4444;
 }
 
 /* PAINEL DE BUSCA E FILTROS */
 .painel {
-  background: #111416;
-  border: 1px solid #22262b;
+  background: var(--bg-painel, #111416);
+  border: 1px solid var(--borda-padrao, #22262b);
   border-radius: 12px;
   padding: 16px 18px;
   margin-bottom: 18px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .linha {
@@ -133,7 +137,7 @@
   transform: translateY(-50%);
   width: 16px;
   height: 16px;
-  color: #6c7078;
+  color: var(--texto-suave, #6c7078);
   pointer-events: none;
 }
 
@@ -141,14 +145,14 @@
   width: 100%;
   height: 42px;
   font-size: 13.5px;
-  color: #ffffff;
-  background-color: #171a1e;
-  border: 1px solid #262b31;
+  color: var(--texto-principal, #ffffff);
+  background-color: var(--bg-input, #171a1e);
+  border: 1px solid var(--borda-input, #262b31);
   border-radius: 9px;
   padding: 0 36px 0 40px;
   outline: none;
   box-sizing: border-box;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background-color 0.2s;
 }
 
 .busca:focus {
@@ -156,7 +160,7 @@
 }
 
 .busca::placeholder {
-  color: #6c7078;
+  color: var(--texto-suave, #6c7078);
 }
 
 .limparBusca {
@@ -166,14 +170,14 @@
   transform: translateY(-50%);
   background: transparent;
   border: none;
-  color: #8f949d;
+  color: var(--texto-suave, #8f949d);
   cursor: pointer;
   font-size: 13px;
   padding: 4px;
 }
 
 .limparBusca:hover {
-  color: #ffffff;
+  color: var(--texto-principal, #ffffff);
 }
 
 .selectSetor {
@@ -181,14 +185,14 @@
   min-width: 190px;
   height: 42px;
   font-size: 13.5px;
-  color: #ffffff;
-  background-color: #171a1e;
-  border: 1px solid #262b31;
+  color: var(--texto-principal, #ffffff);
+  background-color: var(--bg-input, #171a1e);
+  border: 1px solid var(--borda-input, #262b31);
   border-radius: 9px;
   padding: 0 14px;
   outline: none;
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background-color 0.2s;
 }
 
 .selectSetor:focus {
@@ -204,9 +208,9 @@
 .botaoFiltroStatus {
   height: 42px;
   padding: 0 14px;
-  background: #171a1e;
-  color: #a4a6ad;
-  border: 1px solid #262b31;
+  background: var(--bg-card-interno, #171a1e);
+  color: var(--texto-suave, #a4a6ad);
+  border: 1px solid var(--borda-padrao, #262b31);
   border-radius: 9px;
   font-size: 13px;
   font-weight: 600;
@@ -216,7 +220,7 @@
 
 .botaoFiltroStatus:hover {
   border-color: #ff9500;
-  color: #f5f5f5;
+  color: var(--texto-principal, #f5f5f5);
 }
 
 .botaoFiltroStatusAtivo {
@@ -227,12 +231,12 @@
 
 .contadorOnline {
   font-size: 13px;
-  color: #8f9299;
+  color: var(--texto-suave, #8f9299);
   margin-bottom: 16px;
 }
 
 .contadorOnline strong {
-  color: #e5e7eb;
+  color: var(--texto-principal, #e5e7eb);
 }
 
 /* GRADE E CARDS DE CÂMERA */
@@ -243,25 +247,25 @@
 }
 
 .cameraCard {
-  background: #111416;
-  border: 1px solid #22262b;
+  background: var(--bg-painel, #111416);
+  border: 1px solid var(--borda-padrao, #22262b);
   border-radius: 14px;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
 .cameraCard:hover {
   border-color: #ff9500;
   transform: translateY(-3px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.14);
 }
 
 .cameraCardOffline {
-  border-top: 2px solid rgba(255, 69, 69, 0.55);
+  border-top: 2px solid rgba(239, 68, 68, 0.65);
 }
 
 .midiaContainer {
@@ -293,7 +297,7 @@
     to bottom,
     rgba(11, 12, 14, 0.2) 0%,
     transparent 50%,
-    rgba(17, 20, 22, 0.85) 100%
+    rgba(17, 20, 22, 0.55) 100%
   );
   pointer-events: none;
 }
@@ -304,7 +308,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  color: #6c7078;
+  color: #8e96a0;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.8px;
@@ -414,7 +418,7 @@
 .cameraNome {
   font-size: 17px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--texto-principal, #ffffff);
   margin: 0 0 6px 0;
   overflow-wrap: anywhere;
 }
@@ -422,9 +426,9 @@
 .setorTag {
   display: inline-block;
   font-size: 12px;
-  color: #a4a6ad;
-  background: #171b1f;
-  border: 1px solid #242930;
+  color: var(--texto-secundario, #a4a6ad);
+  background: var(--bg-card-interno, #171b1f);
+  border: 1px solid var(--borda-padrao, #242930);
   padding: 3px 9px;
   border-radius: 6px;
 }
@@ -432,7 +436,7 @@
 .cardRodape {
   margin-top: auto;
   padding-top: 10px;
-  border-top: 1px solid #1e2227;
+  border-top: 1px solid var(--borda-padrao, #1e2227);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -442,7 +446,7 @@
 .ipEndereco {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 11.5px;
-  color: #8f949d;
+  color: var(--texto-suave, #8f949d);
   max-width: 62%;
   white-space: nowrap;
   overflow: hidden;
@@ -457,12 +461,12 @@
 }
 
 .estadoVazio {
-  background: #111416;
-  border: 1px solid #22262b;
+  background: var(--bg-painel, #111416);
+  border: 1px solid var(--borda-padrao, #22262b);
   border-radius: 12px;
   padding: 44px 20px;
   text-align: center;
-  color: #9ba0a8;
+  color: var(--texto-suave, #9ba0a8);
   font-size: 14px;
 }
 
@@ -483,16 +487,16 @@
   margin-top: 24px;
   margin-bottom: 0;
   padding-top: 18px;
-  border-top: 1px solid #22262b;
+  border-top: 1px solid var(--borda-padrao, #22262b);
 }
 
 .textoPaginacao {
   font-size: 13px;
-  color: #8f949d;
+  color: var(--texto-suave, #8f949d);
 }
 
 .textoPaginacao strong {
-  color: #f5f5f5;
+  color: var(--texto-principal, #f5f5f5);
 }
 
 .controlesPaginacao {
@@ -504,9 +508,9 @@
 .botaoPagina {
   height: 36px;
   padding: 0 13px;
-  background: #111416;
-  color: #f3f4f6;
-  border: 1px solid #262b31;
+  background: var(--bg-painel, #111416);
+  color: var(--texto-principal, #f3f4f6);
+  border: 1px solid var(--borda-padrao, #262b31);
   border-radius: 8px;
   font-size: 13px;
   font-weight: 700;
