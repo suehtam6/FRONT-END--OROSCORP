@@ -417,7 +417,6 @@ export default function DetalhesOcorrencia() {
         return false;
       }
 
-      // 2º PASSO: Garante o vínculo na tbl_ocorrencia_camera caso o PUT de ocorrência não tenha recriado quando id_camera é null
       const resCheckCam = await fetch("/api/ocorrencia-camera").catch(() => null);
       const listaPosUpdate = resCheckCam?.ok
         ? extrairLista(await resCheckCam.json())

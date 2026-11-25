@@ -1,9 +1,10 @@
 .pagina {
   width: min(100vw, 2200px);
   margin-left: calc(50% - min(100vw, 2200px) / 2);
-  background: #343434;
-  color: white;
+  background: transparent;
+  color: var(--texto-principal, #ffffff);
   font-family: Arial, sans-serif;
+  transition: color 0.2s ease;
 }
 
 .conteudo {
@@ -22,22 +23,24 @@
   font-size: clamp(24px, 2.2vw, 34px);
   margin: 0 0 8px;
   font-weight: 700;
+  color: var(--texto-principal, #ffffff);
 }
 
 .tituloPagina p {
   font-size: clamp(13px, 1vw, 16px);
-  color: #aaa;
+  color: var(--texto-suave, #aaa);
   margin: 0;
 }
 
 .painel {
-  background: #111519;
-  border: 1px solid #292e34;
+  background: var(--bg-painel, #111519);
+  border: 1px solid var(--borda-padrao, #292e34);
   border-radius: 12px;
   padding: clamp(24px, 2.5vw, 40px);
   display: grid;
   grid-template-columns: 1fr clamp(350px, 30vw, 520px);
   gap: clamp(24px, 3vw, 50px);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .colunaEsquerda {
@@ -68,7 +71,7 @@
 .campo label {
   font-size: clamp(13px, 0.95vw, 15px);
   font-weight: 600;
-  color: #e1e4e8;
+  color: var(--texto-secundario, #e1e4e8);
   letter-spacing: 0.3px;
 }
 
@@ -81,15 +84,15 @@
 .campo textarea {
   width: 100%;
   box-sizing: border-box;
-  background: #151a1f;
-  border: 1px solid #2a3037;
+  background: var(--bg-input, #151a1f);
+  border: 1px solid var(--borda-input, #2a3037);
   border-radius: 8px;
-  color: #fff;
+  color: var(--texto-principal, #ffffff);
   font-size: clamp(13px, 0.95vw, 15px);
   font-family: Arial, sans-serif;
   padding: 0 14px;
   outline: none;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .campo input,
@@ -106,14 +109,14 @@
 
 .campo input::placeholder,
 .campo textarea::placeholder {
-  color: #777f89;
+  color: var(--texto-suave, #777f89);
 }
 
 .campo input:focus,
 .campo select:focus,
 .campo textarea:focus {
   border-color: #ff7900;
-  background: #192027;
+  background: var(--bg-input, #192027);
 }
 
 .botoesPrioridade {
@@ -125,9 +128,9 @@
 .btnPrioridade {
   flex: 1;
   height: clamp(44px, 3vw, 52px);
-  background: #151a1f;
-  color: #aaa;
-  border: 1px solid #2a3037;
+  background: var(--bg-card-interno, #151a1f);
+  color: var(--texto-suave, #aaa);
+  border: 1px solid var(--borda-padrao, #2a3037);
   border-radius: 8px;
   font-size: clamp(12px, 0.9vw, 14px);
   font-weight: 600;
@@ -137,11 +140,11 @@
 
 .btnPrioridade:hover {
   border-color: #ff7900;
-  color: #fff;
+  color: var(--texto-principal, #ffffff);
 }
 
 .prioAtiva {
-  background: #2b1d0c;
+  background: rgba(255, 121, 0, 0.16);
   border-color: #ff7900;
   color: #ff7900;
 }
@@ -150,8 +153,8 @@
   width: 100%;
   height: 100%;
   min-height: clamp(280px, 22vw, 420px);
-  background: #151a1f;
-  border: 2px dashed #303842;
+  background: var(--bg-input, #151a1f);
+  border: 2px dashed var(--borda-input, #303842);
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -159,12 +162,12 @@
   cursor: pointer;
   overflow: hidden;
   box-sizing: border-box;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .uploadBox:hover {
   border-color: #ff7900;
-  background: #192027;
+  background: var(--bg-card-interno, #192027);
 }
 
 .textoUpload {
@@ -183,12 +186,12 @@
 
 .textoUpload strong {
   font-size: clamp(14px, 1.1vw, 17px);
-  color: #eee;
+  color: var(--texto-principal, #eee);
 }
 
 .textoUpload p {
   font-size: clamp(12px, 0.9vw, 14px);
-  color: #8a929d;
+  color: var(--texto-suave, #8a929d);
   line-height: 1.5;
   margin: 0;
 }
@@ -202,19 +205,19 @@
 .btnAlterarImagem {
   width: 100%;
   height: clamp(42px, 2.8vw, 48px);
-  background: #1a2026;
-  color: #ccc;
-  border: 1px solid #2a3037;
+  background: var(--bg-card-interno, #1a2026);
+  color: var(--texto-secundario, #ccc);
+  border: 1px solid var(--borda-padrao, #2a3037);
   border-radius: 8px;
   font-size: clamp(12px, 0.9vw, 14px);
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: border-color 0.2s ease, color 0.2s ease;
 }
 
 .btnAlterarImagem:hover {
-  background: #222a33;
-  color: #fff;
+  border-color: #ff7900;
+  color: var(--texto-principal, #ffffff);
 }
 
 .acoes {
@@ -232,16 +235,18 @@
   font-size: clamp(13px, 0.95vw, 15px);
   font-weight: bold;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .btnCancelar {
-  background: #1a2026;
-  color: #ddd;
+  background: var(--bg-card-interno, #1a2026);
+  color: var(--texto-secundario, #ddd);
+  border: 1px solid var(--borda-padrao, #2a3037);
 }
 
 .btnCancelar:hover {
-  background: #242c35;
+  border-color: #ff7900;
+  color: var(--texto-principal, #ffffff);
 }
 
 .btnRegistrar {
@@ -252,7 +257,6 @@
 .btnRegistrar:hover {
   background: #ff951f;
 }
-
 
 .linhaMotivo {
   display: flex;
@@ -276,10 +280,11 @@
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .btnGerenciarMotivo:hover {
-  background: #20180e;
+  background: rgba(255, 152, 0, 0.12);
 }
 
 .gradeEpis {
@@ -295,9 +300,9 @@
   gap: 6px;
   padding: 8px 14px;
   border-radius: 8px;
-  border: 1px solid #2e3238;
-  background-color: #1f2226;
-  color: #cbd5e1;
+  border: 1px solid var(--borda-padrao, #2e3238);
+  background-color: var(--bg-card-interno, #1f2226);
+  color: var(--texto-secundario, #cbd5e1);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -306,13 +311,13 @@
 
 .btnEpi:hover {
   border-color: #f97316;
-  color: #ffffff;
+  color: var(--texto-principal, #ffffff);
 }
 
 .epiAtivo {
   background-color: rgba(249, 115, 22, 0.16);
   border-color: #f97316;
-  color: #fb923c;
+  color: #f97316;
   font-weight: 600;
 }
 
@@ -323,10 +328,9 @@
 
 .avisoEpis {
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: var(--texto-suave, #94a3b8);
   margin: 4px 0 0;
 }
-
 
 @media (max-width: 1100px) {
   .painel {

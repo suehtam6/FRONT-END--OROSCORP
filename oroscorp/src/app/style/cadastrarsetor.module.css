@@ -3,12 +3,15 @@
   margin-left: calc(50% - min(100vw, 2200px) / 2);
   padding: 0 clamp(16px, 4vw, 96px);
   box-sizing: border-box;
+  background: transparent;
+  color: var(--texto-principal, #ffffff);
+  transition: color 0.2s ease;
 }
-
 
 .cabecalho {
   height: 70px;
-  background: #000;
+  background: #050505;
+  border-bottom: 1px solid #1f2225;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -40,6 +43,7 @@
   gap: 10px;
   color: white;
   text-decoration: none;
+  background: transparent;
 }
 
 .logoSimbolo {
@@ -69,19 +73,21 @@
 .tituloPagina h1 {
   font-size: clamp(22px, 2vw, 32px);
   margin: 0 0 8px;
+  color: var(--texto-principal, #ffffff);
 }
 
 .tituloPagina p {
   font-size: clamp(12px, 1vw, 15px);
-  color: #ffffff;
+  color: var(--texto-suave, #a4a6ad);
   margin: 0;
 }
 
 .painel {
-  background: #111519;
-  border: 1px solid #292e34;
+  background: var(--bg-painel, #111519);
+  border: 1px solid var(--borda-padrao, #292e34);
   border-radius: 12px;
   padding: clamp(20px, 2.5vw, 36px);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .areaSuperior {
@@ -95,33 +101,36 @@
   height: clamp(210px, 18vw, 280px);
   width: 100%;
   box-sizing: border-box;
-  background: #151a1f;
-  border: 1px dashed #303842;
+  background: var(--bg-input, #151a1f);
+  border: 1px dashed var(--borda-input, #303842);
   border-radius: 9px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #999;
+  color: var(--texto-suave, #999);
   overflow: hidden;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .uploadImagem:hover {
   border-color: #ff7900;
+  background: var(--bg-card-interno, #1a2026);
 }
 
 .caixaImagem {
   width: clamp(55px, 4vw, 70px);
   height: clamp(55px, 4vw, 70px);
-  background: #222a32;
+  background: var(--bg-card-interno, #222a32);
+  border: 1px solid var(--borda-padrao, #2a3037);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   margin-bottom: 15px;
+  color: var(--texto-secundario, #cbd5e1);
 }
 
 .caixaImagem svg {
@@ -152,6 +161,7 @@
   font-size: clamp(12px, 0.9vw, 14px);
   text-align: center;
   line-height: 1.5;
+  color: var(--texto-suave, #999);
 }
 
 .previewImagem {
@@ -160,14 +170,15 @@
   object-fit: cover;
 }
 
-
 .resumo {
-  border: 1px solid #292e34;
+  background: var(--bg-card-interno, #151a1f);
+  border: 1px solid var(--borda-padrao, #292e34);
   border-radius: 10px;
   padding: clamp(18px, 1.8vw, 28px);
   display: flex;
   flex-direction: column;
   justify-content: center;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .resumoCabecalho {
@@ -175,13 +186,13 @@
   align-items: flex-start;
   gap: 12px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #252a30;
+  border-bottom: 1px solid var(--borda-padrao, #252a30);
 }
 
 .iconeEscudo {
   width: clamp(35px, 2.5vw, 44px);
   height: clamp(35px, 2.5vw, 44px);
-  background: #2b1e16;
+  background: rgba(255, 121, 0, 0.14);
   color: #ff7900;
   border-radius: 8px;
   display: flex;
@@ -198,12 +209,13 @@
 .resumoCabecalho h2 {
   font-size: clamp(13px, 1.1vw, 17px);
   margin: 0 0 7px;
+  color: var(--texto-principal, #ffffff);
 }
 
 .resumoCabecalho p {
   font-size: clamp(11px, 0.9vw, 14px);
   line-height: 1.5;
-  color: #aaa;
+  color: var(--texto-suave, #aaa);
   margin: 0;
 }
 
@@ -213,7 +225,7 @@
   justify-content: space-between;
   margin-top: 12px;
   font-size: clamp(12px, 0.95vw, 15px);
-  color: #aaa;
+  color: var(--texto-suave, #aaa);
 }
 
 .resumoLinha span {
@@ -228,10 +240,9 @@
 }
 
 .resumoLinha strong {
-  color: white;
-  font-weight: normal;
+  color: var(--texto-principal, #ffffff);
+  font-weight: 600;
 }
-
 
 .formulario {
   display: grid;
@@ -256,7 +267,7 @@
   font-size: clamp(11px, 0.85vw, 13px);
   font-weight: bold;
   letter-spacing: 0.5px;
-  color: #c9ced5;
+  color: var(--texto-secundario, #c9ced5);
 }
 
 .obrigatorio {
@@ -268,15 +279,15 @@
 .campo textarea {
   width: 100%;
   box-sizing: border-box;
-  background: #151a1f;
-  color: #ddd;
-  border: 1px solid #2a3037;
+  background: var(--bg-input, #151a1f);
+  color: var(--texto-principal, #ddd);
+  border: 1px solid var(--borda-input, #2a3037);
   border-radius: 7px;
   padding: 0 14px;
   font-size: clamp(12px, 0.9vw, 15px);
   font-family: Arial, sans-serif;
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .campo input,
@@ -292,7 +303,7 @@
 
 .campo input::placeholder,
 .campo textarea::placeholder {
-  color: #777f89;
+  color: var(--texto-suave, #777f89);
 }
 
 .campo input:focus,
@@ -316,7 +327,6 @@
   padding-left: 38px !important;
 }
 
-
 .iconeCampo,
 .iconeCapacete,
 .setaSelect {
@@ -335,14 +345,14 @@
 
 .setaSelect {
   right: 12px;
-  color: #89919a;
+  color: var(--texto-suave, #89919a);
 }
 
 .contador {
   position: absolute;
   right: 10px;
   bottom: 9px;
-  color: #777;
+  color: var(--texto-suave, #777);
   font-size: clamp(10px, 0.75vw, 12px);
 }
 
@@ -353,19 +363,24 @@
 }
 
 .tag {
-  background: #292e34;
-  border: 1px solid #414850;
-  color: white;
+  background: var(--bg-card-interno, #292e34);
+  border: 1px solid var(--borda-padrao, #414850);
+  color: var(--texto-principal, #ffffff);
   border-radius: 6px;
   padding: 6px 10px;
   font-size: clamp(11px, 0.85vw, 13px);
   cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.tag:hover {
+  border-color: #ff7900;
 }
 
 .seguranca {
   margin-top: clamp(24px, 2vw, 36px);
   padding-top: clamp(18px, 1.5vw, 26px);
-  border-top: 1px solid #292e34;
+  border-top: 1px solid var(--borda-padrao, #292e34);
 }
 
 .tituloSeguranca {
@@ -383,11 +398,12 @@
 .tituloSeguranca h2 {
   font-size: clamp(13px, 1.1vw, 17px);
   margin: 0;
+  color: var(--texto-principal, #ffffff);
 }
 
 .seguranca p {
   font-size: clamp(11px, 0.85vw, 13px);
-  color: #aaa;
+  color: var(--texto-suave, #aaa);
   margin: 15px 0 8px;
 }
 
@@ -402,9 +418,9 @@
   align-items: center;
   gap: 8px;
   padding: clamp(8px, 0.8vw, 12px) clamp(15px, 1.2vw, 22px);
-  background: #171b20;
-  color: #aaa;
-  border: 1px solid #2c3238;
+  background: var(--bg-card-interno, #171b20);
+  color: var(--texto-suave, #aaa);
+  border: 1px solid var(--borda-padrao, #2c3238);
   border-radius: 7px;
   font-size: clamp(11px, 0.9vw, 14px);
   cursor: pointer;
@@ -414,30 +430,31 @@
 .statusBotao span {
   width: 8px;
   height: 8px;
-  background: #777;
+  background: var(--texto-suave, #777);
   border-radius: 50%;
 }
 
 .statusAtivo {
-  background: #09291e;
-  color: #00d782;
-  border-color: #12573a;
+  background: rgba(16, 185, 129, 0.14);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.45);
+  font-weight: 600;
 }
 
 .statusAtivo span {
-  background: #00d782;
+  background: #10b981;
 }
 
 .statusInativo {
-  background: #302020;
-  color: #ff7777;
-  border-color: #743636;
+  background: rgba(239, 68, 68, 0.14);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.45);
+  font-weight: 600;
 }
 
 .statusInativo span {
-  background: #ff7777;
+  background: #ef4444;
 }
-
 
 .acoes {
   display: flex;
@@ -454,12 +471,18 @@
   font-size: clamp(11px, 0.9vw, 14px);
   font-weight: bold;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .botaoCancelar {
-  background: #1a2026;
-  color: #ddd;
+  background: var(--bg-card-interno, #1a2026);
+  color: var(--texto-secundario, #ddd);
+  border: 1px solid var(--borda-padrao, #292e34);
+}
+
+.botaoCancelar:hover {
+  border-color: #ff7900;
+  color: var(--texto-principal, #ffffff);
 }
 
 .botaoCadastrar {
@@ -472,11 +495,11 @@
 }
 
 .mensagem {
-  color: #ffad70;
+  color: #ff7900;
   font-size: 12px;
+  font-weight: 600;
   margin-top: 12px;
 }
-
 
 @media (min-width: 1600px) {
   .formulario {

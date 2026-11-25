@@ -5,7 +5,8 @@
   padding: clamp(20px, 2.5vw, 40px) clamp(20px, 3vw, 60px);
   box-sizing: border-box;
   font-family: Arial, sans-serif;
-  color: #ffffff;
+  color: var(--texto-principal, #ffffff);
+  transition: color 0.2s ease;
 }
 
 .barraTopo {
@@ -18,9 +19,9 @@
 }
 
 .botaoVoltar {
-  background-color: #151719;
-  color: #d0d6de;
-  border: 1px solid #2c3138;
+  background-color: var(--bg-painel, #151719);
+  color: var(--texto-secundario, #d0d6de);
+  border: 1px solid var(--borda-padrao, #2c3138);
   border-radius: 8px;
   padding: 11px 20px;
   font-size: clamp(13px, 0.95vw, 15px);
@@ -34,18 +35,19 @@
 
 .botaoVoltar:hover {
   border-color: #ff7900;
-  color: #ffffff;
-  background-color: #1c2024;
+  color: var(--texto-principal, #ffffff);
+  background-color: var(--bg-card-interno, #1c2024);
 }
 
 .painel {
   width: 100%;
   margin: 0 auto clamp(18px, 1.8vw, 26px);
-  background: #151719;
-  border: 1px solid #282b2f;
+  background: var(--bg-painel, #151719);
+  border: 1px solid var(--borda-padrao, #282b2f);
   border-radius: 12px;
   padding: clamp(22px, 2.2vw, 34px);
   box-sizing: border-box;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .painelTopo {
@@ -84,12 +86,12 @@
   min-height: 88px;
   border-radius: 50%;
   border: 2px solid #ff7900;
-  background: #2a1d19;
+  background: var(--bg-card-interno, #2a1d19);
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
 }
 
 .avatarImagem {
@@ -109,13 +111,13 @@
 .nomeFuncionario {
   font-size: clamp(22px, 2vw, 32px);
   font-weight: 700;
-  color: #ffffff;
+  color: var(--texto-principal, #ffffff);
   margin: 0 0 6px;
 }
 
 .cargoSub {
   font-size: clamp(14px, 1vw, 16px);
-  color: #9ba3ae;
+  color: var(--texto-suave, #9ba3ae);
   margin: 0 0 12px;
 }
 
@@ -134,18 +136,19 @@
 }
 
 .cardMetrica {
-  background: #151719;
-  border: 1px solid #282b2f;
+  background: var(--bg-painel, #151719);
+  border: 1px solid var(--borda-padrao, #282b2f);
   border-radius: 12px;
   padding: clamp(18px, 1.8vw, 26px);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .metricaTitulo {
   font-size: clamp(11px, 0.85vw, 13px);
-  color: #8e96a0;
+  color: var(--texto-suave, #8e96a0);
   text-transform: uppercase;
   font-weight: 700;
   letter-spacing: 0.7px;
@@ -154,7 +157,7 @@
 .metricaValor {
   font-size: clamp(26px, 2.2vw, 36px);
   font-weight: 700;
-  color: #ffffff;
+  color: var(--texto-principal, #ffffff);
   margin: 12px 0 0;
 }
 
@@ -163,7 +166,7 @@
 }
 
 .verde {
-  color: #36d18a !important;
+  color: #10b981 !important;
 }
 
 .gradePrincipal {
@@ -190,33 +193,34 @@
 }
 
 .campoDado {
-  background: #0f1113;
-  border: 1px solid #222529;
+  background: var(--bg-card-interno, #0f1113);
+  border: 1px solid var(--borda-padrao, #222529);
   border-radius: 9px;
   padding: clamp(14px, 1.3vw, 18px);
   display: flex;
   flex-direction: column;
   gap: 6px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .rotuloDado {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.7px;
-  color: #7d8590;
+  color: var(--texto-suave, #7d8590);
   font-weight: 700;
 }
 
 .valorDado {
   font-size: clamp(14px, 1vw, 16px);
-  color: #f0f3f6;
+  color: var(--texto-principal, #f0f3f6);
   font-weight: 600;
   word-break: break-word;
 }
 
 .cardSetor {
-  background: #0f1113;
-  border: 1px solid #222529;
+  background: var(--bg-card-interno, #0f1113);
+  border: 1px solid var(--borda-padrao, #222529);
   border-radius: 10px;
   padding: clamp(18px, 1.6vw, 24px);
   display: flex;
@@ -225,18 +229,19 @@
   gap: 20px;
   height: calc(100% - 38px);
   box-sizing: border-box;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .tituloSetor {
   font-size: clamp(18px, 1.4vw, 22px);
   font-weight: 700;
-  color: #ffffff;
+  color: var(--texto-principal, #ffffff);
   margin: 0 0 8px;
 }
 
 .descricaoSetor {
   font-size: clamp(13px, 0.95vw, 15px);
-  color: #9ba3ae;
+  color: var(--texto-suave, #9ba3ae);
   line-height: 1.5;
   margin: 0;
 }
@@ -246,9 +251,9 @@
   align-items: center;
   justify-content: space-between;
   padding-top: 14px;
-  border-top: 1px solid #212428;
+  border-top: 1px solid var(--borda-padrao, #212428);
   font-size: clamp(12px, 0.9vw, 14px);
-  color: #aeb6c1;
+  color: var(--texto-secundario, #aeb6c1);
   gap: 12px;
   flex-wrap: wrap;
 }
@@ -266,28 +271,28 @@
 }
 
 .tabela th {
-  color: #888;
+  color: var(--texto-suave, #888);
   font-size: clamp(11px, 0.85vw, 13px);
   text-transform: uppercase;
   font-weight: 600;
   padding: 0 14px 16px;
-  border-bottom: 1px solid #282b2f;
+  border-bottom: 1px solid var(--borda-padrao, #282b2f);
 }
 
 .tabela td {
   padding: clamp(16px, 1.3vw, 22px) 14px;
-  border-bottom: 1px solid #212428;
+  border-bottom: 1px solid var(--borda-padrao, #212428);
   vertical-align: middle;
-  color: #ddd;
+  color: var(--texto-secundario, #ddd);
 }
 
 .tabela tbody tr:hover td {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--bg-hover, rgba(255, 255, 255, 0.02));
 }
 
 .vazio {
   text-align: center;
-  color: #858585;
+  color: var(--texto-suave, #858585);
   padding: 48px 12px !important;
   font-size: clamp(14px, 1vw, 16px);
 }
@@ -311,28 +316,29 @@
 }
 
 .badgeVerde {
-  background: rgba(54, 209, 138, 0.12);
-  color: #36d18a;
+  background: rgba(16, 185, 129, 0.14);
+  color: #10b981;
 }
 
 .badgeVermelho {
-  background: rgba(255, 69, 69, 0.12);
-  color: #ff4545;
+  background: rgba(239, 68, 68, 0.14);
+  color: #ef4444;
 }
 
 .badgeAmarelo {
-  background: rgba(255, 184, 0, 0.14);
-  color: #ffb800;
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
 }
 
 .badgeLaranja {
-  background: rgba(255, 121, 0, 0.14);
-  color: #ff8900;
+  background: rgba(255, 121, 0, 0.15);
+  color: #ff7900;
 }
 
 .badgePequeno {
-  background: #1d2126;
-  color: #c2c9d2;
+  background: var(--bg-card-interno, #1d2126);
+  border: 1px solid var(--borda-padrao, #282b2f);
+  color: var(--texto-secundario, #c2c9d2);
   padding: 5px 12px;
   border-radius: 12px;
   font-size: 12px;

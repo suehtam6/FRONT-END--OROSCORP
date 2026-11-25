@@ -1,21 +1,18 @@
 /********************************************************
-* Data: 07 de Outubro de 2026
-* Objetivo: Tela de Cadastro
-* Autor: João Pedro, Kaique Carvalho e Matheus Lucas
+- Data: 07 de Outubro de 2026
+- Objetivo: Tela de Cadastro
+- Autor: João Pedro, Kaique Carvalho e Matheus Lucas
 ********************************************************/
 
 .container {
-
   --laranja: #ff7200;
   --laranja-claro: #ff8a2b;
   --laranja-suave: rgba(255, 114, 0, 0.22);
-  --borda: #2a323d;
-  --texto-suave: #8b97a6;
 
   min-height: 100vh;
   width: 100%;
 
-  background-color: #333;
+  background-color: var(--bg-pagina, #0b0d0f);
   background-image: url("/fundo.png");
   background-size: cover;
   background-position: center;
@@ -29,13 +26,9 @@
   justify-content: center;
 
   box-sizing: border-box;
-
-
   padding-bottom: 32px;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
-
-
-
 
 .header {
   width: 100%;
@@ -45,7 +38,8 @@
   justify-content: center;
   align-items: center;
 
-  background-color: #000;
+  background-color: #050505;
+  border-bottom: 1px solid #1f2225;
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
 
   position: absolute;
@@ -58,9 +52,8 @@
 .logo {
   width: 190px;
   height: auto;
+  background: transparent;
 }
-
-
 
 .cadastroBox {
   width: calc(100% - 88px);
@@ -71,31 +64,29 @@
 
   box-sizing: border-box;
 
-  background-color: rgba(14, 18, 23, 0.92);
+  background-color: var(--bg-painel, rgba(14, 18, 23, 0.92));
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 
-  border: 1px solid var(--borda);
+  border: 1px solid var(--borda-padrao, #2a323d);
   border-radius: 16px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
 
-  color: white;
+  color: var(--texto-principal, #ffffff);
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
-
-
-
 
 .titulo {
   margin-bottom: 32px;
   padding-bottom: 22px;
 
-  border-bottom: 1px solid #232b35;
+  border-bottom: 1px solid var(--borda-padrao, #232b35);
 }
 
 .titulo h1 {
   margin: 0 0 6px 0;
 
-  color: #ffffff;
+  color: var(--texto-principal, #ffffff);
 
   font-size: 28px;
   font-weight: 700;
@@ -105,23 +96,17 @@
 .titulo p {
   margin: 0;
 
-  color: var(--texto-suave);
+  color: var(--texto-suave, #8b97a6);
 
   font-size: 16px;
   font-weight: 400;
 }
 
-
-
-
 .formulario {
   display: flex;
-  align-items: stretch; 
+  align-items: stretch;
   gap: 32px;
 }
-
-
-
 
 .fotoArea {
   width: 300px;
@@ -131,10 +116,10 @@
 
   padding: 24px 16px;
 
-  border: 1.5px dashed #34404d;
+  border: 1.5px dashed var(--borda-input, #34404d);
   border-radius: 12px;
 
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--bg-card-interno, rgba(255, 255, 255, 0.02));
 
   display: flex;
   flex-direction: column;
@@ -166,7 +151,7 @@
   border: 2px solid var(--laranja);
   border-radius: 50%;
 
-  background-color: #20262d;
+  background-color: var(--bg-painel, #20262d);
 
   overflow: hidden;
 
@@ -200,7 +185,7 @@
 }
 
 .uploadIcone {
-  color: #aeb9c7;
+  color: var(--texto-suave, #aeb9c7);
 
   font-size: 20px;
 
@@ -210,7 +195,7 @@
 }
 
 .fotoArea strong {
-  color: #f0f0f0;
+  color: var(--texto-principal, #f0f0f0);
 
   font-size: 18px;
   font-weight: 700;
@@ -219,14 +204,13 @@
 .fotoArea p {
   margin: 8px 0 0;
 
-  color: #7b8898;
+  color: var(--texto-suave, #7b8898);
 
   text-align: center;
 
   font-size: 14px;
   line-height: 1.5;
 }
-
 
 .fotoNome {
   width: 100%;
@@ -237,9 +221,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
-
-
 
 .campos {
   flex: 1;
@@ -257,13 +238,13 @@
   display: flex;
   flex-direction: column;
 
-  min-width: 0; 
+  min-width: 0;
 }
 
 .campo label {
   margin-bottom: 8px;
 
-  color: #c3cbd6;
+  color: var(--texto-secundario, #c3cbd6);
 
   font-size: 15px;
   font-weight: 600;
@@ -281,41 +262,33 @@
 
   box-sizing: border-box;
 
-  border: 1px solid #d7d9dc;
+  border: 1px solid var(--borda-input, #2c3138);
   border-radius: 8px;
 
-  background-color: #f7f7f8;
+  background-color: var(--bg-input, #0f1113);
 
-  color: #222;
+  color: var(--texto-principal, #ffffff);
 
   font-family: inherit;
   font-size: 16px;
 
   outline: none;
 
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
 }
 
 .campo input::placeholder {
-  color: #8a93a0;
+  color: var(--texto-suave, #8a93a0);
 }
 
 .campo input:hover {
-  border-color: #b9bfc7;
+  border-color: var(--laranja);
 }
 
 .campo input:focus {
   border-color: var(--laranja);
   box-shadow: 0 0 0 4px var(--laranja-suave);
 }
-
-
-.campo input[type="date"] {
-  color-scheme: light;
-}
-
-
-
 
 .inputSenha {
   position: relative;
@@ -335,15 +308,12 @@
 
   transform: translateY(-50%);
 
-  color: #8994a3;
+  color: var(--texto-suave, #8994a3);
 
   font-size: 9px;
 
   cursor: pointer;
 }
-
-
-
 
 .botoes {
   display: flex;
@@ -354,7 +324,7 @@
   margin-top: 32px;
   padding-top: 24px;
 
-  border-top: 1px solid #232b35;
+  border-top: 1px solid var(--borda-padrao, #232b35);
 }
 
 .botoes button {
@@ -391,22 +361,17 @@
   cursor: not-allowed;
 }
 
-
-
-
 .botoes .cancelar {
-  background-color: #1c232c;
-  border: 1px solid var(--borda);
+  background-color: var(--bg-card-interno, #1c232c);
+  border: 1px solid var(--borda-padrao, #2a323d);
 
-  color: #c8ced6;
+  color: var(--texto-secundario, #c8ced6);
 }
 
 .botoes .cancelar:hover:not(:disabled) {
-  background-color: #252d37;
+  border-color: var(--laranja);
+  color: var(--texto-principal, #ffffff);
 }
-
-
-
 
 .botoes .cadastrar {
   background-color: var(--laranja);
@@ -420,17 +385,13 @@
   background-color: var(--laranja-claro);
 }
 
-
 /* =====================================================
    RESPONSIVIDADE
 ===================================================== */
 
-
 @media (max-width: 1000px) {
-
   .cadastroBox {
     width: calc(100% - 48px);
-
     padding: 28px 24px;
   }
 
@@ -449,12 +410,9 @@
   }
 }
 
-
 @media (max-width: 700px) {
-
   .cadastroBox {
     width: calc(100% - 30px);
-
     margin-top: 110px;
   }
 
@@ -463,10 +421,7 @@
   }
 }
 
-
-
 @media (max-width: 500px) {
-
   .header {
     height: 75px;
   }
@@ -477,9 +432,7 @@
 
   .cadastroBox {
     margin-top: 95px;
-
     padding: 22px 16px;
-
     border-radius: 12px;
   }
 
@@ -506,9 +459,7 @@
   }
 }
 
-
 @media (prefers-reduced-motion: reduce) {
-
   .container * {
     transition: none !important;
   }
