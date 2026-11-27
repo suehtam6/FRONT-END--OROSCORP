@@ -1,21 +1,21 @@
 "use client";
 
-
 /*
 Autor JS: Matheus Lucas
 Data: 02 de novembro de 2026
-Objetivo: Transformar a tela em dinamica
+Objetivo: Transformar a tela em dinamica e integrar upload com Cloudinary
 */
 
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { uploadParaCloudinary } from "../../API/cloudinary.js";
 import Shell from "../components/Shell";
 import styles from "../style/cadastrarEpi.module.css";
 import Popup from "../components/Popup";
 
 export default function CadastroEPI() {
   const router = useRouter();
+  const uploadRef = useRef({ arquivo: null, url: "" });
 
   const [imagem, setImagem] = useState(null);
   const [preview, setPreview] = useState("");
@@ -36,7 +36,7 @@ export default function CadastroEPI() {
     nome: "",
     id_categoria_epi: "",
     cor: "",
-    descricao: ""
+    descricao: "",
   });
 
   useEffect(() => {
@@ -55,13 +55,15 @@ export default function CadastroEPI() {
       const res = await fetch("/api/categoria-epi");
       if (res.ok) {
         const json = await res.json();
-        
+
         let lista = [];
         if (Array.isArray(json)) lista = json;
         else if (Array.isArray(json.dados)) lista = json.dados;
         else if (Array.isArray(json.response)) lista = json.response;
-        else if (json.response && Array.isArray(json.response.dados)) lista = json.response.dados;
-        else if (json.content && Array.isArray(json.content)) lista = json.content;
+        else if (json.response && Array.isArray(json.response.dados))
+          lista = json.response.dados;
+        else if (json.content && Array.isArray(json.content))
+          lista = json.content;
 
         setCategorias(lista);
       }
@@ -87,7 +89,7 @@ export default function CadastroEPI() {
       const res = await fetch("/api/categoria-epi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ categoria: novaCategoriaNome.trim() })
+        body: JSON.stringify({ categoria: novaCategoriaNome.trim() }),
       });
 
       if (res.ok) {
@@ -109,7 +111,7 @@ export default function CadastroEPI() {
       const res = await fetch(`/api/categoria-epi/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ categoria: nomeCategoriaEditado.trim() })
+        body: JSON.stringify({ categoria: nomeCategoriaEditado.trim() }),
       });
 
       if (res.ok) {
@@ -130,7 +132,7 @@ export default function CadastroEPI() {
 
     try {
       const res = await fetch(`/api/categoria-epi/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
       });
 
       if (res.ok) {
@@ -149,38 +151,52 @@ export default function CadastroEPI() {
 
   async function cadastrar(e) {
     e.preventDefault();
+    if (carregando) return;
+
     setCarregando(true);
     setErro("");
     setSucesso("");
 
-    let urlDaFoto = "";
-    if (imagem) {
-      urlDaFoto = "capacete.png";
-    }
-
-    const payload = {
-      nome: dados.nome,
-      descricao: dados.descricao,
-      foto: urlDaFoto || "sem-foto.png",
-      cor: dados.cor,
-      id_categoria: Number(dados.id_categoria_epi)
-    };
-
     try {
+      let fotoUrl = "";
+      if (imagem) {
+        if (uploadRef.current.arquivo !== imagem) {
+          try {
+            const url = await uploadParaCloudinary(imagem);
+            uploadRef.current = { arquivo: imagem, url };
+          } catch {
+            setErro(
+              "Não foi possível enviar a foto para o Cloudinary. Tente novamente."
+            );
+            return;
+          }
+        }
+        fotoUrl = uploadRef.current.url;
+      }
+
+      const payload = {
+        nome: dados.nome,
+        descricao: dados.descricao,
+        foto: fotoUrl || "sem-foto.png",
+        cor: dados.cor,
+        id_categoria: Number(dados.id_categoria_epi),
+      };
+
       const resposta = await fetch("/api/epi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
-      const retorno = await resposta.json();
+      const retorno = await resposta.json().catch(() => ({}));
 
       if (resposta.ok) {
         setSucesso("EPI cadastrado com sucesso!");
         setDados({ nome: "", id_categoria_epi: "", cor: "", descricao: "" });
         setImagem(null);
+        uploadRef.current = { arquivo: null, url: "" };
       } else {
-        setErro(retorno.message || "Erro ao cadastrar o EPI.");
+        setErro(retorno.message || retorno.response?.message || "Erro ao cadastrar o EPI.");
       }
     } catch {
       setErro("Erro de conexão ao salvar o EPI.");
@@ -194,7 +210,9 @@ export default function CadastroEPI() {
       <main className={styles.pagina}>
         <div className={styles.titulo}>
           <h1>Cadastro de EPI</h1>
-          <p>Preencha as informações para cadastrar um equipamento de proteção individual.</p>
+          <p>
+            Preencha as informações para cadastrar um equipamento de proteção individual.
+          </p>
         </div>
 
         <form className={styles.painel} onSubmit={cadastrar}>
@@ -203,7 +221,9 @@ export default function CadastroEPI() {
               <h2>Informações do EPI</h2>
 
               <div className={styles.campo}>
-                <label htmlFor="nome">Nome do EPI <span>*</span></label>
+                <label htmlFor="nome">
+                  Nome do EPI <span>*</span>
+                </label>
                 <input
                   id="nome"
                   name="nome"
@@ -216,7 +236,9 @@ export default function CadastroEPI() {
 
               <div className={styles.campo}>
                 <div className={styles.cabecalhoCampo}>
-                  <label htmlFor="id_categoria_epi">Categoria <span>*</span></label>
+                  <label htmlFor="id_categoria_epi">
+                    Categoria <span>*</span>
+                  </label>
                   <button
                     type="button"
                     className={styles.botaoGerenciar}
@@ -234,9 +256,11 @@ export default function CadastroEPI() {
                 >
                   <option value="">Selecione a categoria</option>
                   {categorias.map((cat, index) => {
-                    const catId = cat.id || cat.id_categoria_epi || cat.id_categoria || index;
-                    const catNome = cat.categoria || cat.nome_categoria || cat.nome || "Sem Nome";
-                    
+                    const catId =
+                      cat.id || cat.id_categoria_epi || cat.id_categoria || index;
+                    const catNome =
+                      cat.categoria || cat.nome_categoria || cat.nome || "Sem Nome";
+
                     return (
                       <option key={catId} value={catId}>
                         {catNome}
@@ -276,7 +300,11 @@ export default function CadastroEPI() {
               <h2>Imagem do EPI</h2>
               <label className={styles.uploadImagem}>
                 {preview ? (
-                  <img src={preview} alt="Imagem do EPI" className={styles.previewImagem} />
+                  <img
+                    src={preview}
+                    alt="Imagem do EPI"
+                    className={styles.previewImagem}
+                  />
                 ) : (
                   <div className={styles.espacoImagem}>
                     <p>Clique para anexar uma imagem</p>
@@ -290,9 +318,18 @@ export default function CadastroEPI() {
                   onChange={(e) => setImagem(e.target.files?.[0] || null)}
                 />
               </label>
-              <p className={styles.legenda}>Imagem do equipamento de proteção individual.</p>
+              <p className={styles.legenda}>
+                Imagem do equipamento de proteção individual.
+              </p>
               {imagem && (
-                <button type="button" className={styles.removerImagem} onClick={() => setImagem(null)}>
+                <button
+                  type="button"
+                  className={styles.removerImagem}
+                  onClick={() => {
+                    setImagem(null);
+                    uploadRef.current = { arquivo: null, url: "" };
+                  }}
+                >
                   Remover imagem
                 </button>
               )}
@@ -337,16 +374,22 @@ export default function CadastroEPI() {
                   onChange={(e) => setNovaCategoriaNome(e.target.value)}
                   className={styles.modalInput}
                 />
-                <button type="button" onClick={criarCategoria} className={styles.modalBotaoAdicionar}>
+                <button
+                  type="button"
+                  onClick={criarCategoria}
+                  className={styles.modalBotaoAdicionar}
+                >
                   Adicionar
                 </button>
               </div>
 
               <div className={styles.modalLista}>
                 {categorias.map((item, index) => {
-                  const itemId = item.id || item.id_categoria_epi || item.id_categoria || index;
-                  const itemNome = item.categoria || item.nome_categoria || item.nome || "Sem Nome";
-                  
+                  const itemId =
+                    item.id || item.id_categoria_epi || item.id_categoria || index;
+                  const itemNome =
+                    item.categoria || item.nome_categoria || item.nome || "Sem Nome";
+
                   return (
                     <div key={itemId} className={styles.modalItem}>
                       {categoriaEditandoId === itemId ? (
@@ -424,7 +467,7 @@ export default function CadastroEPI() {
           tipo="sucesso"
           titulo="EPI Cadastrado!"
           textoBotao="Ir para EPIs"
-          aoFechar={() => router.push("/home")}
+          aoFechar={() => router.push("/epis")}
         />
       </main>
     </Shell>
