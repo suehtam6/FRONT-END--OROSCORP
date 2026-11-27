@@ -139,6 +139,9 @@ export default function DetalhesOcorrencia() {
 
   const [funcionarios, setFuncionarios] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
+  const [cameras, setCameras] = useState([]);
+  const [setores, setSetores] = useState([]);
+  const [vinculoCamera, setVinculoCamera] = useState(null);
   const [idRegistroBruto, setIdRegistroBruto] = useState(null);
 
   const [editandoFunc, setEditandoFunc] = useState(false);
@@ -179,17 +182,36 @@ export default function DetalhesOcorrencia() {
   useEffect(() => {
     async function carregarListas() {
       try {
-        const [resFunc, resUsers, resOcorrBruta] = await Promise.all([
-          fetch("/api/funcionario/dados").catch(() => null),
-          fetch("/api/usuario").catch(() => null),
-          fetch("/api/ocorrencia").catch(() => null),
-        ]);
+        const [resFunc, resUsers, resOcorrBruta, resCam, resOcorrCam, resSetores] =
+          await Promise.all([
+            fetch("/api/funcionario/dados").catch(() => null),
+            fetch("/api/usuario").catch(() => null),
+            fetch("/api/ocorrencia").catch(() => null),
+            fetch("/api/camera").catch(() => null),
+            fetch("/api/ocorrencia-camera").catch(() => null),
+            fetch("/api/setor").catch(() => null),
+          ]);
 
         if (resFunc && resFunc.ok) {
           setFuncionarios(extrairLista(await resFunc.json()));
         }
         if (resUsers && resUsers.ok) {
           setUsuarios(extrairLista(await resUsers.json()));
+        }
+        if (resCam && resCam.ok) {
+          setCameras(extrairLista(await resCam.json()));
+        }
+        if (resSetores && resSetores.ok) {
+          setSetores(extrairLista(await resSetores.json()));
+        }
+        if (resOcorrCam && resOcorrCam.ok) {
+          const listaVinculos = extrairLista(await resOcorrCam.json());
+          const vinculo = listaVinculos.find(
+            (item) => String(item.id_ocorrencia ?? item.ID_ocorrencia) === String(id)
+          );
+          if (vinculo) {
+            setVinculoCamera(vinculo);
+          }
         }
         if (resOcorrBruta && resOcorrBruta.ok) {
           const listaBruta = extrairLista(await resOcorrBruta.json());
@@ -367,7 +389,6 @@ export default function DetalhesOcorrencia() {
         };
       });
 
-      // 1º PASSO: Atualiza tbl_ocorrencia (e tbl_ocorrencia_epi)
       const payload = {
         descricao: regBruto.descricao ?? ocorrencia.Descricao_Ocorrencia ?? "",
         id_setor: Number(regBruto.id_setor ?? ocorrencia.ID_setor ?? 1),
@@ -451,7 +472,7 @@ export default function DetalhesOcorrencia() {
       setSalvando(false);
     }
   }
-  
+
   async function handleSalvarFuncionario(e) {
     e.preventDefault();
     if (!funcionarioSelecionado) {
@@ -530,24 +551,52 @@ export default function DetalhesOcorrencia() {
     Array.isArray(o.lista_epis) && o.lista_epis.length > 0
       ? o.lista_epis
       : o.Nome_EPI
-        ? [{ nome: o.Nome_EPI, categoria: o.Categoria_EPI, cor: o.Cor_EPI }]
-        : [];
+      ? [{ nome: o.Nome_EPI, categoria: o.Categoria_EPI, cor: o.Cor_EPI }]
+      : [];
 
   const nomesEpisUnidos = listaEpis.map((e) => e.nome).filter(Boolean).join(", ");
   const variosEpis = listaEpis.length > 1;
+
+  // Identificação da câmera vinculada (nome + setor)
+  const idCamVinculada =
+    vinculoCamera?.id_camera ?? o.ID_camera ?? o.id_camera ?? null;
+  const camObj =
+    cameras.find((c) => Number(c.id) === Number(idCamVinculada)) ||
+    cameras.find(
+      (c) =>
+        o.Nome_camera &&
+        String(c.nome || "").trim().toLowerCase() ===
+          String(o.Nome_camera).trim().toLowerCase()
+    ) ||
+    null;
+
+  const nomeCameraExibicao = o.Nome_camera || camObj?.nome || "";
+  const setorDaCamera =
+    setores.find((s) => Number(s.id) === Number(camObj?.id_setor))?.nome ||
+    o.Nome_setor ||
+    "";
+
+  const temCameraVinculada = Boolean(nomeCameraExibicao);
+  const textoCameraExibicao = temCameraVinculada
+    ? [nomeCameraExibicao, setorDaCamera].filter(Boolean).join(" · ")
+    : "Nenhuma câmera vinculada a está ocorrência";
 
   const infos = [
     { rotulo: "Tipo", valor: o.Motivo_ocorrencia },
     ...(!variosEpis
       ? [
-        { rotulo: "EPI", valor: listaEpis[0]?.nome },
-        { rotulo: "Categoria do EPI", valor: listaEpis[0]?.categoria },
-        { rotulo: "Cor do EPI", valor: listaEpis[0]?.cor },
-      ]
+          { rotulo: "EPI", valor: listaEpis[0]?.nome },
+          { rotulo: "Categoria do EPI", valor: listaEpis[0]?.categoria },
+          { rotulo: "Cor do EPI", valor: listaEpis[0]?.cor },
+        ]
       : []),
     { rotulo: "Setor", valor: o.Nome_setor },
     { rotulo: "Local do setor", valor: o.Local_setor },
-    { rotulo: "Câmera", valor: o.Nome_camera },
+    {
+      rotulo: "Câmera",
+      valor: textoCameraExibicao,
+      semCamera: !temCameraVinculada,
+    },
     { rotulo: "Data", valor: data },
     { rotulo: "Horário", valor: hora },
   ].filter((i) => i.valor);
@@ -613,14 +662,14 @@ export default function DetalhesOcorrencia() {
                   <span>
                     {temFuncionario
                       ? [
-                        o.Cargo_funcionario,
-                        o.ID_funcionario && `Mat. ${String(o.ID_funcionario).padStart(5, "0")}`,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")
+                          o.Cargo_funcionario,
+                          o.ID_funcionario && `Mat. ${String(o.ID_funcionario).padStart(5, "0")}`,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")
                       : isOrigemIA
-                        ? "Detecção automática pela IA"
-                        : "Aguardando identificação"}
+                      ? "Detecção automática pela IA"
+                      : "Aguardando identificação"}
                   </span>
                 </div>
               </div>
@@ -678,9 +727,9 @@ export default function DetalhesOcorrencia() {
                           width: "100%",
                           padding: "10px 12px",
                           borderRadius: "8px",
-                          background: "#0f1113",
-                          color: "#fff",
-                          border: "1px solid #2c3138",
+                          background: "var(--bg-input, #0f1113)",
+                          color: "var(--texto-principal, #fff)",
+                          border: "1px solid var(--borda-input, #2c3138)",
                           marginBottom: "10px",
                           fontSize: "14px",
                         }}
@@ -750,7 +799,7 @@ export default function DetalhesOcorrencia() {
                   style={{
                     display: "block",
                     fontSize: "12px",
-                    color: "#8e96a0",
+                    color: "var(--texto-suave, #8e96a0)",
                     marginTop: "6px",
                     marginBottom: "4px",
                   }}
@@ -774,7 +823,7 @@ export default function DetalhesOcorrencia() {
                   style={{
                     width: "100%",
                     height: "7px",
-                    backgroundColor: "#262a30",
+                    backgroundColor: "var(--borda-padrao, #262a30)",
                     borderRadius: "999px",
                     overflow: "hidden",
                     marginBottom: "14px",
@@ -791,9 +840,9 @@ export default function DetalhesOcorrencia() {
                   />
                 </div>
 
-                <div style={{ fontSize: "13px", color: "#8e96a0" }}>
+                <div style={{ fontSize: "13px", color: "var(--texto-suave, #8e96a0)" }}>
                   Detecção:{" "}
-                  <strong style={{ color: "#e6edf3", fontWeight: 600 }}>
+                  <strong style={{ color: "var(--texto-principal, #e6edf3)", fontWeight: 600 }}>
                     {nomesEpisUnidos
                       ? `Ausência de ${nomesEpisUnidos.toLowerCase()}`
                       : o.Motivo_ocorrencia || "Não conformidade de EPI"}
@@ -809,7 +858,19 @@ export default function DetalhesOcorrencia() {
                 {infos.map((i) => (
                   <div key={i.rotulo} className={styles.infoItem}>
                     <span>{i.rotulo}</span>
-                    <strong>{i.valor}</strong>
+                    <strong
+                      style={
+                        i.semCamera
+                          ? {
+                              color: "var(--texto-suave, #8e96a0)",
+                              fontWeight: 500,
+                              fontStyle: "italic",
+                            }
+                          : undefined
+                      }
+                    >
+                      {i.valor}
+                    </strong>
                   </div>
                 ))}
               </div>
@@ -822,7 +883,7 @@ export default function DetalhesOcorrencia() {
                       fontSize: "11px",
                       fontWeight: 600,
                       letterSpacing: "0.04em",
-                      color: "#8e96a0",
+                      color: "var(--texto-suave, #8e96a0)",
                       textTransform: "uppercase",
                       marginBottom: "8px",
                     }}
@@ -842,7 +903,7 @@ export default function DetalhesOcorrencia() {
                       >
                         <strong>{epi.nome}</strong>
                         {(epi.categoria || epi.cor) && (
-                          <span style={{ fontSize: "12px", color: "#8e96a0" }}>
+                          <span style={{ fontSize: "12px", color: "var(--texto-suave, #8e96a0)" }}>
                             {[epi.categoria, epi.cor].filter(Boolean).join(" · ")}
                           </span>
                         )}
@@ -853,13 +914,13 @@ export default function DetalhesOcorrencia() {
               )}
             </div>
 
-            {/* AQUI ESTARÁ O CARD DO RESPONSÁVEL*/}
+            {/* CARD RESPONSÁVEL */}
             <div className={styles.card}>
               <h4 className={styles.cardTituloCinza}>
                 {temResponsavel ? "RESPONSÁVEL" : "RESPONSÁVEL NÃO ATRIBUÍDO"}
               </h4>
 
-             {temResponsavel ? (
+              {temResponsavel ? (
                 <div className={styles.perfil}>
                   {fotoResponsavelExibicao &&
                   fotoResponsavelExibicao.startsWith("http") &&
@@ -884,8 +945,10 @@ export default function DetalhesOcorrencia() {
               ) : (
                 <p className={styles.textoApoio}>
                   Nenhum responsável atribuído. Ao clicar em{" "}
-                  <strong style={{ color: "#e6edf3" }}>Fechar ocorrência</strong>, o seu usuário
-                  será registrado automaticamente como responsável pelo encerramento.
+                  <strong style={{ color: "var(--texto-principal, #e6edf3)" }}>
+                    Fechar ocorrência
+                  </strong>
+                  , o seu usuário será registrado automaticamente como responsável pelo encerramento.
                 </p>
               )}
             </div>
@@ -898,48 +961,16 @@ export default function DetalhesOcorrencia() {
               <p className={styles.descricao}>{o.Descricao_Ocorrencia || "Sem descrição."}</p>
             </div>
 
-            {/* QUADRO DA EVIDÊNCIA */}
-            <div className={styles.card}>
-              <h4 className={styles.cardTitulo}>EVIDÊNCIA</h4>
-              <div
-                className={styles.moldura}
-                style={{
-                  minHeight: "340px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: "#0f1113",
-                  borderRadius: "10px",
-                  overflow: "hidden",
-                  border: "1px solid #222529",
-                }}
-              >
-                {urlEvidencia && !erroEvidencia ? (
+            {urlEvidencia && !erroEvidencia && (
+              <div className={styles.card}>
+                <h4 className={styles.cardTitulo}>EVIDÊNCIA</h4>
+                <div className={styles.moldura}>
                   <img
                     src={urlEvidencia}
                     alt="Evidência da ocorrência"
                     onError={() => setErroEvidencia(true)}
-                    style={{
-                      width: "100%",
-                      maxHeight: "480px",
-                      objectFit: "contain",
-                      display: "block",
-                    }}
                   />
-                ) : (
-                  <span style={{ color: "#7d8590", fontSize: "14px" }}>
-                    Nenhuma evidência fotográfica disponível{fotoBruta ? ` (${fotoBruta})` : ""}.
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {o.Descricao_setor && (
-              <div className={styles.card}>
-                <h4 className={styles.cardTitulo}>SETOR</h4>
-                <p className={styles.descricao}>
-                  <strong>{o.Nome_setor}</strong> — {o.Descricao_setor}
-                </p>
+                </div>
               </div>
             )}
 
@@ -950,14 +981,19 @@ export default function DetalhesOcorrencia() {
                 onClick={handleAlternarStatus}
                 disabled={salvando}
               >
-                {fechada ? "Reabrir ocorrência" : "Fechar ocorrência"}
+                {salvando
+                  ? "Processando..."
+                  : fechada
+                  ? "Reabrir ocorrência"
+                  : "Fechar ocorrência"}
               </button>
+
               <button
                 type="button"
                 className={styles.botaoSecundario}
                 onClick={() => window.print()}
               >
-                Exportar PDF
+                Imprimir / PDF
               </button>
             </div>
           </div>
