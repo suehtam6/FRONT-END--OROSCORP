@@ -1,6 +1,6 @@
 /*
   Autor: Matheus Lucas
-  Objetivo: Tela de detalhes da ocorrência, com vínculo de funcionário, responsável automático ao fechar, evidência e confiança da IA
+  Objetivo: Tela de detalhes da ocorrência, com vínculo de funcionário, responsável automático ao fechar, evidência, confiança da IA e geração de PDF real
   Data: 14/11/2026
 */
 
@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Shell from "../../components/Shell";
 import Popup from "../../components/Popup";
+import { gerarPdfOcorrencia } from "../../api/utils/gerarPdfOcorrencia.js";
 import styles from "../../style/detalhesOcorrencia.module.css";
 
 function formatarData(dataStr) {
@@ -133,6 +134,7 @@ export default function DetalhesOcorrencia() {
   const [ocorrencia, setOcorrencia] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
+  const [gerandoPdf, setGerandoPdf] = useState(false);
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
   const [erroEvidencia, setErroEvidencia] = useState(false);
@@ -614,6 +616,28 @@ export default function DetalhesOcorrencia() {
     o.Foto_responsavel || o.foto_responsavel || usuarioAutor?.foto || "";
   const temResponsavel = Boolean(nomeResponsavelExibicao || idAutor);
 
+  async function handleBaixarPdf() {
+    setGerandoPdf(true);
+    try {
+      await gerarPdfOcorrencia({
+        ocorrencia: o,
+        idFormatado,
+        data,
+        hora,
+        infos,
+        listaEpis,
+        nomeResponsavel: nomeResponsavelExibicao,
+        emailResponsavel: emailResponsavelExibicao,
+        porcentagemIA: isOrigemIA ? porcentagemIA : null,
+        urlEvidencia: !erroEvidencia ? urlEvidencia : null,
+      });
+    } catch {
+      setErro("Não foi possível gerar o arquivo PDF.");
+    } finally {
+      setGerandoPdf(false);
+    }
+  }
+
   return (
     <Shell>
       <section className={styles.conteudo}>
@@ -770,6 +794,7 @@ export default function DetalhesOcorrencia() {
               )}
             </div>
 
+            {/* CARD DETECÇÃO DA IA */}
             {isOrigemIA && porcentagemIA !== null && (
               <div className={styles.card}>
                 <h4
@@ -991,9 +1016,10 @@ export default function DetalhesOcorrencia() {
               <button
                 type="button"
                 className={styles.botaoSecundario}
-                onClick={() => window.print()}
+                onClick={handleBaixarPdf}
+                disabled={gerandoPdf}
               >
-                Imprimir / PDF
+                {gerandoPdf ? "Gerando PDF..." : "Baixar PDF"}
               </button>
             </div>
           </div>
