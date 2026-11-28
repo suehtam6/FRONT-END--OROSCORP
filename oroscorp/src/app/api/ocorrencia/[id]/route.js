@@ -145,10 +145,16 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     const { id } = await params;
+    const token = obterToken(request);
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+      headers['token'] = token;
+    }
 
-    const resposta = await fetch(`${API_URL}${API_OCORRENCIA}/${id}`, {
+    const resposta = await fetch(`${API_URL}${ROTA_OCORRENCIA}/${id}`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       cache: 'no-store',
     });
 
@@ -157,7 +163,7 @@ export async function DELETE(request, { params }) {
 
     if (!resposta.ok) {
       return NextResponse.json(
-        { message: dados.message || 'Erro ao deletar um motivo da ocorrência.' }, 
+        { message: dados.message || 'Erro ao deletar ocorrência.' },
         { status: resposta.status }
       );
     }

@@ -4,11 +4,31 @@ export const dynamic = 'force-dynamic';
 const API_URL = process.env.API_URL;
 const ROTA_CATEGORIA_EPI = '/v1/oroscorp/categoria-epi';
 
-export async function GET() {
+function obterHeadersAuth(request) {
+  const headers = { 'Content-Type': 'application/json' };
+  const headerAuth = request.headers.get('authorization');
+  const tokenCookie =
+    request.cookies.get('token')?.value ||
+    request.cookies.get('auth_token')?.value ||
+    request.cookies.get('jwt')?.value ||
+    request.cookies.get('access_token')?.value ||
+    request.cookies.get('oroscorp_token')?.value;
+
+  const bruto = headerAuth || tokenCookie;
+  if (bruto) {
+    const tokenLimpo = bruto.replace(/^Bearer\s+/i, '').trim();
+    headers['Authorization'] = `Bearer ${tokenLimpo}`;
+    headers['token'] = tokenLimpo;
+  }
+
+  return headers;
+}
+
+export async function GET(request) {
   try {
     const resposta = await fetch(`${API_URL}${ROTA_CATEGORIA_EPI}`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: obterHeadersAuth(request),
       cache: 'no-store',
     });
 
@@ -30,7 +50,6 @@ export async function POST(request) {
       return NextResponse.json({ message: 'O nome da categoria é obrigatório.' }, { status: 400 });
     }
 
-    // Envia tanto 'categoria' como 'nome_categoria' para satisfazer a validação da tua controller Java
     const payload = {
       categoria: valorNome,
       nome_categoria: valorNome
@@ -38,7 +57,7 @@ export async function POST(request) {
 
     const resposta = await fetch(`${API_URL}${ROTA_CATEGORIA_EPI}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: obterHeadersAuth(request),
       body: JSON.stringify(payload),
       cache: 'no-store',
     });

@@ -1,12 +1,24 @@
 import { NextResponse } from "next/server";
 
-const BASE_URL = "http://localhost:8080/v1/oroscorp";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/v1/oroscorp";
+
+function obterHeadersAuth(request) {
+  const headers = { "Content-Type": "application/json" };
+  const token = request.cookies.get("token")?.value;
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+    headers["token"] = token;
+  }
+  return headers;
+}
 
 export async function GET(request, { params }) {
   const { id } = await params;
 
   try {
     const res = await fetch(`${BASE_URL}/setor/dados/${id}`, {
+      headers: obterHeadersAuth(request),
       cache: "no-store",
     });
     const data = await res.json();
@@ -19,18 +31,16 @@ export async function GET(request, { params }) {
   }
 }
 
-
 export async function PUT(request, { params }) {
   try {
-    const { id } = await params; 
+    const { id } = await params;
     const body = await request.json();
 
     const res = await fetch(`${BASE_URL}/setor/${id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: obterHeadersAuth(request),
       body: JSON.stringify(body),
+      cache: "no-store",
     });
 
     const data = await res.json().catch(() => null);
@@ -51,7 +61,7 @@ export async function DELETE(request, { params }) {
 
     const resposta = await fetch(`${BASE_URL}/setor/${id}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
+      headers: obterHeadersAuth(request),
       cache: "no-store",
     });
 

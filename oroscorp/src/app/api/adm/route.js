@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { criarUsuarioBackEnd, desfazerUsuarioBackEnd } from '../utils/apiBase.js'; 
+import { criarUsuarioBackEnd, desfazerUsuarioBackEnd } from '../utils/apiBase.js';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,10 +12,32 @@ const ID_STATUS_ATIVO = Number(process.env.ID_STATUS_ATIVO || 1);
 const PREFIXO_FOTO = 'https://res.cloudinary.com/deuflqtkr/';
 const FOTO_PADRAO = 'sem-foto.png';
 
-async function callBack(method, route, body) {
+function obterToken(request) {
+  const headerAuth = request.headers.get('authorization');
+  if (headerAuth) {
+    return headerAuth.replace(/^Bearer\s+/i, '').trim();
+  }
+
+  const tokenCookie =
+    request.cookies.get('token')?.value ||
+    request.cookies.get('auth_token')?.value ||
+    request.cookies.get('jwt')?.value ||
+    request.cookies.get('access_token')?.value ||
+    request.cookies.get('oroscorp_token')?.value;
+
+  return tokenCookie ? tokenCookie.replace(/^Bearer\s+/i, '').trim() : '';
+}
+
+async function callBack(method, route, body, token) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+    headers['token'] = token;
+  }
+
   const resposta = await fetch(`${API_URL}${route}`, {
     method: method,
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: body ? JSON.stringify(body) : undefined,
     cache: 'no-store',
   });
@@ -28,7 +50,6 @@ const deuCerto = ({ resposta, dados }) => resposta.ok && dados.status === true;
 const mensagemDe = (dados, padrao) =>
   [dados.message || dados.response?.message, dados.field].filter(Boolean).join(' - ') || padrao;
 
-
 function extrairId(dados) {
   const r = dados.response;
   const candidato = r?.dados ?? r?.usuario ?? r;
@@ -37,6 +58,8 @@ function extrairId(dados) {
 }
 
 export async function POST(request) {
+  const token = obterToken(request);
+
   let body;
   try {
     body = await request.json();
@@ -56,15 +79,18 @@ export async function POST(request) {
     foto = fotoRecebida;
   }
 
-  const cadastroUsuario = await criarUsuarioBackEnd({
-    nome: texto('nome'),
-    foto,
-    email: texto('email'),
-    senha: texto('senha'),
-    data_nascimento: texto('data_nascimento'),
-    id_nivel_acesso: ID_NIVEL_ADM,
-    id_status_conta: ID_STATUS_ATIVO,
-  });
+  const cadastroUsuario = await criarUsuarioBackEnd(
+    {
+      nome: texto('nome'),
+      foto,
+      email: texto('email'),
+      senha: texto('senha'),
+      data_nascimento: texto('data_nascimento'),
+      id_nivel_acesso: ID_NIVEL_ADM,
+      id_status_conta: ID_STATUS_ATIVO,
+    },
+    token
+  );
 
   if (!cadastroUsuario || !deuCerto(cadastroUsuario)) {
     return NextResponse.json(
@@ -87,20 +113,25 @@ export async function POST(request) {
 
   let cadastroADM = null;
   try {
-    cadastroADM = await callBack('POST', ROTA_ADMINISTRADOR, {
-      cnpj: texto('cnpj'),
-      razao_social: texto('razao_social'),
-      id_usuario: idUsuario, 
-    });
+    cadastroADM = await callBack(
+      'POST',
+      ROTA_ADMINISTRADOR,
+      {
+        cnpj: texto('cnpj'),
+        razao_social: texto('razao_social'),
+        id_usuario: idUsuario,
+      },
+      token
+    );
   } catch {
-    cadastroADM = null; 
+    cadastroADM = null;
   }
 
   if (cadastroADM && deuCerto(cadastroADM)) {
     return NextResponse.json({ ok: true }, { status: 201 });
   }
 
-  const desfez = await desfazerUsuarioBackEnd(idUsuario);
+  const desfez = await desfazerUsuarioBackEnd(idUsuario, token);
 
   const motivo = cadastroADM
     ? mensagemDe(cadastroADM.dados, 'Não foi possível cadastrar o administrador.')
@@ -116,10 +147,11 @@ export async function POST(request) {
   );
 }
 
+export async function GET(request) {
+  const token = obterToken(request);
 
-export async function GET() {
   try {
-    const { resposta, dados } = await callBack('GET', ROTA_ADMINISTRADOR);
+    const { resposta, dados } = await callBack('GET', ROTA_ADMINISTRADOR, undefined, token);
 
     if (!resposta.ok) {
       return NextResponse.json(

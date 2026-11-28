@@ -4,11 +4,21 @@ export const dynamic = 'force-dynamic';
 const API_URL = process.env.API_URL;
 const ROTA_SETOR = '/v1/oroscorp/setor';
 
-export async function GET() {
+function obterHeadersAuth(request) {
+  const headers = { 'Content-Type': 'application/json' };
+  const token = request.cookies.get('token')?.value;
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+    headers['token'] = token;
+  }
+  return headers;
+}
+
+export async function GET(request) {
   try {
     const resposta = await fetch(`${API_URL}${ROTA_SETOR}`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: obterHeadersAuth(request),
       cache: 'no-store',
     });
 
@@ -33,7 +43,7 @@ export async function POST(request) {
 
     const resposta = await fetch(`${API_URL}${ROTA_SETOR}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: obterHeadersAuth(request),
       body: JSON.stringify(body),
       cache: 'no-store',
     });

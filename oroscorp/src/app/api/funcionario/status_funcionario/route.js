@@ -5,12 +5,18 @@ export const dynamic = 'force-dynamic';
 const API_URL = process.env.API_URL;
 const ROTA_STATUS = '/v1/oroscorp/statusfuncionario';
 
-
-export async function GET() {
+export async function GET(request) {
   try {
+    const token = request.cookies.get('token')?.value;
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+      headers['token'] = token;
+    }
+
     const resposta = await fetch(`${API_URL}${ROTA_STATUS}`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       cache: 'no-store',
     });
 
@@ -29,29 +35,21 @@ export async function GET() {
   }
 }
 
-
 export async function POST(request) {
   try {
-    //variavel reponsavel por validar o token de usuario (ela vai lá e pega do cookies)
     const token = request.cookies.get('token')?.value;
-    
-    //trasforma os dados em JSON
     const body = await request.json();
 
-    //pega os dados que o usuario escreve e trasforma em JSON
     const payload = {
       status: body.status,
     };
 
-    //trasforma Content-Type do headers em JSON
     const headers = { 'Content-Type': 'application/json' };
-    // verifica se o token é true 
     if (token) {
-      //e autoriza a transão de dados para api atraves do token 
       headers['Authorization'] = `Bearer ${token}`;
+      headers['token'] = token;
     }
 
-    //agora chama a API pra fazer funcionar tudo 
     const resposta = await fetch(`${API_URL}${ROTA_STATUS}`, {
       method: 'POST',
       headers,
@@ -59,15 +57,11 @@ export async function POST(request) {
       cache: 'no-store',
     });
 
-    //cria uma resposta da api do tipo text
     const text = await resposta.text();
-    //e trasforma em JSON
     const dados = text ? JSON.parse(text) : {};
 
-    //se a resposta for diferente de true 
     if (!resposta.ok) {
-      //cria tipo uma config mesage 
-      const msg = dados.message || dados.response?.message || 'Erro ao cadastrar EPI.';
+      const msg = dados.message || dados.response?.message || 'Erro ao cadastrar status.';
       return NextResponse.json({ message: msg }, { status: resposta.status });
     }
 

@@ -4,11 +4,21 @@ export const dynamic = 'force-dynamic';
 const API_URL = process.env.API_URL;
 const ROTA_STATUS_CAMERA = '/v1/oroscorp/status-camera';
 
-export async function GET() {
+function obterHeadersAuth(request) {
+  const headers = { 'Content-Type': 'application/json' };
+  const token = request.cookies.get('token')?.value;
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+    headers['token'] = token;
+  }
+  return headers;
+}
+
+export async function GET(request) {
   try {
     const resposta = await fetch(`${API_URL}${ROTA_STATUS_CAMERA}`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: obterHeadersAuth(request),
       cache: 'no-store',
     });
     const dados = await resposta.json().catch(() => ({}));
@@ -23,7 +33,7 @@ export async function POST(request) {
     const body = await request.json();
     const resposta = await fetch(`${API_URL}${ROTA_STATUS_CAMERA}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: obterHeadersAuth(request),
       body: JSON.stringify({ status: body.status }),
       cache: 'no-store',
     });

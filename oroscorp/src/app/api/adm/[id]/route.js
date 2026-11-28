@@ -144,7 +144,7 @@ export async function PUT(request, context) {
 
   const idUsuarioArrumado = Number(extrairId(atualizacaoUsuario.dados)) || idUsuario;
 
-  // 2. Atualiza a tabela administrador: PUT /v1/oroscorp/administrador/:id_adm
+
   let atualizacaoAdm;
   try {
     atualizacaoAdm = await callBack(

@@ -163,12 +163,13 @@ export default function AtualizarPerfil() {
     if (dados.email.trim() !== dados.confirmarEmail.trim()) {
       return "Os e-mails não coincidem.";
     }
-    if (!dados.senha) {
-      return "Informe sua senha (ou uma nova senha) para confirmar a atualização.";
+
+    if (dados.senha || dados.confirmarSenha) {
+      if (dados.senha !== dados.confirmarSenha) {
+        return "As senhas não coincidem.";
+      }
     }
-    if (dados.senha !== dados.confirmarSenha) {
-      return "As senhas não coincidem.";
-    }
+
     return null;
   }
 
@@ -205,21 +206,26 @@ export default function AtualizarPerfil() {
         }
       }
 
+      const payload = {
+        id_usuario: idsConta.id_usuario,
+        id_nivel_acesso: idsConta.id_nivel_acesso,
+        id_status_conta: idsConta.id_status_conta,
+        nome: dados.nome.trim(),
+        foto: urlFotoFinal,
+        email: dados.email.trim(),
+        data_nascimento: dados.data_nascimento,
+        cnpj: dados.cnpj.trim(),
+        razao_social: dados.razao_social.trim(),
+      };
+
+      if (dados.senha) {
+        payload.senha = dados.senha;
+      }
+
       const res = await fetch(`/api/adm/${idsConta.id_adm}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id_usuario: idsConta.id_usuario,
-          id_nivel_acesso: idsConta.id_nivel_acesso,
-          id_status_conta: idsConta.id_status_conta,
-          nome: dados.nome.trim(),
-          foto: urlFotoFinal,
-          email: dados.email.trim(),
-          senha: dados.senha,
-          data_nascimento: dados.data_nascimento,
-          cnpj: dados.cnpj.trim(),
-          razao_social: dados.razao_social.trim(),
-        }),
+        body: JSON.stringify(payload),
       });
 
       const json = await res.json().catch(() => ({}));
@@ -413,24 +419,24 @@ export default function AtualizarPerfil() {
                   </div>
 
                   <div className={s.campo}>
-                    <label htmlFor="senha">Senha</label>
+                    <label htmlFor="senha">Nova senha (opcional)</label>
                     <input
                       id="senha"
                       name="senha"
                       type="password"
-                      placeholder="••••••••"
+                      placeholder="Deixe em branco para manter a atual"
                       value={dados.senha}
                       onChange={atualizarCampo}
                     />
                   </div>
 
                   <div className={s.campo}>
-                    <label htmlFor="confirmarSenha">Confirmar senha</label>
+                    <label htmlFor="confirmarSenha">Confirmar nova senha</label>
                     <input
                       id="confirmarSenha"
                       name="confirmarSenha"
                       type="password"
-                      placeholder="••••••••"
+                      placeholder="Repita a nova senha"
                       value={dados.confirmarSenha}
                       onChange={atualizarCampo}
                     />
@@ -438,7 +444,7 @@ export default function AtualizarPerfil() {
                 </div>
 
                 <p className={s.dicaSenha}>
-                  Informe sua senha atual (ou uma nova senha) para confirmar a atualização dos dados no servidor.
+                  Preencha os campos de senha apenas se desejar alterar sua senha atual.
                 </p>
               </div>
 

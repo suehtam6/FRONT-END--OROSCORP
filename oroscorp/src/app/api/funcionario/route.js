@@ -4,11 +4,18 @@ export const dynamic = 'force-dynamic';
 const API_URL = process.env.API_URL;
 const ROTA_FUNCIONARIO = '/v1/oroscorp/funcionario';
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const token = request.cookies.get('token')?.value;
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+      headers['token'] = token;
+    }
+
     const resposta = await fetch(`${API_URL}${ROTA_FUNCIONARIO}`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       cache: 'no-store',
     });
 
@@ -54,6 +61,7 @@ export async function POST(request) {
     if (token) {
       //e autoriza a transão de dados para api atraves do token 
       headers['Authorization'] = `Bearer ${token}`;
+      headers['token'] = token;
     }
 
     //agora chama a API pra fazer funcionar tudo 

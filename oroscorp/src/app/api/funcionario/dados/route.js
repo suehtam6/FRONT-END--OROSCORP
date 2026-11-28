@@ -4,22 +4,23 @@ export const dynamic = 'force-dynamic';
 const API_URL = process.env.API_URL;
 const ROTA_FUNCIONARIO = '/v1/oroscorp/funcionario/dados';
 
-
-export async function GET(request){
+export async function GET(request) {
     try {
         const token = request.cookies.get('token')?.value;
         const headers = { 'Content-Type': 'application/json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+            headers['token'] = token;
+        }
 
-        const resposta =  await fetch(`${API_URL}${ROTA_FUNCIONARIO}`,{
+        const resposta = await fetch(`${API_URL}${ROTA_FUNCIONARIO}`, {
             method: 'GET',
-            headers: {'Content-Type': 'application/json'},
+            headers,
             cache: 'no-store'
         });
 
-        const dados = await resposta.json().catch(() => ({}))
+        const dados = await resposta.json().catch(() => ({}));
 
-         
         if (!resposta.ok) {
             return NextResponse.json({ message: 'Erro ao buscar os funcionários do backend.' }, { status: resposta.status });
         }
@@ -29,6 +30,6 @@ export async function GET(request){
         return NextResponse.json(
             { message: 'Não foi possível conectar ao servidor para buscar os funcionários.' },
             { status: 502 }
-          );
+        );
     }
 }

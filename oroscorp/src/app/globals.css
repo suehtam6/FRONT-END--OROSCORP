@@ -99,3 +99,14 @@ html[data-theme="light"] header button {
   background-color: #14171a !important;
   color: #ff9800 !important;
 }
+
+@media (max-width: 900px) {
+  html,
+  body {
+    height: auto !important;
+    min-height: 100vh;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}

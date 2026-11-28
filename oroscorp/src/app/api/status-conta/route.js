@@ -5,10 +5,15 @@ const BASE_URL =
 
 export async function GET(request) {
   try {
-    const authHeader = request.headers.get("authorization");
+    const cookieToken = request.cookies.get("token")?.value;
+    const authHeader =
+      request.headers.get("authorization") ||
+      (cookieToken ? `Bearer ${cookieToken}` : "");
+
     const headers = {
       "Content-Type": "application/json",
       ...(authHeader ? { Authorization: authHeader } : {}),
+      ...(cookieToken ? { token: cookieToken } : {}),
     };
 
     const res = await fetch(`${BASE_URL}/status-conta`, {

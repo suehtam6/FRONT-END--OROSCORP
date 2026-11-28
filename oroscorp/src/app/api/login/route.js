@@ -1,13 +1,46 @@
 import { NextResponse } from 'next/server';
 
-// Esta rota roda no SERVIDOR do Next. O navegador só conversa com o Next;
-// quem chama o back-end é o servidor. Por isso não há problema de CORS e o
-// back pode ficar em localhost, sem precisar ser acessível de fora.
 export const dynamic = 'force-dynamic';
 
 const API_URL = process.env.API_URL; // ex: http://localhost:8080
 
 const OITO_HORAS = 60 * 60 * 8; // igual à duração do JWT do seu back
+
+function ehAdministrador(usuario) {
+  if (!usuario || typeof usuario !== 'object') return false;
+
+  // Caso nivel_acesso venha como array (padrão comum da API Oroscorp)
+  if (Array.isArray(usuario.nivel_acesso) && usuario.nivel_acesso.length > 0) {
+    const nivel = usuario.nivel_acesso[0];
+    const idNivel = nivel?.id ?? nivel?.id_nivel_acesso;
+    const nomeNivel = String(nivel?.nivel ?? nivel?.nome ?? '').trim().toUpperCase();
+
+    if (idNivel !== undefined && idNivel !== null) return Number(idNivel) === 1;
+    return nomeNivel === 'ADM' || nomeNivel === 'ADMINISTRADOR';
+  }
+
+  // Caso nivel_acesso venha como objeto
+  if (usuario.nivel_acesso && typeof usuario.nivel_acesso === 'object') {
+    const idNivel = usuario.nivel_acesso.id ?? usuario.nivel_acesso.id_nivel_acesso;
+    const nomeNivel = String(
+      usuario.nivel_acesso.nivel ?? usuario.nivel_acesso.nome ?? ''
+    )
+      .trim()
+      .toUpperCase();
+
+    if (idNivel !== undefined && idNivel !== null) return Number(idNivel) === 1;
+    return nomeNivel === 'ADM' || nomeNivel === 'ADMINISTRADOR';
+  }
+
+  // Caso venha como ID direto (id_nivel_acesso) ou string
+  const idDireto = usuario.id_nivel_acesso ?? usuario.idNivelAcesso;
+  if (idDireto !== undefined && idDireto !== null) {
+    return Number(idDireto) === 1;
+  }
+
+  const textoDireto = String(usuario.nivel_acesso ?? '').trim().toUpperCase();
+  return textoDireto === 'ADM' || textoDireto === 'ADMINISTRADOR';
+}
 
 export async function POST(request) {
   let corpo;
@@ -45,7 +78,6 @@ export async function POST(request) {
   const usuario = dados.response?.dados;
 
   if (!resposta.ok || dados.status !== true || !token) {
-    // Erros do seu configMessages podem vir em "message" ou, no 400, em "field".
     const mensagem =
       dados.message || dados.response?.message || dados.field || 'Não foi possível entrar.';
 
@@ -55,10 +87,18 @@ export async function POST(request) {
     );
   }
 
+  // Bloqueio no servidor: só permite acesso para nível ADM
+  if (!ehAdministrador(usuario)) {
+    return NextResponse.json(
+      { message: 'Acesso restrito. Apenas usuários com nível ADM podem acessar o painel.' },
+      { status: 403 }
+    );
+  }
+
   const res = NextResponse.json({ usuario });
 
   const opcoes = {
-    httpOnly: true, // o JavaScript do navegador não consegue ler (protege contra XSS)
+    httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
     path: '/',
@@ -68,8 +108,7 @@ export async function POST(request) {
   // 1) O token: a "chave" de acesso. Fica salvo por 8h, mesmo se fechar e abrir a aba.
   res.cookies.set('token', token, opcoes);
 
-  // 2) Os dados do perfil, só o que a interface precisa (nada de senha, nada sensível).
-  //    A rota /api/me lê este cookie para o menu mostrar quem está logado.
+  // 2) Os dados do perfil, só o que a interface precisa.
   if (usuario) {
     res.cookies.set(
       'usuario',
