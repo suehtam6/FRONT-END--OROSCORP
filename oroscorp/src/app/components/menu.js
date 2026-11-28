@@ -128,9 +128,17 @@ export default function Menu({ aberto = false, aoFechar }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const handleVoltar = (e) => {
+const handleVoltar = async (e) => {
     e.preventDefault();
-    router.push("/");
+    try {
+      sessionStorage.clear();
+      await fetch("/api/logout", { method: "POST" });
+    } catch {
+      // ignora erro de rede ao sair
+    } finally {
+      router.push("/");
+      router.refresh();
+    }
   };
 
   const fechar = () => aoFechar?.();
